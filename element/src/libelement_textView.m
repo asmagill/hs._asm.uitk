@@ -137,8 +137,6 @@ NSDictionary *luaByteToObjCharMap(NSString *theString) {
 @property            int        editingCallbackRef ;
 @property            int        completionsRef ;
 @property            BOOL       continuousTextDidChange ;
-
-@property (atomic)   NSInteger  tag ;
 @end
 
 @implementation HSUITKElementTextView
@@ -159,7 +157,6 @@ NSDictionary *luaByteToObjCharMap(NSString *theString) {
         _selfRefCount            = 0 ;
         _continuousTextDidChange = false ;
 
-        self.tag                 = 0 ;
         self.delegate            = self ;
 
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -174,14 +171,6 @@ NSDictionary *luaByteToObjCharMap(NSString *theString) {
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:NSTextViewDidChangeSelectionNotification
                                                   object:self] ;
-}
-
-- (NSInteger)tag {
-    return self.tag ;
-}
-
-- (void)setTag:(NSInteger)value {
-    self.tag = value ;
 }
 
 // a callback that doesn't have a return value
@@ -1062,20 +1051,6 @@ static int textView_textContainer_heightTracksTextView(lua_State *L) {
         lua_pushboolean(L, element.textContainer.heightTracksTextView) ;
     } else {
         element.textContainer.heightTracksTextView = (BOOL)(lua_toboolean(L, 2)) ;
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int textView_tag(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTextView *element = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, element.tag) ;
-    } else {
-        element.tag = lua_tointeger(L, 2) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -2035,7 +2010,6 @@ static const luaL_Reg userdata_metaLib[] = {
     {"completions",                 textView_completions},
     {"continuous",                  textView_continuousTextDidChange},
     {"selection",                   textView_selection},
-    {"tag",                         textView_tag},
     {"enabledCheckingTypes",        textView_enabledTextCheckingTypes},
 
 //     {"contentMap",                  textView_contentMap},
@@ -2137,7 +2111,6 @@ int luaopen_hs__asm_uitk_libelement_textView(lua_State* L) {
         @"completions",
         @"continuous",
         @"selection",
-        @"tag",
         @"enabledCheckingTypes",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
