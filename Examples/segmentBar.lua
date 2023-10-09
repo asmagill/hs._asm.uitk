@@ -10,5 +10,5 @@ m = uitk.menu.new("myMenu"):passthroughCallback(function(...)
                                 print(require("hs.inspect").inspect({...}))
                             end)
 
-for i = 1, 10, 1 do m[i] = { _item = menu.item.new(tostring(i)) } end
+for i = 1, 10, 1 do m[i] = { _item = uitk.menu.item.new(tostring(i)) } end
 grp[1].menus = { nil, nil, nil, m, nil }

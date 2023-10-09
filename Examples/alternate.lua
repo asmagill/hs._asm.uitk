@@ -33,5 +33,5 @@ for k, v in hs.fnutils.sortByKeys(uitk.menu.item._characterMap) do
     }
 
     i = (i + 1) % 10
-    if i == 0 then m:insert(menu.item("-")) end
+    if i == 0 then m:insert(uitk.menu.item("-")) end
 end

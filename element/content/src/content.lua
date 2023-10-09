@@ -194,7 +194,7 @@ moduleMT.__index = function(self, key)
 -- check to see if its an index or key to an element of this content
     local element = self(key)
     if element then
-        return wrapped_userdataWithMT(self, element)
+        return wrapped_userdataWithMT(element)
     end
 
 -- unrecognized
