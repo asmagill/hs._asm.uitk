@@ -1,0 +1,57 @@
+General
+ +  __view needs wrap method that checks content manager for way to wrap element
+ +  add wrap method to content, content.scroller, content.grid
+
+    move in canvas
+        and wrapper
+    move in turtleDraw
+    move in webView
+        and wrapper
+
+    NSSavePanel  ?
+    NSOpenPanel  ?
+    NSFontPanel  ?
+    NSColorPanel ?
+
+    document
+
+    examples
+        individual
+        combinations
+
++ grid
+ +  add table parsing to new, :insertColumn, and :insertRow
+    merge at grid level for 2d merge?
+
+popUpButton
+    investigate setTitle
+        but for pullsDown(false), it *shouldn't* create a new item if doesn't exist
+        for pullsDown(true) does it create new item or change 1st menu item?
+    should inherit from NSButton -- it is a subclass
+        but most additions don't look that useful...
+        make it a submodule (like textField stuff) or copy methods into?
+
+textField
+    what level of parity can this have with textView?
+    NSSearchField?
+    NSTokenField?
+
+textView
+        remove ruler, etc. stuff that requires scrollbar to work anyways?
+        what should callback?
+            -- add same editing/callbacks as textField?
+
+    - (NSUInteger)characterIndexForInsertionAtPoint:(NSPoint)point;
+    - (NSArray<NSString *> *)completionsForPartialWordRange:(NSRange)charRange indexOfSelectedItem:(NSInteger *)index;
+
+    - (void)showFindIndicatorForRange:(NSRange)charRange;
+    - (void)setLayoutOrientation:(NSTextLayoutOrientation)orientation;
+    - (void)setNeedsDisplayInRect:(NSRect)rect avoidAdditionalLayout:(BOOL)flag;
+    - (void)setSpellingState:(NSInteger)value range:(NSRange)charRange;
+
+    // from NSText (parent)
+        - (BOOL)readRTFDFromFile:(NSString *)path;
+        - (BOOL)writeRTFDToFile:(NSString *)path atomically:(BOOL)flag;
+        - (NSData *)RTFDFromRange:(NSRange)range;
+        - (NSData *)RTFFromRange:(NSRange)range;
+
