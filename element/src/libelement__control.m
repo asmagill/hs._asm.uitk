@@ -426,6 +426,19 @@ static int control_callback(lua_State *L) {
     return 1 ;
 }
 
+static int control_sizeToFit(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK] ;
+    NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!control || !oneOfOurs(control)) {
+        return luaL_argerror(L, 1, "expected userdata representing a control element") ;
+    }
+
+    [control sizeToFit] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_gc(lua_State* L) {
@@ -459,6 +472,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"singleLineMode", control_usesSingleLineMode},
     {"tag",            control_tag},
     {"callback",       control_callback},
+
+    {"sizeToFit",      control_sizeToFit},
 
     {"__gc",           userdata_gc},
     {NULL,             NULL}

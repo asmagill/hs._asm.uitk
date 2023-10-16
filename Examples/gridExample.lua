@@ -14,21 +14,20 @@ end
 
 local module = {}
 
+-- A simple menu for example purposes
+local brailleMenu = uitk.menu("popUpMenu")
+for i = 1, 10, 1 do
+    brailleMenu[#brailleMenu + 1] = { title = "Choice " .. tostring(i), }
+end
+
 local brailleTranslationLabel    = uitk.element.textField.newLabel("Braille Translation:")
-local brailleTranslationPopup    = uitk.element.popUpButton.new()
+local brailleTranslationPopup    = uitk.element.popUpButton(brailleMenu)
 local showContractedCheckbox     = uitk.element.button.checkbox("Show contracted braille")
 local showEightDotCheckbox       = uitk.element.button.checkbox("Show eight-dot braille")
 local statusCellsLabel           = uitk.element.textField.newLabel("Status Cells:")
 local showGeneralDisplayCheckbox = uitk.element.button.checkbox("Show general display status")
 local textStyleCheckbox          = uitk.element.button.checkbox("Show text style")
 local showAlertCheckbox          = uitk.element.button.checkbox("Show alert messages for duration")
-
--- A simple menu for example purposes
-local brailleMenu = uitk.menu("popUpMenu")
-for i = 1, 10, 1 do
-    brailleMenu[#brailleMenu + 1] = { title = "Choice " .. tostring(i), }
-end
-brailleTranslationPopup:menu(brailleMenu)
 
 -- create grid view
 local gridView = uitk.element.content.grid({
@@ -75,7 +74,7 @@ local window = uitk.panel.new{
     h = gridFittingSize.h,
 }:styleMask{ "titled", "closable" }:title("Options"):content(gridView):show()
 
--- each element could have its own callback, but we can also leverage the passthroughs:
+-- each element and menu item could have its own callback, but we can also leverage the passthroughs:
 gridView:passthroughCallback(function(...)
     print("content.grid passthrough:", finspect(...))
 end)

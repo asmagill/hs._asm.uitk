@@ -2,6 +2,8 @@ General
  +  __view needs wrap method that checks content manager for way to wrap element
  +  add wrap method to content, content.scroller, content.grid
 
+    rename textView to just text?
+
     move in canvas
         and wrapper
     move in turtleDraw
