@@ -17,6 +17,10 @@ static void defineInternalDictionaryies(void) {
     } ;
 }
 
+@interface NSMenu (assignmentSharing)
+@property (weak) NSView *assignedTo ;
+@end
+
 @interface HSUITKElementPathControl : NSPathControl <NSPathControlDelegate>
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
@@ -61,12 +65,15 @@ static void defineInternalDictionaryies(void) {
     } else {
         // allow next responder a chance since we don't have a callback set
         NSObject *nextInChain = [self nextResponder] ;
-        if (nextInChain) {
-            SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
                 [nextInChain performSelectorOnMainThread:passthroughCallback
                                               withObject:messageParts
                                            waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
             }
         }
     }
@@ -204,8 +211,12 @@ static int pathControl_menu(lua_State *L) {
             element.menu = nil ;
         } else {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
-            if (element.menu) [skin luaRelease:refTable forNSObject:element.menu] ;
+            if (element.menu) {
+                [skin luaRelease:refTable forNSObject:element.menu] ;
+                element.menu.assignedTo = nil ;
+            }
             NSMenu *menu = [skin toNSObjectAtIndex:2] ;
+            menu.assignedTo = element ;
             [skin luaRetain:refTable forNSObject:menu] ;
             element.menu = menu ;
         }
@@ -288,6 +299,26 @@ static id toHSUITKElementPathControlFromLua(lua_State *L, int idx) {
 
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
+static int userdata_gc(lua_State* L) {
+    HSUITKElementPathControl *obj  = get_objectFromUserdata(__bridge_transfer HSUITKElementPathControl, L, 1, USERDATA_TAG) ;
+
+    obj.selfRefCount-- ;
+    if (obj.selfRefCount == 0) {
+        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+        obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
+        if (obj.menu) {
+            obj.menu.assignedTo = nil ;
+            [skin luaRelease:refTable forNSObject:obj.menu] ;
+        }
+        obj = nil ;
+    }
+    // Remove the Metatable so future use of the variable in Lua won't think its valid
+    lua_pushnil(L) ;
+    lua_setmetatable(L, 1) ;
+
+    return 0 ;
+}
+
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
     {"style",           pathControl_pathStyle},
@@ -299,7 +330,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"placeholder",     pathControl_placeholder},
 
 // other metamethods inherited from _control and _view
-    {NULL,    NULL}
+    {"__gc",            userdata_gc},
+    {NULL,              NULL}
 };
 
 // Functions for returned object when module loads

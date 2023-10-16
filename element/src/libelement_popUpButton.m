@@ -19,6 +19,10 @@ static void defineInternalDictionaryies(void) {
     } ;
 }
 
+@interface NSMenu (assignmentSharing)
+@property (weak) NSView *assignedTo ;
+@end
+
 @interface HSUITKElementPopUpButton : NSPopUpButton
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
@@ -64,12 +68,15 @@ static void defineInternalDictionaryies(void) {
     } else {
         // allow next responder a chance since we don't have a callback set
         NSObject *nextInChain = [self nextResponder] ;
-        if (nextInChain) {
-            SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
                 [nextInChain performSelectorOnMainThread:passthroughCallback
                                               withObject:messageParts
                                            waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
             }
         }
     }
@@ -83,44 +90,53 @@ static void defineInternalDictionaryies(void) {
 
 #pragma mark - Module Functions -
 
-/// hs._asm.uitk.element.popUpButton.new([frame], [pullsDown]) -> popUpButtonObject
+/// hs._asm.uitk.element.popUpButton.new([menu], [pullsDown]) -> popUpButtonObject
 /// Constructor
 /// Creates a new popUpButton element for `hs._asm.uitk.panel`.
 ///
 /// Parameters:
-///  * `frame`     - an optional frame table specifying the position and size of the frame for the element.
+///  * `menu`      - an optional `hs._asm.uitk.menu` object specifying the menu for the pop up button.
 ///  * `pullsDown` - an optional boolean, default false, specifying whether the menu is a pulls down menu (true) or a pop up menu (false).
 ///
 /// Returns:
 ///  * the popUpButtonObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * You can also add or change the menu item later with the [hs._asm.uitk.element.popUpButton:menu](#menu) method.
 static int popUpButton_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    NSRect frameRect = NSZeroRect ;
+    NSMenu *menu     = nil ;
     BOOL   pullsDown = NO ;
 
     switch(lua_gettop(L)) {
         case 1:
-            [skin checkArgs:LS_TTABLE | LS_TBOOLEAN, LS_TBREAK] ;
-            if (lua_type(L, 1) == LUA_TTABLE) {
-                frameRect = [skin tableToRectAtIndex:1] ;
+            if (lua_type(L, 1) == LUA_TUSERDATA) {
+                [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
+                menu = [skin toNSObjectAtIndex:1] ;
             } else {
+                [skin checkArgs:LS_TBOOLEAN, LS_TBREAK] ;
                 pullsDown = lua_toboolean(L, 1) ;
             }
             break ;
         case 2:
-            [skin checkArgs:LS_TTABLE, LS_TBOOLEAN, LS_TBREAK] ;
-            frameRect = [skin tableToRectAtIndex:1] ;
+            [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
+            menu = [skin toNSObjectAtIndex:1] ;
             pullsDown = lua_toboolean(L, 2) ;
             break ;
     }
 
-    HSUITKElementPopUpButton *button = [[HSUITKElementPopUpButton alloc] initWithFrame:frameRect
+    HSUITKElementPopUpButton *button = [[HSUITKElementPopUpButton alloc] initWithFrame:NSZeroRect
                                                                                pullsDown:pullsDown] ;
+
     if (button) {
-        if (lua_gettop(L) != 1) [button setFrameSize:[button fittingSize]] ;
+        if (menu) {
+            button.menu  = menu ;
+            menu.assignedTo = button ;
+            [skin luaRetain:refTable forNSObject:menu] ;
+            [button selectItem:nil] ;
+        }
+        [button setFrameSize:[button fittingSize]] ;
+
         [skin pushNSObject:button] ;
     } else {
         lua_pushnil(L) ;
@@ -152,12 +168,14 @@ static int popUpButton_menu(lua_State *L) {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
             oldMenu      = button.menu ;
             NSMenu *menu = [skin toNSObjectAtIndex:2] ;
+            menu.assignedTo = button ;
             button.menu  = menu ;
             [skin luaRetain:refTable forNSObject:menu] ;
         }
         [button selectItem:nil] ;
 
         if (oldMenu && ![oldMenu isEqualTo:button.initialMenu]) {
+            oldMenu.assignedTo = nil ;
             [skin luaRelease:refTable forNSObject:oldMenu] ;
         }
         lua_pushvalue(L, 1) ;
@@ -313,7 +331,10 @@ static int userdata_gc(lua_State* L) {
     if (obj.selfRefCount == 0) {
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
         obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
-        if (obj.menu) [skin luaRelease:refTable forNSObject:obj.menu] ;
+        if (obj.menu) {
+            obj.menu.assignedTo = nil ;
+            [skin luaRelease:refTable forNSObject:obj.menu] ;
+        }
         obj = nil ;
     }
     // Remove the Metatable so future use of the variable in Lua won't think its valid

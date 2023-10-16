@@ -13,13 +13,14 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 }
 
 @interface HSMenu : NSMenu <NSMenuDelegate>
-@property int  callbackRef ;
-@property int  passthroughCallback ;
-@property int  selfRefCount ;
-@property BOOL trackOpen ;
-@property BOOL trackClose ;
-@property BOOL trackUpdate ;
-@property BOOL trackHighlight ;
+@property        int    callbackRef ;
+@property        int    passthroughCallback ;
+@property        int    selfRefCount ;
+@property        BOOL   trackOpen ;
+@property        BOOL   trackClose ;
+@property        BOOL   trackUpdate ;
+@property        BOOL   trackHighlight ;
+@property (weak) NSView *assignedTo ;
 @end
 
 @implementation HSMenu
@@ -33,6 +34,7 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
         _trackClose           = NO ;
         _trackUpdate          = YES ;
         _trackHighlight       = NO ;
+        _assignedTo           = nil ;
 
         self.autoenablesItems = YES ;
         self.delegate         = self ;
@@ -41,13 +43,31 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 }
 
 - (void)passCallbackUpWith:(NSArray *)arguments {
-    NSMenu *nextInChain = [self supermenu] ;
-    if (nextInChain && [nextInChain isKindOfClass:[HSMenu class]]) {
-        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+    NSObject *nextInChain = [self supermenu] ;
+    SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+    while (nextInChain && [nextInChain isKindOfClass:[HSMenu class]]) {
         if ([nextInChain respondsToSelector:passthroughCallback]) {
             [nextInChain performSelectorOnMainThread:passthroughCallback
                                           withObject:arguments
                                        waitUntilDone:YES] ;
+            break ;
+        } else {
+            nextInChain = [(HSMenu *)nextInChain supermenu] ;
+        }
+    }
+
+    if (!nextInChain) {
+        nextInChain = _assignedTo ;
+        // allow next responder a chance since we don't have a callback set
+        while (nextInChain) {
+            if ([nextInChain respondsToSelector:passthroughCallback]) {
+                [nextInChain performSelectorOnMainThread:passthroughCallback
+                                              withObject:arguments
+                                           waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+            }
         }
     }
 }
@@ -609,6 +629,7 @@ static int userdata_gc(lua_State* L) {
             obj.callbackRef         = [skin luaUnref:refTable ref:obj.callbackRef] ;
             obj.passthroughCallback = [skin luaUnref:refTable ref:obj.passthroughCallback] ;
             obj.delegate = nil ;
+            obj.assignedTo = nil ;
             if (obj.itemArray) {
                 for (NSMenuItem *item in obj.itemArray) [skin luaRelease:refTable forNSObject:item] ;
                 [obj removeAllItems] ;

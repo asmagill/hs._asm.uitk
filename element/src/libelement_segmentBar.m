@@ -56,6 +56,10 @@ static void defineInternalDictionaryies(void) {
     };
 }
 
+@interface NSMenu (assignmentSharing)
+@property (weak) NSView *assignedTo ;
+@end
+
 @interface HSUITKElementSegmentedControl : NSSegmentedControl
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
@@ -98,12 +102,15 @@ static void defineInternalDictionaryies(void) {
     } else {
         // allow next responder a chance since we don't have a callback set
         NSObject *nextInChain = [self nextResponder] ;
-        if (nextInChain) {
-            SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
                 [nextInChain performSelectorOnMainThread:passthroughCallback
                                               withObject:messageParts
                                            waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
             }
         }
     }
@@ -265,11 +272,15 @@ static int segmentBar_menuForSegment(lua_State *L) {
                             LS_TUSERDATA, "hs._asm.uitk.menu",
                             LS_TBREAK] ;
             NSMenu *newMenu = [skin toNSObjectAtIndex:3] ;
+            newMenu.assignedTo = element ;
             [element setMenu:newMenu forSegment:segment] ;
             [skin luaRetain:refTable forNSObject:newMenu] ;
         }
 
-        if (currentMenu) [skin luaRelease:refTable forNSObject:currentMenu] ;
+        if (currentMenu) {
+            currentMenu.assignedTo = nil ;
+            [skin luaRelease:refTable forNSObject:currentMenu] ;
+        }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -722,7 +733,10 @@ static int userdata_gc(lua_State* L) {
         obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
         for(NSInteger i = 0 ; i < obj.segmentCount ; i++) {
             NSMenu *menu = [obj menuForSegment:i] ;
-            if (menu) [skin luaRelease:refTable forNSObject:menu] ;
+            if (menu) {
+                menu.assignedTo = nil ;
+                [skin luaRelease:refTable forNSObject:menu] ;
+            }
         }
         obj = nil ;
     }

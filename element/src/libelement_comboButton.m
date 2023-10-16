@@ -29,6 +29,10 @@ static void defineInternalDictionaryies(void) {
     }
 }
 
+@interface NSMenu (assignmentSharing)
+@property (weak) NSView *assignedTo ;
+@end
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability-new"
 @interface HSUITKElementComboButton : NSComboButton
@@ -112,12 +116,15 @@ static void defineInternalDictionaryies(void) {
     } else {
         // allow next responder a chance since we don't have a callback set
         NSObject *nextInChain = [self nextResponder] ;
-        if (nextInChain) {
-            SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
                 [nextInChain performSelectorOnMainThread:passthroughCallback
                                               withObject:messageParts
                                            waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
             }
         }
     }
@@ -275,11 +282,13 @@ static int comboButton_menu(lua_State *L) {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
             oldMenu      = button.menu ;
             NSMenu *menu = [skin toNSObjectAtIndex:2] ;
+            menu.assignedTo = button ;
             button.menu  = menu ;
             [skin luaRetain:refTable forNSObject:menu] ;
         }
 
         if (oldMenu && ![oldMenu isEqualTo:button.initialMenu]) {
+            oldMenu.assignedTo = nil ;
             [skin luaRelease:refTable forNSObject:oldMenu] ;
         }
         lua_pushvalue(L, 1) ;
@@ -343,7 +352,10 @@ static int userdata_gc(lua_State* L) {
     if (obj.selfRefCount == 0) {
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
         obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
-        if (obj.menu) [skin luaRelease:refTable forNSObject:obj.menu] ;
+        if (obj.menu) {
+            obj.menu.assignedTo = nil ;
+            [skin luaRelease:refTable forNSObject:obj.menu] ;
+        }
         obj = nil ;
     }
     // Remove the Metatable so future use of the variable in Lua won't think its valid
