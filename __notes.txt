@@ -27,10 +27,12 @@
 +   @interface NSPathControl          : NSControl
 
     @interface NSRuleEditor           : NSControl
-    @interface NSTableView            : NSControl
-        @interface NSTableCellView        : NSView
-        @interface NSTableHeaderView      : NSView
-        @interface NSTableRowView         : NSView
++   @interface NSTableView            : NSControl
+  ?     @interface NSTableCellView        : NSView
+  ?     @interface NSTableHeaderView      : NSView
+  ?     @interface NSTableRowView         : NSView
+
+    @interface NSOutlineView          : NSTableView
 
     @interface NSBrowser              : NSControl
 
@@ -47,8 +49,6 @@
         @interface NSScroller             : NSControl  -- for custom in NSScrollView
 +   @interface NSTextView             : NSText
         @interface OSAScriptView          : NSTextView
-
-
 
 
 -- not sure but not ruled out yet
