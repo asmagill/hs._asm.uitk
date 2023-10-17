@@ -1,6 +1,6 @@
 uitk = require("hs._asm.uitk")
 
-p = uitk.panel{x = 100, y = 100, h = 500, w = 500 }:show():passthroughCallback(cbinspect)
+p = uitk.window{x = 100, y = 100, h = 500, w = 500 }:show():passthroughCallback(cbinspect)
 c = p:content()
 s = uitk.element.content.scroller{}
 t = uitk.element.textView{}

@@ -98,7 +98,7 @@ static void defineInternalDictionaryies(void) {
 
 /// hs._asm.uitk.element.datepicker.new([frame]) -> datepickerObject
 /// Constructor
-/// Creates a new date picker element for `hs._asm.uitk.panel`.
+/// Creates a new date picker element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -107,7 +107,7 @@ static void defineInternalDictionaryies(void) {
 ///  * the datepickerObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 ///
 ///  * The initial date and time represented by the element will be the date and time when this function is invoked.  See [hs._asm.uitk.element.datepicker:date](#date).
 static int datepicker_new(lua_State *L) {

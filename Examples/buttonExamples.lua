@@ -6,7 +6,7 @@ local finspect = function(...) return (inspect({...}):gsub("%s+", " ")) end
 
 local module = {}
 
-local display = uitk.panel{ x = 100, y = 100, h = 100, w = 100 }:show():passthroughCallback(function(...) print(finspect(...)) end)
+local display = uitk.window{ x = 100, y = 100, h = 100, w = 100 }:show():passthroughCallback(function(...) print(finspect(...)) end)
 local grp = display:content()
 
 -- TODO:

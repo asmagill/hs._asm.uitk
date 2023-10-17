@@ -73,7 +73,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 /// hs._asm.uitk.element.slider.new([frame]) -> sliderObject
 /// Constructor
-/// Creates a new slider element for `hs._asm.uitk.panel`.
+/// Creates a new slider element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -82,7 +82,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 ///  * the sliderObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 static int slider_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -555,10 +555,10 @@ static int slider_rectOfTickMarkAtIndex(lua_State *L) {
 ///  * If the specified point is within the frame of a tick mark, returns the index of the matching tick mark; otherwise returns nil.
 ///
 /// Notes:
-///  * It is currently not possible to invoke mouse tracking on just a single element; instead you must enable it for the manager the slider belongs to and calculate the point to compare by adjusting it to be relative to the slider elements top left point, e.g.
+///  * It is currently not possible to invoke mouse tracking on just a single element; instead you must enable it for the content element the slider belongs to and calculate the point to compare by adjusting it to be relative to the slider elements top left point, e.g.
 /// ~~~lua
-///    g = require("hs._asm.uitk.panel")
-///    w = g.new{ x = 100, y = 100, h = 100, w = 300 }:content(g.manager.new()):show()
+///    g = require("hs._asm.uitk.window")
+///    w = g.new{ x = 100, y = 100, h = 100, w = 300 }:content(g.content.new()):show()
 ///    m = w:content():mouseCallback(function(mgr, message, point)
 ///                              local geomPoint   = hs.geometry.new(point)
 ///                              local slider      = mgr(1)

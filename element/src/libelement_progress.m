@@ -98,7 +98,7 @@ static void defineInternalDictionaryies(void) {
 
 /// hs._asm.uitk.element.progress.new([frame]) -> progressObject
 /// Constructor
-/// Creates a new progress element for `hs._asm.uitk.panel`.
+/// Creates a new progress element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -107,7 +107,7 @@ static void defineInternalDictionaryies(void) {
 ///  * the progressObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 ///
 ///  * The bar progress indicator type does not have a default width; if you are assigning the progress element to an `hs._asm.uitk.element.content`, be sure to specify a width in the frame details or the element may not be visible.
 static int progress_new(lua_State *L) {

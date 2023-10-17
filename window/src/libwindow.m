@@ -1,10 +1,10 @@
 @import Cocoa ;
 @import LuaSkin ;
 
-static const char * const USERDATA_TAG = "hs._asm.uitk.panel" ;
+static const char * const USERDATA_TAG = "hs._asm.uitk.window" ;
 static LSRefTable         refTable     = LUA_NOREF ;
 
-static NSArray *panelNotifications ;
+static NSArray *windowNotifications ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
@@ -26,7 +26,7 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
                       theRect.size.height) ;
 }
 
-@interface HSPanelModule : NSPanel <NSWindowDelegate>
+@interface HSUITKWindow : NSPanel <NSWindowDelegate>
 @property        int          selfRefCount ;
 @property        BOOL         allowKeyboardEntry ;
 @property        BOOL         closeOnEscape ;
@@ -38,7 +38,7 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 // @property        NSString     *subroleOverride ;
 @end
 
-@implementation HSPanelModule
+@implementation HSUITKWindow
 - (instancetype)initWithContentRect:(NSRect)contentRect styleMask:(NSWindowStyleMask)windowStyle {
     if (!(isfinite(contentRect.origin.x) && isfinite(contentRect.origin.y) && isfinite(contentRect.size.height) && isfinite(contentRect.size.width))) {
         [LuaSkin logError:[NSString stringWithFormat:@"%s:coordinates must be finite numbers", USERDATA_TAG]] ;
@@ -138,12 +138,12 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 
 - (void)fadeOut:(NSTimeInterval)fadeTime andClose:(BOOL)closeWindow {
     [NSAnimationContext beginGrouping] ;
-      __weak HSPanelModule *bself = self ;
+      __weak HSUITKWindow *bself = self ;
       [[NSAnimationContext currentContext] setDuration:fadeTime] ;
       [[NSAnimationContext currentContext] setCompletionHandler:^{
           // unlikely that bself will go to nil after this starts, but this keeps the
           // warnings down from [-Warc-repeated-use-of-weak]
-          HSPanelModule *mySelf = bself ;
+          HSUITKWindow *mySelf = bself ;
           if (mySelf) {
               if (closeWindow) {
                   [mySelf close] ; // trigger callback, if set, then cleanup
@@ -343,12 +343,12 @@ static NSWindowStyleMask defaultWindowMask = NSWindowStyleMaskTitled         |
 static int window_orderHelper(lua_State *L, NSWindowOrderingMode mode) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK | LS_TVARARG] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
     NSInteger relativeTo = 0 ;
 
     if (lua_gettop(L) > 1) {
         [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-        HSPanelModule *otherWindow = [skin toNSObjectAtIndex:2] ;
+        HSUITKWindow *otherWindow = [skin toNSObjectAtIndex:2] ;
         if (otherWindow) relativeTo = [otherWindow windowNumber] ;
     }
     if (window) [window orderWindow:mode relativeTo:relativeTo] ;
@@ -387,26 +387,26 @@ static int window_frameRectForContentRect(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel.new(rect, [styleMask]) -> panelObject
+/// hs._asm.uitk.window.new(rect, [styleMask]) -> windowObject
 /// Constructor
-/// Creates a new empty panel window.
+/// Creates a new empty window.
 ///
 /// Parameters:
-///  * `rect`     - a rect-table specifying the initial location and size of the panel window.
-///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.panel.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
+///  * `rect`     - a rect-table specifying the initial location and size of the window.
+///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.window.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
 ///
 /// Returns:
-///  * the panel object, or nil if there was an error creating the window.
+///  * the window object, or nil if there was an error creating the window.
 ///
 /// Notes:
-///  * a rect-table is a table with key-value pairs specifying the top-left coordinate on the screen of the panel window (keys `x`  and `y`) and the size (keys `h` and `w`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+///  * a rect-table is a table with key-value pairs specifying the top-left coordinate on the screen of the window (keys `x`  and `y`) and the size (keys `h` and `w`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 static int window_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
 
     NSUInteger windowStyle = (lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask ;
 
-    HSPanelModule *window = [[HSPanelModule alloc] initWithContentRect:[skin tableToRectAtIndex:1]
+    HSUITKWindow *window = [[HSUITKWindow alloc] initWithContentRect:[skin tableToRectAtIndex:1]
                                                              styleMask:windowStyle] ;
     if (window) {
         [skin pushNSObject:window] ;
@@ -418,22 +418,22 @@ static int window_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.panel:allowTextEntry([value]) -> panelObject | boolean
+/// hs._asm.uitk.window:allowTextEntry([value]) -> windowObject | boolean
 /// Method
-/// Get or set whether or not the panel object can accept keyboard entry. Defaults to true.
+/// Get or set whether or not the window object can accept keyboard entry. Defaults to true.
 ///
 /// Parameters:
-///  * `value` - an optional boolean, default true, which sets whether or not the panel will accept keyboard input.
+///  * `value` - an optional boolean, default true, which sets whether or not the window will accept keyboard input.
 ///
 /// Returns:
-///  * If a value is provided, then this method returns the panel object; otherwise the current value
+///  * If a value is provided, then this method returns the window object; otherwise the current value
 ///
 /// Notes:
 ///  * Most controllable elements require keybaord focus even if they do not respond directly to keyboard input.
-static int panel_allowTextEntry(lua_State *L) {
+static int window_allowTextEntry(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.allowKeyboardEntry) ;
@@ -444,22 +444,22 @@ static int panel_allowTextEntry(lua_State *L) {
     return 1 ;
 }
 
-// /// hs._asm.uitk.panel:deleteOnClose([value]) -> panelObject | boolean
+// /// hs._asm.uitk.window:deleteOnClose([value]) -> windowObject | boolean
 // /// Method
-// /// Get or set whether or not the panel window should delete itself when its window is closed.
+// /// Get or set whether or not the window should delete itself when its window is closed.
 // ///
 // /// Parameters:
-// ///  * `value` - an optional boolean, default false, which sets whether or not the panel will delete itself when its window is closed by any method.
+// ///  * `value` - an optional boolean, default false, which sets whether or not the window will delete itself when its window is closed by any method.
 // ///
 // /// Returns:
-// ///  * If a value is provided, then this method returns the panel object; otherwise the current value
+// ///  * If a value is provided, then this method returns the window object; otherwise the current value
 // ///
 // /// Notes:
 // ///  * setting this to true allows Lua garbage collection to release the window resources when the user closes the window.
-// static int panel_deleteOnClose(lua_State *L) {
+// static int window_deleteOnClose(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-//     HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+//     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 //
 //     if (lua_gettop(L) == 1) {
 //         lua_pushboolean(L, window.deleteOnClose) ;
@@ -470,19 +470,19 @@ static int panel_allowTextEntry(lua_State *L) {
 //     return 1 ;
 // }
 
-/// hs._asm.uitk.panel:alpha([alpha]) -> panelObject | number
+/// hs._asm.uitk.window:alpha([alpha]) -> windowObject | number
 /// Method
-/// Get or set the alpha level of the window representing the panel object.
+/// Get or set the alpha level of the window representing the window object.
 ///
 /// Parameters:
 ///  * `alpha` - an optional number, default 1.0, specifying the alpha level (0.0 - 1.0, inclusive) for the window.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_alphaValue(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, window.alphaValue) ;
@@ -494,19 +494,19 @@ static int window_alphaValue(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:backgroundColor([color]) -> panelObject | color table
+/// hs._asm.uitk.window:backgroundColor([color]) -> windowObject | color table
 /// Method
-/// Get or set the color for the background of panel window.
+/// Get or set the color for the background of window.
 ///
 /// Parameters:
 /// * `color` - an optional table containing color keys as described in `hs.drawing.color`
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_backgroundColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:window.backgroundColor] ;
@@ -517,19 +517,19 @@ static int window_backgroundColor(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:hasShadow([state]) -> panelObject | boolean
+/// hs._asm.uitk.window:hasShadow([state]) -> windowObject | boolean
 /// Method
-/// Get or set whether the panel window displays a shadow.
+/// Get or set whether the window displays a shadow.
 ///
 /// Parameters:
 ///  * `state` - an optional boolean, default true, specifying whether or not the window draws a shadow.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_hasShadow(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.hasShadow) ;
@@ -540,19 +540,19 @@ static int window_hasShadow(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:opaque([state]) -> panelObject | boolean
+/// hs._asm.uitk.window:opaque([state]) -> windowObject | boolean
 /// Method
-/// Get or set whether the panel window is opaque.
+/// Get or set whether the window is opaque.
 ///
 /// Parameters:
 ///  * `state` - an optional boolean, default true, specifying whether or not the window is opaque.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_opaque(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.opaque) ;
@@ -563,23 +563,23 @@ static int window_opaque(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:ignoresMouseEvents([state]) -> panelObject | boolean
+/// hs._asm.uitk.window:ignoresMouseEvents([state]) -> windowObject | boolean
 /// Method
-/// Get or set whether the panel window ignores mouse events.
+/// Get or set whether the window ignores mouse events.
 ///
 /// Parameters:
 ///  * `state` - an optional boolean, default false, specifying whether or not the window receives mouse events.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * Setting this to true will prevent elements in the window from receiving mouse button events or mouse movement events which affect the focus of the window or its elements. For elements which accept keyboard entry, this *may* also prevent the user from focusing the element for keyboard input unless the element is focused programmatically with [hs._asm.uitk.panel:activeElement](#activeElement).
-///  * Mouse tracking events (see `hs._asm.uitk.panel.manager:mouseCallback`) will still occur, even if this is true; however if two windows at the same level (see [hs._asm.uitk.panel:level](#level)) both occupy the current mouse location and one or both of the windows have this attribute set to false, spurious and unpredictable mouse callbacks may occur as the "frontmost" window changes based on which is acting on the event at that instant in time.
+///  * Setting this to true will prevent elements in the window from receiving mouse button events or mouse movement events which affect the focus of the window or its elements. For elements which accept keyboard entry, this *may* also prevent the user from focusing the element for keyboard input unless the element is focused programmatically with [hs._asm.uitk.window:activeElement](#activeElement).
+///  * Mouse tracking events (see `hs._asm.uitk.window.content:mouseCallback`) will still occur, even if this is true; however if two windows at the same level (see [hs._asm.uitk.window:level](#level)) both occupy the current mouse location and one or both of the windows have this attribute set to false, spurious and unpredictable mouse callbacks may occur as the "frontmost" window changes based on which is acting on the event at that instant in time.
 static int window_ignoresMouseEvents(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.ignoresMouseEvents) ;
@@ -591,10 +591,10 @@ static int window_ignoresMouseEvents(lua_State *L) {
 }
 
 static int window_styleMask(lua_State *L) {
-// NOTE:  This method is wrapped in panel.lua
+// NOTE:  This method is wrapped in window.lua
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSUInteger oldStyle = window.styleMask ;
     if (lua_type(L, 2) == LUA_TNONE) {
@@ -618,19 +618,19 @@ static int window_styleMask(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:title([title]) -> panelObject | string
+/// hs._asm.uitk.window:title([title]) -> windowObject | string
 /// Method
-/// Get or set the panel window's title.
+/// Get or set the window's title.
 ///
 /// Parameters:
-///  * `title` - an optional string specifying the title to assign to the panel window.
+///  * `title` - an optional string specifying the title to assign to the window.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_title(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
       [skin pushNSObject:window.title] ;
@@ -641,19 +641,19 @@ static int window_title(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:titlebarAppearsTransparent([state]) -> panelObject | boolean
+/// hs._asm.uitk.window:titlebarAppearsTransparent([state]) -> windowObject | boolean
 /// Method
-/// Get or set whether the panel window's title bar draws its background.
+/// Get or set whether the window's title bar draws its background.
 ///
 /// Parameters:
-///  * `state` - an optional boolean, default true, specifying whether or not the panel window's title bar draws its background.
+///  * `state` - an optional boolean, default true, specifying whether or not the window's title bar draws its background.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 static int window_titlebarAppearsTransparent(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.titlebarAppearsTransparent) ;
@@ -664,22 +664,22 @@ static int window_titlebarAppearsTransparent(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:titleVisibility([state]) -> panelObject | currentValue
+/// hs._asm.uitk.window:titleVisibility([state]) -> windowObject | currentValue
 /// Method
-/// Get or set whether or not the title is displayed in the panel window titlebar.
+/// Get or set whether or not the title is displayed in the window titlebar.
 ///
 /// Parameters:
-///  * `state` - an optional string containing the text "visible" or "hidden", specifying whether or not the panel window's title text appears.
+///  * `state` - an optional string containing the text "visible" or "hidden", specifying whether or not the window's title text appears.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * NOT IMPLEMENTED YET - When a toolbar is attached to the panel window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title ("visible") or in the window's title bar itself, as seen in applications like Safari ("hidden").
+///  * NOT IMPLEMENTED YET - When a toolbar is attached to the window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title ("visible") or in the window's title bar itself, as seen in applications like Safari ("hidden").
 static int window_titleVisibility(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 // FIXME: should we switch this to true/false?
     NSDictionary *mapping = @{
         @"visible" : @(NSWindowTitleVisible),
@@ -706,15 +706,15 @@ static int window_titleVisibility(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:appearance([appearance]) -> panelObject | string
+/// hs._asm.uitk.window:appearance([appearance]) -> windowObject | string
 /// Method
-/// Get or set the appearance name applied to the window decorations for the panel window.
+/// Get or set the appearance name applied to the window decorations for the window.
 ///
 /// Parameters:
 ///  * `appearance` - an optional string specifying the name of the appearance style to apply to the window frame and decorations.  Should be one of "aqua", "light", or "dark".
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
 ///  * Other string values are allowed for forwards compatibility if Apple or third party software adds additional themes.
@@ -726,7 +726,7 @@ static int window_titleVisibility(lua_State *L) {
 static int appearanceCustomization_appearance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSDictionary *mapping = @{
         @"aqua"                 : NSAppearanceNameAqua,          // 10.9+
@@ -765,22 +765,22 @@ static int appearanceCustomization_appearance(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:closeOnEscape([flag]) -> panelObject | boolean
+/// hs._asm.uitk.window:closeOnEscape([flag]) -> windowObject | boolean
 /// Method
-/// If the panel window is closable, this will get or set whether or not the Escape key is allowed to close the panel window.
+/// If the window is closable, this will get or set whether or not the Escape key is allowed to close the window.
 ///
 /// Parameters:
-///  * `flag` - an optional boolean value which indicates whether the panel window, when it's style includes `closable` (see [hs._asm.uitk.panel:styleMask](#styleMask)), should allow the Escape key to be a shortcut for closing the window.  Defaults to false.
+///  * `flag` - an optional boolean value which indicates whether the window, when it's style includes `closable` (see [hs._asm.uitk.window:styleMask](#styleMask)), should allow the Escape key to be a shortcut for closing the window.  Defaults to false.
 ///
 /// Returns:
-///  * If a value is provided, then this method returns the panel object; otherwise the current value
+///  * If a value is provided, then this method returns the window object; otherwise the current value
 ///
 /// Notes:
-///  * If this is set to true, Escape will only close the window if no other element responds to the Escape key first (e.g. if you are editing a textField element, the Escape will be captured by the text field, not by the panel window.)
-static int panel_closeOnEscape(lua_State *L) {
+///  * If this is set to true, Escape will only close the window if no other element responds to the Escape key first (e.g. if you are editing a textField element, the Escape will be captured by the text field, not by the window.)
+static int window_closeOnEscape(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, window.closeOnEscape) ;
@@ -791,25 +791,25 @@ static int panel_closeOnEscape(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:frame([rect], [animated]) -> panelObject | rect-table
+/// hs._asm.uitk.window:frame([rect], [animated]) -> windowObject | rect-table
 /// Method
-/// Get or set the frame of the panel window.
+/// Get or set the frame of the window.
 ///
 /// Parameters:
-///  * `rect`     - An optional rect-table containing the co-ordinates and size the panel window should be moved and set to
+///  * `rect`     - An optional rect-table containing the co-ordinates and size the window should be moved and set to
 ///  * `animated` - an optional boolean, default false, indicating whether the frame change should be performed with a smooth transition animation (true) or not (false).
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * a rect-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the panel window (keys `x`  and `y`) and the new size (keys `h` and `w`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+///  * a rect-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the window (keys `x`  and `y`) and the new size (keys `h` and `w`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 ///
-///  * See also [hs._asm.uitk.panel:animationDuration](#animationDuration).
+///  * See also [hs._asm.uitk.window:animationDuration](#animationDuration).
 static int window_frame(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK | LS_TVARARG] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSRect oldFrame = RectWithFlippedYCoordinate(window.frame);
     if (lua_gettop(L) == 1) {
@@ -824,25 +824,25 @@ static int window_frame(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.panel:topLeft([point], [animated]) -> panelObject | rect-table
+/// hs._asm.uitk.window:topLeft([point], [animated]) -> windowObject | rect-table
 /// Method
-/// Get or set the top left corner of the panel window.
+/// Get or set the top left corner of the window.
 ///
 /// Parameters:
-///  * `point`     - An optional point-table specifying the new coordinate the top-left of the panel window should be moved to
+///  * `point`     - An optional point-table specifying the new coordinate the top-left of the window should be moved to
 ///  * `animated` - an optional boolean, default false, indicating whether the frame change should be performed with a smooth transition animation (true) or not (false).
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * a point-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the panel (keys `x`  and `y`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+///  * a point-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the window (keys `x`  and `y`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 ///
-///  * See also [hs._asm.uitk.panel:animationDuration](#animationDuration).
+///  * See also [hs._asm.uitk.window:animationDuration](#animationDuration).
 static int window_topLeft(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK | LS_TVARARG] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSRect oldFrame = RectWithFlippedYCoordinate(window.frame);
     if (lua_gettop(L) == 1) {
@@ -858,25 +858,25 @@ static int window_topLeft(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.panel:size([size], [animated]) -> panelObject | rect-table
+/// hs._asm.uitk.window:size([size], [animated]) -> windowObject | rect-table
 /// Method
-/// Get or set the size of the panel window.
+/// Get or set the size of the window.
 ///
 /// Parameters:
-///  * `size`     - an optional size-table specifying the width and height the panel window should be resized to
+///  * `size`     - an optional size-table specifying the width and height the window should be resized to
 ///  * `animated` - an optional boolean, default false, indicating whether the frame change should be performed with a smooth transition animation (true) or not (false).
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the panel window should be resized to. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+///  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the window should be resized to. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 ///
-///  * See also [hs._asm.uitk.panel:animationDuration](#animationDuration).
+///  * See also [hs._asm.uitk.window:animationDuration](#animationDuration).
 static int window_size(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK | LS_TVARARG] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSRect oldFrame = window.frame;
     if (lua_gettop(L) == 1) {
@@ -892,27 +892,27 @@ static int window_size(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.panel:animationBehavior([behavior]) -> panelObject | string
+/// hs._asm.uitk.window:animationBehavior([behavior]) -> windowObject | string
 /// Method
-/// Get or set the macOS animation behavior used when the panel window is shown or hidden.
+/// Get or set the macOS animation behavior used when the window is shown or hidden.
 ///
 /// Parameters:
 ///  * `behavior` - an optional string specifying the animation behavior. The string should be one of the following:
 ///    * "default"        - The automatic animation that’s appropriate to the window type.
-///    * "none"           - No automatic animation used. This is the default which makes window appearance immediate unless you use the fade time argument with [hs._asm.uitk.panel:show](#show), [hs._asm.uitk.panel:hide](#hide), or [hs._asm.uitk.panel:delete](#delete).
+///    * "none"           - No automatic animation used. This is the default which makes window appearance immediate unless you use the fade time argument with [hs._asm.uitk.window:show](#show), [hs._asm.uitk.window:hide](#hide), or [hs._asm.uitk.window:delete](#delete).
 ///    * "documentWindow" - The animation behavior that’s appropriate to a document window.
 ///    * "utilityWindow"  - The animation behavior that’s appropriate to a utility window.
 ///    * "alertPanel"     - The animation behavior that’s appropriate to an alert window.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * This animation is separate from the fade-in and fade-out options provided with the [hs._asm.uitk.panel:show](#show), [hs._asm.uitk.panel:hide](#hide), and [hs._asm.uitk.panel:delete](#delete) methods and is provided by the macOS operating system itself.
+///  * This animation is separate from the fade-in and fade-out options provided with the [hs._asm.uitk.window:show](#show), [hs._asm.uitk.window:hide](#hide), and [hs._asm.uitk.window:delete](#delete) methods and is provided by the macOS operating system itself.
 static int window_animationBehavior(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSDictionary *mapping = @{
         @"default"        : @(NSWindowAnimationBehaviorDefault),
@@ -943,19 +943,19 @@ static int window_animationBehavior(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:animationDuration([duration | nil]) -> panelObject | number | nil
+/// hs._asm.uitk.window:animationDuration([duration | nil]) -> windowObject | number | nil
 /// Method
-/// Get or set the macOS animation duration for smooth frame transitions used when the panel window is moved or resized.
+/// Get or set the macOS animation duration for smooth frame transitions used when the window is moved or resized.
 ///
 /// Parameters:
-///  * `duration` - a number or nil, default nil, specifying the time in seconds to move or resize by 150 pixels when the `animated` flag is set for [hs._asm.uitk.panel:frame](#frame), [hs._asm.uitk.panel:topLeft](#topLeft), or [hs._asm.uitk.panel:size](#size). An explicit `nil` defaults to the macOS default, which is currently 0.2.
+///  * `duration` - a number or nil, default nil, specifying the time in seconds to move or resize by 150 pixels when the `animated` flag is set for [hs._asm.uitk.window:frame](#frame), [hs._asm.uitk.window:topLeft](#topLeft), or [hs._asm.uitk.window:size](#size). An explicit `nil` defaults to the macOS default, which is currently 0.2.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
-static int panel_animationDuration(lua_State *L) {
+///  * If an argument is provided, the window object; otherwise the current value.
+static int window_animationDuration(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:window.animationTime] ;
@@ -971,10 +971,10 @@ static int panel_animationDuration(lua_State *L) {
 }
 
 static int window_collectionBehavior(lua_State *L) {
-// NOTE:  This method is wrapped in panel.lua
+// NOTE:  This method is wrapped in window.lua
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     NSWindowCollectionBehavior oldBehavior = window.collectionBehavior ;
     if (lua_gettop(L) == 1) {
@@ -993,22 +993,22 @@ static int window_collectionBehavior(lua_State *L) {
     return 1 ;
 }
 
-// /// hs._asm.uitk.panel:delete([fadeOut]) -> none
+// /// hs._asm.uitk.window:delete([fadeOut]) -> none
 // /// Method
-// /// Destroys the panel object, optionally fading it out first (if currently visible).
+// /// Destroys the window object, optionally fading it out first (if currently visible).
 // ///
 // /// Parameters:
-// ///  * `fadeOut` - An optional number of seconds over which to fade out the panel object. Defaults to zero (i.e. immediate).
+// ///  * `fadeOut` - An optional number of seconds over which to fade out the window object. Defaults to zero (i.e. immediate).
 // ///
 // /// Returns:
 // ///  * None
 // ///
 // /// Notes:
 // ///  * This method is automatically called during garbage collection, notably during a Hammerspoon termination or reload, with a fade time of 0.
-// static int panel_delete(lua_State *L) {
+// static int window_delete(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-//     HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+//     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 //
 //     if (lua_gettop(L) == 1) {
 //         lua_pushcfunction(L, userdata_gc) ;
@@ -1016,7 +1016,7 @@ static int window_collectionBehavior(lua_State *L) {
 //         if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
 //             [skin logError:[NSString stringWithFormat:@"%s:error invoking __gc for delete method:%s", USERDATA_TAG, lua_tostring(L, -1)]] ;
 //             lua_pop(L, 1) ;
-//             [window orderOut:nil] ; // the least we can do is hide the panel if an error occurs with __gc
+//             [window orderOut:nil] ; // the least we can do is hide the window if an error occurs with __gc
 //         }
 //     } else {
 //         [window fadeOut:lua_tonumber(L, 2) andDelete:YES] ;
@@ -1025,19 +1025,19 @@ static int window_collectionBehavior(lua_State *L) {
 //     return 1;
 // }
 
-/// hs._asm.uitk.panel:hide([fadeOut]) -> panelObject
+/// hs._asm.uitk.window:hide([fadeOut]) -> windowObject
 /// Method
-/// Hides the panel object
+/// Hides the window object
 ///
 /// Parameters:
-///  * `fadeOut` - An optional number of seconds over which to fade out the panel object. Defaults to zero (i.e. immediate).
+///  * `fadeOut` - An optional number of seconds over which to fade out the window object. Defaults to zero (i.e. immediate).
 ///
 /// Returns:
-///  * The panel object
-static int panel_hide(lua_State *L) {
+///  * The window object
+static int window_hide(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [window orderOut:window];
@@ -1049,19 +1049,19 @@ static int panel_hide(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.panel:show([fadeIn]) -> panelObject
+/// hs._asm.uitk.window:show([fadeIn]) -> windowObject
 /// Method
-/// Displays the panel object
+/// Displays the window object
 ///
 /// Parameters:
-///  * `fadeIn` - An optional number of seconds over which to fade in the panel object. Defaults to zero (i.e. immediate).
+///  * `fadeIn` - An optional number of seconds over which to fade in the window object. Defaults to zero (i.e. immediate).
 ///
 /// Returns:
-///  * The panel object
-static int panel_show(lua_State *L) {
+///  * The window object
+static int window_show(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [window makeKeyAndOrderFront:nil];
@@ -1072,43 +1072,43 @@ static int panel_show(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.panel:orderAbove([panel2]) -> panelObject
+/// hs._asm.uitk.window:orderAbove([window2]) -> windowObject
 /// Method
-/// Moves the panel window above panel2, or all panel windows in the same presentation level, if panel2 is not given.
+/// Moves the window above window2, or all windows in the same presentation level, if window2 is not given.
 ///
 /// Parameters:
-///  * `panel2` -An optional panel window object to place the panel window above.
+///  * `window2` -An optional window object to place the window above.
 ///
 /// Returns:
-///  * The panel object
+///  * The window object
 ///
 /// Notes:
-///  * If the panel window and panel2 are not at the same presentation level, this method will will move the window as close to the desired relationship as possible without changing the object's presentation level. See [hs._asm.uitk.panel.level](#level).
+///  * If the window and window2 are not at the same presentation level, this method will will move the window as close to the desired relationship as possible without changing the object's presentation level. See [hs._asm.uitk.window.level](#level).
 static int window_orderAbove(lua_State *L) {
     return window_orderHelper(L, NSWindowAbove) ;
 }
 
-/// hs._asm.uitk.panel:orderBelow([panel2]) -> panelObject
+/// hs._asm.uitk.window:orderBelow([window2]) -> windowObject
 /// Method
-/// Moves the panel window below panel2, or all panel windows in the same presentation level, if panel2 is not given.
+/// Moves the window below window2, or all windows in the same presentation level, if window2 is not given.
 ///
 /// Parameters:
-///  * `panel2` - An optional panel window object to place the panel window below.
+///  * `window2` - An optional window object to place the window below.
 ///
 /// Returns:
-///  * The panel object
+///  * The window object
 ///
 /// Notes:
-///  * If the panel window and panel2 are not at the same presentation level, this method will will move the window as close to the desired relationship as possible without changing the object's presentation level. See [hs._asm.uitk.panel.level](#level).
+///  * If the window and window2 are not at the same presentation level, this method will will move the window as close to the desired relationship as possible without changing the object's presentation level. See [hs._asm.uitk.window.level](#level).
 static int window_orderBelow(lua_State *L) {
     return window_orderHelper(L, NSWindowBelow) ;
 }
 
 static int window_level(lua_State *L) {
-// NOTE:  This method is wrapped in panel.lua
+// NOTE:  This method is wrapped in window.lua
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, window.level) ;
@@ -1122,69 +1122,69 @@ static int window_level(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:isShowing() -> boolean
+/// hs._asm.uitk.window:isShowing() -> boolean
 /// Method
-/// Returns whether or not the panel window is currently being shown.
+/// Returns whether or not the window is currently being shown.
 ///
 /// Parameters:
 ///  * None
 ///
 /// Returns:
-///  * a boolean indicating whether or not the panel window is currently being shown (true) or is currently hidden (false).
+///  * a boolean indicating whether or not the window is currently being shown (true) or is currently hidden (false).
 ///
 /// Notes:
 ///  * This method only determines whether or not the window is being shown or is hidden -- it does not indicate whether or not the window is currently off screen or is occluded by other objects.
-///  * See also [hs._asm.uitk.panel:isOccluded](#isOccluded).
+///  * See also [hs._asm.uitk.window:isOccluded](#isOccluded).
 static int window_isShowing(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     lua_pushboolean(L, [window isVisible]) ;
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:isOccluded() -> boolean
+/// hs._asm.uitk.window:isOccluded() -> boolean
 /// Method
-/// Returns whether or not the panel window is currently occluded (hidden by other windows, off screen, etc).
+/// Returns whether or not the window is currently occluded (hidden by other windows, off screen, etc).
 ///
 /// Parameters:
 ///  * None
 ///
 /// Returns:
-///  * a boolean indicating whether or not the panel window is currently being occluded.
+///  * a boolean indicating whether or not the window is currently being occluded.
 ///
 /// Notes:
 ///  * If any part of the window is visible (even if that portion of the window does not contain any elements), then the window is not considered occluded.
-///  * a window which is completely covered by one or more opaque windows is considered occluded; however, if the windows covering the panel window are not opaque, then the window is not occluded.
+///  * a window which is completely covered by one or more opaque windows is considered occluded; however, if the windows covering the window are not opaque, then the window is not occluded.
 ///  * a window that is currently hidden or that has a height of 0 or a width of 0 is considered occluded.
-///  * See also [hs._asm.uitk.panel:isShowing](#isShowing).
+///  * See also [hs._asm.uitk.window:isShowing](#isShowing).
 static int window_isOccluded(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     lua_pushboolean(L, ([window occlusionState] & NSWindowOcclusionStateVisible) != NSWindowOcclusionStateVisible) ;
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:notificationCallback([fn | nil]) -> panelObject | fn | nil
+/// hs._asm.uitk.window:notificationCallback([fn | nil]) -> windowObject | fn | nil
 /// Method
-/// Get or set the notification callback for the panel window.
+/// Get or set the notification callback for the window.
 ///
 /// Parameters:
-///  * `fn` - a function, or explicit nil to remove, that should be invoked whenever a registered notification concerning the panel window occurs.  See [hs._asm.uitk.panel:notificationMessages](#notificationMessages) for information on registering for specific notifications.
+///  * `fn` - a function, or explicit nil to remove, that should be invoked whenever a registered notification concerning the window occurs.  See [hs._asm.uitk.window:notificationMessages](#notificationMessages) for information on registering for specific notifications.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * The function should expect two arguments: the panelObject itself and a string specifying the type of notification. See [hs._asm.uitk.panel:notificationMessages](#notificationMessages) and [hs._asm.uitk.panel.notifications](#notifications).
-///  * [hs._asm.uitk.panel:simplifiedWindowCallback](#simplifiedWindowCallback) provides a wrapper to this method which conforms to the window notifications currently offered by `hs.webview`.
-static int panel_notificationCallback(lua_State *L) {
+///  * The function should expect two arguments: the windowObject itself and a string specifying the type of notification. See [hs._asm.uitk.window:notificationMessages](#notificationMessages) and [hs._asm.uitk.window.notifications](#notifications).
+///  * [hs._asm.uitk.window:simplifiedWindowCallback](#simplifiedWindowCallback) provides a wrapper to this method which conforms to the window notifications currently offered by `hs.webview`.
+static int window_notificationCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         if (window.notificationCallback == LUA_NOREF) {
@@ -1204,10 +1204,10 @@ static int panel_notificationCallback(lua_State *L) {
     return 1 ;
 }
 
-static int panel_passthroughCallback(lua_State *L) {
+static int window_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         if (window.passthroughCallbackRef == LUA_NOREF) {
@@ -1227,24 +1227,24 @@ static int panel_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:notificationMessages([notifications, [replace]]) -> panelObject | table
+/// hs._asm.uitk.window:notificationMessages([notifications, [replace]]) -> windowObject | table
 /// Method
-/// Get or set the specific notifications which should trigger a callback set with [hs._asm.uitk.panel:notificationCallback](#notificationCallback).
+/// Get or set the specific notifications which should trigger a callback set with [hs._asm.uitk.window:notificationCallback](#notificationCallback).
 ///
 /// Parameters:
 ///  * `notifications` - a string, to specify one, or a table of strings to specify multiple notifications which are to trigger a callback when they occur.
 ///  * `replace`       - an optional boolean, default false, specifying whether the notifications listed should be added to the current set (false) or replace the existing set with new values (true).
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * When a new panelObject is created, the messages are initially set to `{ "didBecomeKey", "didResignKey", "didResize", "didMove" }`
-///  * See [hs._asm.uitk.panel.notifications](#notifications) for possible notification messages that can be watched for.
-static int panel_notificationWatchFor(lua_State *L) {
+///  * When a new windowObject is created, the messages are initially set to `{ "didBecomeKey", "didResignKey", "didResize", "didMove" }`
+///  * See [hs._asm.uitk.window.notifications](#notifications) for possible notification messages that can be watched for.
+static int window_notificationWatchFor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TSTRING | LS_TOPTIONAL, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:window.notifyFor] ;
@@ -1271,8 +1271,8 @@ static int panel_notificationWatchFor(lua_State *L) {
         }
         BOOL willAdd = (lua_gettop(L) == 2) ? YES : (BOOL)(lua_toboolean(L, 3)) ;
         for (NSString *item in watchingFor) {
-            if (![panelNotifications containsObject:item]) {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one or more of the following:%@", [panelNotifications componentsJoinedByString:@", "]] UTF8String]) ;
+            if (![windowNotifications containsObject:item]) {
+                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one or more of the following:%@", [windowNotifications componentsJoinedByString:@", "]] UTF8String]) ;
             }
         }
         if (willAdd) {
@@ -1287,27 +1287,27 @@ static int panel_notificationWatchFor(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:content([view | nil]) -> panelObject | manager/element userdata
+/// hs._asm.uitk.window:content([view | nil]) -> windowObject | element userdata
 /// Method
-/// Get or set the content manager for the panel window.
+/// Get or set the content element for the window.
 ///
 /// Parameters:
-///  * `view` - a userdata representing a content manager or content element, or an explcit nil to remove, to assign to the panel window.
+///  * `view` - a userdata representing a content element, individual element, or an explcit nil to remove, to assign to the window.
 ///
 /// Returns:
-///  * If an argument is provided, the panel object; otherwise the current value.
+///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * This module provides the window or "frame" for displaying visual or user interface elements, however the content itself is provided by other modules. This method allows you to assign a manager or single element directly to the window for display and user interaction.
+///  * This module provides the window or "frame" for displaying visual or user interface elements, however the content itself is provided by other modules. This method allows you to assign a content element or single element directly to the window for display and user interaction.
 ///
-///  * A manager allows for attaching multiple elements to the same window, for example a series of buttons and text fields for user input.
-///  * If the window is being used to display a single element, you can by skip using the manager and assign the element directly with this method. This works especially well for fully contained elements like `hs._asm.uitk.element.avplayer` or `hs.canvas`, but may be useful at times with other elements as well.  The following should be kept in mind when not using a manager:
+///  * A content element allows for attaching multiple elements to the same window, for example a series of buttons and text fields for user input.
+///  * If the window is being used to display a single element, you can by skip using the content element and assign the element directly with this method. This works especially well for fully contained elements like `hs._asm.uitk.element.avplayer` or `hs.canvas`, but may be useful at times with other elements as well.  The following should be kept in mind when not using a content element:
 ///    * The element's size is the window's size -- you cannot specify a specific location for the element within the window or make it smaller than the window to give it a visual border.
 ///    * Only one element can be assigned at a time. For canvas, which has its own methods for handling multiple visual elements, this isn't necessarily an issue.
 static int window_contentView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         if ([skin canPushNSObject:window.contentView]) {
@@ -1318,28 +1318,28 @@ static int window_contentView(lua_State *L) {
     } else {
         if (lua_type(L, 2) == LUA_TNIL) {
             [skin luaRelease:refTable forNSObject:window.contentView] ;
-            // placeholder, since a window/panel always has one after init, let's follow that pattern
+            // placeholder, since a window always has one after init, let's follow that pattern
             window.contentView = [[NSView alloc] initWithFrame:window.contentView.bounds] ;
         } else {
-            NSView *manager = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!manager || !oneOfOurs(manager)) {
+            NSView *content = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+            if (!content || !oneOfOurs(content)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             [skin luaRelease:refTable forNSObject:window.contentView] ;
-            [skin luaRetain:refTable forNSObject:manager] ;
-            window.contentView = manager ;
+            [skin luaRetain:refTable forNSObject:content] ;
+            window.contentView = content ;
         }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-/// hs._asm.uitk.panel:activeElement([view | nil]) -> boolean | userdata
+/// hs._asm.uitk.window:activeElement([view | nil]) -> boolean | userdata
 /// Method
-/// Get or set the active element for the panel window.
+/// Get or set the active element for the window.
 ///
 /// Parameters:
-///  * `view` - a userdata representing an element in the panel window to make the active element, or an explcit nil to make no element active.
+///  * `view` - a userdata representing an element in the window to make the active element, or an explcit nil to make no element active.
 ///
 /// Returns:
 ///  * If an argument is provided, returns true or false indicating whether or not the current active element (if any) relinquished focus; otherwise the current value.
@@ -1347,13 +1347,13 @@ static int window_contentView(lua_State *L) {
 /// Notes:
 ///  * The active element of a window is the element which is currently receiving mouse or keyboard activity from the user when the window is focused.
 ///
-///  * Not all elements can become the active element, for example textField elements which are neither editable or selectable. If you try to make such an element active, the content manager or panel window itself will become the active element.
-///  * Passing an explicit nil to this method will make the content manager or panel window itself the active element.
-///    * Making the content manager or panel window itself the active element has the visual effect of making no element active but leaving the window focus unchanged.
+///  * Not all elements can become the active element, for example textField elements which are neither editable or selectable. If you try to make such an element active, the content element or window itself will become the active element.
+///  * Passing an explicit nil to this method will make the content element or window itself the active element.
+///    * Making the content element or window itself the active element has the visual effect of making no element active but leaving the window focus unchanged.
 static int window_firstResponder(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSPanelModule *window = [skin toNSObjectAtIndex:1] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSResponder *trying = window.firstResponder ;
@@ -1375,9 +1375,9 @@ static int window_firstResponder(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-/// hs._asm.uitk.panel.windowBehaviors[]
+/// hs._asm.uitk.window.windowBehaviors[]
 /// Constant
-/// Array of window behavior labels for determining how an panel is handled in Spaces and Exposé
+/// Array of window behavior labels for determining how an window is handled in Spaces and Exposé
 ///
 /// * `default`                   - The window can be associated to one space at a time.
 /// * `canJoinAllSpaces`          - The window appears in all spaces. The menu bar behaves this way.
@@ -1422,16 +1422,16 @@ static int window_collectionTypeTable(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel.levels
+/// hs._asm.uitk.window.levels
 /// Constant
-/// A table of predefined window levels usable with [hs._asm.uitk.panel:level](#level)
+/// A table of predefined window levels usable with [hs._asm.uitk.window:level](#level)
 ///
 /// Predefined levels are:
 ///  * _MinimumWindowLevelKey - lowest allowed window level. If you specify a level lower than this, it will be set to this value.
 ///  * desktop
-///  * desktopIcon            - [hs._asm.uitk.panel:sendToBack](#sendToBack) is equivalent to this level - 1
+///  * desktopIcon            - [hs._asm.uitk.window:sendToBack](#sendToBack) is equivalent to this level - 1
 ///  * normal                 - normal application windows
-///  * floating               - equivalent to [hs._asm.uitk.panel:bringToFront(false)](#bringToFront); where "Always Keep On Top" windows are usually set
+///  * floating               - equivalent to [hs._asm.uitk.window:bringToFront(false)](#bringToFront); where "Always Keep On Top" windows are usually set
 ///  * tornOffMenu
 ///  * modalPanel             - modal alert dialog
 ///  * utility
@@ -1442,15 +1442,15 @@ static int window_collectionTypeTable(lua_State *L) {
 ///  * overlay
 ///  * help
 ///  * dragging
-///  * screenSaver            - equivalent to [hs._asm.uitk.panel:bringToFront(true)](#bringToFront)
+///  * screenSaver            - equivalent to [hs._asm.uitk.window:bringToFront(true)](#bringToFront)
 ///  * assistiveTechHigh
 ///  * cursor
 ///  * _MaximumWindowLevelKey - highest allowed window level. If you specify a level larger than this, it will be set to this value.
 ///
 /// Notes:
-///  * These key names map to the constants used in CoreGraphics to specify window levels and may not actually be used for what the name might suggest. For example, tests suggest that an active screen saver actually runs at a level of 2002, rather than at 1000, which is the window level corresponding to `hs._asm.uitk.panel.levels.screenSaver`.
+///  * These key names map to the constants used in CoreGraphics to specify window levels and may not actually be used for what the name might suggest. For example, tests suggest that an active screen saver actually runs at a level of 2002, rather than at 1000, which is the window level corresponding to `hs._asm.uitk.window.levels.screenSaver`.
 ///
-///  * Each window level is sorted separately and [hs._asm.uitk.panel:orderAbove](#orderAbove) and [hs._asm.uitk.panel:orderBelow](#orderBelow) only arrange windows within the same level.
+///  * Each window level is sorted separately and [hs._asm.uitk.window:orderAbove](#orderAbove) and [hs._asm.uitk.window:orderBelow](#orderBelow) only arrange windows within the same level.
 ///
 ///  * If you use Dock hiding (or in 10.11+, Menubar hiding) please note that when the Dock (or Menubar) is popped up, it is done so with an implicit orderAbove, which will place it above any items you may also draw at the Dock (or MainMenu) level.
 ///
@@ -1481,9 +1481,9 @@ static int window_windowLevels(lua_State *L) {
       lua_pushinteger(L, CGWindowLevelForKey(kCGMaximumWindowLevelKey)) ;           lua_setfield(L, -2, "_MaximumWindowLevelKey") ;
     return 1 ;
 }
-/// hs._asm.uitk.panel.masks[]
+/// hs._asm.uitk.window.masks[]
 /// Constant
-/// A table containing valid masks for the panel window.
+/// A table containing valid masks for the window.
 ///
 /// Table Keys:
 ///  * `borderless`             - The window has no border decorations
@@ -1493,7 +1493,7 @@ static int window_windowLevels(lua_State *L) {
 ///  * `resizable`              - The window is resizable
 ///  * `texturedBackground`     - The window has a texturized background
 ///  * `fullSizeContentView`    - If titled, the titlebar is within the frame size specified at creation, not above it.  Shrinks actual content area by the size of the titlebar, if present.
-///  * `utility`                - If titled, the window shows a utility panel titlebar (thinner than normal)
+///  * `utility`                - If titled, the window shows a utility window titlebar (thinner than normal)
 ///  * `nonactivating`          - If the window is activated, it won't bring other Hammerspoon windows forward as well
 ///  * `HUD`                    - Requires utility; the window titlebar is shown dark and can only show the close button and title (if they are set)
 ///
@@ -1506,7 +1506,7 @@ static int window_windowLevels(lua_State *L) {
 ///  * The Maximize button in the window title is enabled when Resizable is set.
 ///  * The Close, Minimize, and Maximize buttons are only visible when the Window is also Titled.
 ///
-///  * Not all combinations of masks are valid and will throw an error if set with [hs._asm.uitk.panel:mask](#mask).
+///  * Not all combinations of masks are valid and will throw an error if set with [hs._asm.uitk.window:mask](#mask).
 static int window_windowMasksTable(lua_State *L) {
     lua_newtable(L) ;
     lua_pushinteger(L, NSWindowStyleMaskBorderless) ;             lua_setfield(L, -2, "borderless") ;
@@ -1525,9 +1525,9 @@ static int window_windowMasksTable(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.panel.notifications[]
+/// hs._asm.uitk.window.notifications[]
 /// Constant
-/// An array containing all of the notifications which can be enabled with [hs._asm.uitk.panel:notificationMessages](#notificationMessages).
+/// An array containing all of the notifications which can be enabled with [hs._asm.uitk.window:notificationMessages](#notificationMessages).
 ///
 /// Array values:
 ///  * `didBecomeKey`               - The window has become the key window; controls or elements of the window can now be manipulated by the user and keyboard entry (if appropriate) will be captured by the relevant elements.
@@ -1566,7 +1566,7 @@ static int window_windowMasksTable(lua_State *L) {
 ///  * Not all of the notifications here are currently fully supported and the specific details and support will change as this module and its submodules evolve and get fleshed out. Some may be removed if it is determined they will never be supported by this module while others may lead to additions when the need arises. Please post an issue or pull request if you would like to request specific support or provide additions yourself.
 static int window_notifications(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    panelNotifications = @[
+    windowNotifications = @[
         @"didBecomeKey",
         @"didBecomeMain",
         @"didChangeBackingProperties",
@@ -1599,7 +1599,7 @@ static int window_notifications(lua_State *L) {
         @"willMove",
         @"willStartLiveResize",
     ] ;
-    [skin pushNSObject:panelNotifications] ;
+    [skin pushNSObject:windowNotifications] ;
     return 1 ;
 }
 
@@ -1607,21 +1607,21 @@ static int window_notifications(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSPanelModule(lua_State *L, id obj) {
-    HSPanelModule *value = obj;
+static int pushHSUITKWindow(lua_State *L, id obj) {
+    HSUITKWindow *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSPanelModule *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKWindow *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSPanelModuleFromLua(lua_State *L, int idx) {
+static id toHSUITKWindowFromLua(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSPanelModule *value ;
+    HSUITKWindow *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSPanelModule, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKWindow, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -1633,7 +1633,7 @@ static id toHSPanelModuleFromLua(lua_State *L, int idx) {
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSPanelModule *obj = [skin luaObjectAtIndex:1 toClass:"HSPanelModule"] ;
+    HSUITKWindow *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKWindow"] ;
     NSString *title = obj.title ;
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ @%@ (%p)", USERDATA_TAG, title, NSStringFromRect(RectWithFlippedYCoordinate(obj.frame)), lua_topointer(L, 1)]] ;
     return 1 ;
@@ -1644,8 +1644,8 @@ static int userdata_eq(lua_State* L) {
 // so use luaL_testudata before the macro causes a lua error
     if (luaL_testudata(L, 1, USERDATA_TAG) && luaL_testudata(L, 2, USERDATA_TAG)) {
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-        HSPanelModule *obj1 = [skin luaObjectAtIndex:1 toClass:"HSPanelModule"] ;
-        HSPanelModule *obj2 = [skin luaObjectAtIndex:2 toClass:"HSPanelModule"] ;
+        HSUITKWindow *obj1 = [skin luaObjectAtIndex:1 toClass:"HSUITKWindow"] ;
+        HSUITKWindow *obj2 = [skin luaObjectAtIndex:2 toClass:"HSUITKWindow"] ;
         lua_pushboolean(L, [obj1 isEqualTo:obj2]) ;
     } else {
         lua_pushboolean(L, NO) ;
@@ -1655,7 +1655,7 @@ static int userdata_eq(lua_State* L) {
 
 // The monster, in his consternation, demonstrates defenestration... -- Bill Waterson
 static int userdata_gc(lua_State* L) {
-    HSPanelModule *obj = get_objectFromUserdata(__bridge_transfer HSPanelModule, L, 1, USERDATA_TAG) ;
+    HSUITKWindow *obj = get_objectFromUserdata(__bridge_transfer HSUITKWindow, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj. selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -1687,11 +1687,11 @@ static int userdata_gc(lua_State* L) {
 static const luaL_Reg userdata_metaLib[] = {
     {"appearance",                 appearanceCustomization_appearance},
 
-    {"allowTextEntry",             panel_allowTextEntry},
-    {"closeOnEscape",              panel_closeOnEscape},
-    {"animationDuration",          panel_animationDuration},
-    {"hide",                       panel_hide},
-    {"show",                       panel_show},
+    {"allowTextEntry",             window_allowTextEntry},
+    {"closeOnEscape",              window_closeOnEscape},
+    {"animationDuration",          window_animationDuration},
+    {"hide",                       window_hide},
+    {"show",                       window_show},
 
     {"alphaValue",                 window_alphaValue},
     {"animationBehavior",          window_animationBehavior},
@@ -1712,13 +1712,13 @@ static const luaL_Reg userdata_metaLib[] = {
     {"topLeft",                    window_topLeft},
     {"isOccluded",                 window_isOccluded},
     {"isShowing",                  window_isShowing},
-    {"notificationCallback",       panel_notificationCallback},
-    {"notificationMessages",       panel_notificationWatchFor},
-    {"passthroughCallback",        panel_passthroughCallback},
+    {"notificationCallback",       window_notificationCallback},
+    {"notificationMessages",       window_notificationWatchFor},
+    {"passthroughCallback",        window_passthroughCallback},
     {"content",                    window_contentView},
     {"activeElement",              window_firstResponder},
 
-//     {"accessibilitySubrole",       panel_accessibilitySubrole},
+//     {"accessibilitySubrole",       window_accessibilitySubrole},
 
     {"__tostring",                 userdata_tostring},
     {"__eq",                       userdata_eq},
@@ -1757,16 +1757,16 @@ static luaL_Reg moduleLib[] = {
 //     {NULL,   NULL}
 // };
 
-int luaopen_hs__asm_uitk_libpanel(lua_State* L) {
+int luaopen_hs__asm_uitk_libwindow(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSPanelModule         forClass:"HSPanelModule"];
-    [skin registerLuaObjectHelper:toHSPanelModuleFromLua forClass:"HSPanelModule"
-                                              withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKWindow         forClass:"HSUITKWindow"];
+    [skin registerLuaObjectHelper:toHSUITKWindowFromLua forClass:"HSUITKWindow"
+                                             withUserdataMapping:USERDATA_TAG];
 
     window_collectionTypeTable(L) ; lua_setfield(L, -2, "behaviors") ;
     window_windowLevels(L) ;        lua_setfield(L, -2, "levels") ;

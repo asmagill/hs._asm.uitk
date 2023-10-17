@@ -1,6 +1,6 @@
 uitk = require("hs._asm.uitk")
 
-win = uitk.panel{ x = 100, y = 100, h = 500, w = 500 }:show()
+win = uitk.window{ x = 100, y = 100, h = 500, w = 500 }:show()
 grp = win:content()
 
 grp[1] = { _userdata = uitk.element.segmentBar.new():segmentCount(5):labels({"a","b","c",nil,"d"}), frame = { cX = "50%", w = "80%" } }

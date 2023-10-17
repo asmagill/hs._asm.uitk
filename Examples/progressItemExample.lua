@@ -3,7 +3,7 @@ local timer = require("hs.timer")
 
 local module = {}
 
-local gui = uitk.panel{ x = 100, y = 100, h = 100, w = 204 }:show()
+local gui = uitk.window{ x = 100, y = 100, h = 100, w = 204 }:show()
 local grp = gui:content()
 
 grp[#grp + 1] = {

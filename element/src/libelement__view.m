@@ -92,8 +92,8 @@ static int view_fittingSize(lua_State *L) {
 /// Notes:
 ///  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the element should be resized to.
 ///
-///  * this method is primarily used to adjust an elements size before it has been assigned to a pane or panel, but was not assigned during the element's creation with its constructor, perhaps because the size wasn't known or calculable at the time.
-///  * if the element is already assigned to a content or panel window, this method will likely have no effect.
+///  * this method is primarily used to adjust an elements size before it has been assigned to a pane or window, but was not assigned during the element's creation with its constructor, perhaps because the size wasn't known or calculable at the time.
+///  * if the element is already assigned to a content or window, this method will likely have no effect.
 static int view_frameSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;

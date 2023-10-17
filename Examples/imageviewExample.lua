@@ -5,7 +5,7 @@ local canvas = require("hs.canvas")
 
 local module = {}
 
-local gui = uitk.panel{ x = 100, y = 100, h = 500, w = 500 }:show()
+local gui = uitk.window{ x = 100, y = 100, h = 500, w = 500 }:show()
 local mgr = gui:content()
 
 mgr[#mgr + 1] = {

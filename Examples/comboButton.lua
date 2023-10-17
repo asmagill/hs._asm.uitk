@@ -1,6 +1,6 @@
 uitk    = require("hs._asm.uitk")
 
-p = uitk.panel{x = 100, y = 100, h = 100, w = 100 }:show()
+p = uitk.window{x = 100, y = 100, h = 100, w = 100 }:show()
 content = p:content():passthroughCallback(function(...)
     print("content passthrough:", finspect(...))
 end)

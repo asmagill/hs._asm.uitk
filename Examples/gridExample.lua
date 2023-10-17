@@ -67,7 +67,7 @@ adjRow._row:mergeCells(1,2)
 adjRow[1].columnPlacement = "center"
 
 local gridFittingSize = gridView:fittingSize()
-local window = uitk.panel.new{
+local window = uitk.window.new{
     x = 100,
     y = 100,
     w = gridFittingSize.w,

@@ -37,7 +37,7 @@ local subModules = {
     element = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
     menu    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menu",
     menubar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menubar",
-    panel   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
+    window  = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
 }
 
 -- private variables and methods -----------------------------------------

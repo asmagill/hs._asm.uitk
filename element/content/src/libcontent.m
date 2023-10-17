@@ -583,7 +583,7 @@ static void adjustElementDetailsTable(lua_State *L, HSUITKElementView *content, 
 
 /// hs._asm.uitk.element.content.new([frame]) -> contentObject
 /// Constructor
-/// Creates a new content element for `hs._asm.uitk.panel`.
+/// Creates a new content element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -592,7 +592,7 @@ static void adjustElementDetailsTable(lua_State *L, HSUITKElementView *content, 
 ///  * the contentObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a panel or to another content.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a window or to another content.
 static int content_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -679,7 +679,7 @@ static int content__debugFrames(lua_State *L) {
 // ///
 // /// Notes:
 // ///  * This method recalculates the position of elements whose position in `frameDetails` is specified by the element center or whose position or size are specified by percentages. See [hs._asm.uitk.element.content:elementFrame](#elementFrame) for more information.
-// ///  * This method is invoked automatically anytime the content's parent (usually a `hs._asm.uitk.panel` window) is resized and you shouldn't need to invoke it manually very often. If you find that you are needing to invoke it manually on a regular basis, try to determine what the specific circumstances are and submit an issue so that it can be evaluated to determine if the situation can be detected and trigger an update automatically.
+// ///  * This method is invoked automatically anytime the content's parent (usually a `hs._asm.uitk.window`) is resized and you shouldn't need to invoke it manually very often. If you find that you are needing to invoke it manually on a regular basis, try to determine what the specific circumstances are and submit an issue so that it can be evaluated to determine if the situation can be detected and trigger an update automatically.
 // ///
 // /// * See also [hs._asm.uitk.element.content:elementAutoPosition](#elementAutoPosition).
 // static int content_autoPosition(lua_State *L) {
@@ -873,8 +873,8 @@ static int content_frameChangeCallback(lua_State *L) {
 ///
 ///  * You should capture the details you require from the drag-and-drop operation during the callback for "receive" by using the pasteboard field of the details table and the `hs.pasteboard` module.  Because of the nature of "promised items", it is not guaranteed that the items will still be on the pasteboard after your callback completes handling this message.
 ///
-///  * A content object can only accept drag-and-drop items when the `hs._asm.uitk.panel` window the content ultimately belongs to is at a level of `hs._asm.uitk.panel.levels.dragging` or lower. Note that the content receiving the drag-and-drop item does not have to be the content of the `hs._asm.uitk.panel` window -- it can be an element of another content acting as the window content.
-///  * a content object can only accept drag-and-drop items if it's `hs._asm.uitk.panel` window object accepts mouse events, i.e. `hs._asm.uitk.panel:ignoresMouseEvents` is set to false.
+///  * A content object can only accept drag-and-drop items when the `hs._asm.uitk.window` the content ultimately belongs to is at a level of `hs._asm.uitk.window.levels.dragging` or lower. Note that the content receiving the drag-and-drop item does not have to be the content of the `hs._asm.uitk.window` -- it can be an element of another content acting as the window content.
+///  * a content object can only accept drag-and-drop items if it's `hs._asm.uitk.window` object accepts mouse events, i.e. `hs._asm.uitk.window:ignoresMouseEvents` is set to false.
 ///
 ///  * Dragging callbacks are not passed to the parent passthrough callback; they must be handled by the content which is the dragging target.
 static int content_draggingCallback(lua_State *L) {
@@ -1028,7 +1028,7 @@ static int content_element(lua_State *L) {
 ///
 /// Notes:
 ///  * If the content is the member of another content, this content's size (but not top-left corner) is adjusted within its parent.
-///  * If the content is assigned to a `hs._asm.uitk.panel` window, the window's size (but not top-left corner) will be adjusted to the calculated size.
+///  * If the content is assigned to a `hs._asm.uitk.window`, the window's size (but not top-left corner) will be adjusted to the calculated size.
 static int content_sizeToFit(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1183,7 +1183,7 @@ static int content_elementFittingSize(lua_State *L) {
 ///
 ///  * When returning the current frame details table, an additional key-value pair is included: `_effective` will be a table specifying the elements actual frame-table (a table specifying the elements position as key-value pairs specifying the top-left position with `x` and `y`, and the element size with `h` and `w`).  This is provided for reference only: if this key-value pair is included when setting the frame details with this method, it will be ignored.
 
-// ///    * `honorCanvasMove` - A boolean, default nil (false), indicating whether or not the frame wrapper functions for `hs.canvas` objects should honor location changes when made with `hs.canvas:topLeft` or `hs.canvas:frame`. This is a (hopefully temporary) fix because canvas objects are not aware of the `hs._asm.uitk.panel` frameDetails model for element placement.
+// ///    * `honorCanvasMove` - A boolean, default nil (false), indicating whether or not the frame wrapper functions for `hs.canvas` objects should honor location changes when made with `hs.canvas:topLeft` or `hs.canvas:frame`. This is a (hopefully temporary) fix because canvas objects are not aware of the `hs._asm.uitk.window` frameDetails model for element placement.
 
 static int content_elementFrame(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

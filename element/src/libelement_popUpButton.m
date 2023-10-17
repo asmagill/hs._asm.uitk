@@ -92,7 +92,7 @@ static void defineInternalDictionaryies(void) {
 
 /// hs._asm.uitk.element.popUpButton.new([menu], [pullsDown]) -> popUpButtonObject
 /// Constructor
-/// Creates a new popUpButton element for `hs._asm.uitk.panel`.
+/// Creates a new popUpButton element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `menu`      - an optional `hs._asm.uitk.menu` object specifying the menu for the pop up button.

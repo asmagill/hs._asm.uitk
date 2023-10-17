@@ -331,7 +331,7 @@ static int control_lineBreakMode(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.guipaneltk.element._control:continuous([state]) -> controlObject | boolean
+/// hs._asm.uitk.element._control:continuous([state]) -> controlObject | boolean
 /// Method
 /// Get or set whether or not the control triggers continuous callbacks when the user interacts with it.
 ///
@@ -360,7 +360,7 @@ static int control_continuous(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.guitk.element._control:singleLineMode([state]) -> controlObject | boolean
+/// hs._asm.uitk.element._control:singleLineMode([state]) -> controlObject | boolean
 /// Method
 /// Get or set whether the control restricts layout and rendering of text to a single line.
 ///
@@ -371,7 +371,7 @@ static int control_continuous(lua_State *L) {
 ///  * if a value is provided, returns the control ; otherwise returns the current value.
 ///
 /// Notes:
-///  * When this is set to true, text layout and rendering is restricted to a single line. The element will interpret [hs._asm.guitk.element._control:lineBreakMode](#lineBreakMode) modes of "charWrap" and "wordWrap" as if they were "clip" and an editable textField will ignore key binding commands that insert paragraph and line separators.
+///  * When this is set to true, text layout and rendering is restricted to a single line. The element will interpret [hs._asm.uitk.element._control:lineBreakMode](#lineBreakMode) modes of "charWrap" and "wordWrap" as if they were "clip" and an editable textField will ignore key binding commands that insert paragraph and line separators.
 static int control_usesSingleLineMode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;

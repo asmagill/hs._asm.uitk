@@ -97,7 +97,7 @@ static void defineInternalDictionaryies(void) {
 
 /// hs._asm.uitk.element.colorwell.new([frame]) -> colorwellObject
 /// Constructor
-/// Creates a new colorwell element for `hs._asm.uitk.panel`.
+/// Creates a new colorwell element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -106,7 +106,7 @@ static void defineInternalDictionaryies(void) {
 ///  * the colorwellObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 ///
 ///  * The colorwell element does not have a default height or width; when assigning the element to a content, be sure to specify them in the frame details or the element may not be visible.
 static int colorwell_new(lua_State *L) {

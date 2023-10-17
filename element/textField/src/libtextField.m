@@ -257,7 +257,7 @@ BOOL oneOfOurs(NSTextField *obj) {
 
 /// hs._asm.uitk.element.textField.new([frame]) -> textFieldObject
 /// Constructor
-/// Creates a new textField element for `hs._asm.uitk.panel`.
+/// Creates a new textField element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -266,7 +266,7 @@ BOOL oneOfOurs(NSTextField *obj) {
 ///  * the textFieldObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content or to a `hs._asm.uitk.window`.
 ///
 ///  * The textField element does not have a default width unless you assign a value to it with [hs._asm.uitk.element.textField:value](#value); if you are assigning an empty textField element to an `hs._asm.uitk.element.content`, be sure to specify a width in the frame details or the element may not be visible.
 static int textField_new(lua_State *L) {
@@ -286,7 +286,7 @@ static int textField_new(lua_State *L) {
 
 /// hs._asm.uitk.element.textField.newLabel(text) -> textFieldObject
 /// Constructor
-/// Creates a new textField element usable as a label for `hs._asm.uitk.panel`.
+/// Creates a new textField element usable as a label for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `text` - a string or `hs.styledtext` object specifying the text to assign to the label.
@@ -319,7 +319,7 @@ static int textField_label(lua_State *L) {
 
 /// hs._asm.uitk.element.textField.newTextField([text]) -> textFieldObject
 /// Constructor
-/// Creates a new editable textField element for `hs._asm.uitk.panel`.
+/// Creates a new editable textField element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `text` - an optional string specifying the text to assign to the text field.
@@ -345,7 +345,7 @@ static int textField_textField(lua_State *L) {
 
 /// hs._asm.uitk.element.textField.newWrappingLabel(text) -> textFieldObject
 /// Constructor
-/// Creates a new textField element usable as a label for `hs._asm.uitk.panel`.
+/// Creates a new textField element usable as a label for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `text` - a string specifying the text to assign to the label.
@@ -868,7 +868,7 @@ static int textField_textColor(lua_State *L) {
 ///  * the textFieldObject
 ///
 /// Notes:
-///  * This method has no effect if the textField is not editable or selectable.  Use `hs._asm.uitk.panel:activeElement` if you wish to remove the focus from any textField that is currently selected.
+///  * This method has no effect if the textField is not editable or selectable.  Use `hs._asm.uitk.window:activeElement` if you wish to remove the focus from any textField that is currently selected.
 static int textField_selectText(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -907,7 +907,7 @@ static int textField_selectText(lua_State *L) {
 ///      * the string "keyPress"
 ///      * the string "return" or "escape"
 ///      * the default return value of false indicating that the callback is not interested in this keypress.
-///    * Note that the specification allows for the additional keys "left", "right", "up", and "down" to trigger this callback, but at present it is not known how to enable this for a textField element. It is surmised that they may be applicable to text based elements that are not currently supported by `hs._asm.uitk.panel`. If you do manage to receive a callback for one of these keys, please submit an issue with sample code so we can determine how to properly document them.
+///    * Note that the specification allows for the additional keys "left", "right", "up", and "down" to trigger this callback, but at present it is not known how to enable this for a textField element. It is surmised that they may be applicable to text based elements that are not currently supported by `hs._asm.uitk.window`. If you do manage to receive a callback for one of these keys, please submit an issue with sample code so we can determine how to properly document them.
 static int textField_editingCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;

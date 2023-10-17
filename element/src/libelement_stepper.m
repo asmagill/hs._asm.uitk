@@ -73,7 +73,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 /// hs._asm.uitk.element.stepper.new([frame]) -> switchObject
 /// Constructor
-/// Creates a new stepper element for `hs._asm.uitk.panel`.
+/// Creates a new stepper element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -82,7 +82,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 ///  * the switchObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 static int stepper_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;

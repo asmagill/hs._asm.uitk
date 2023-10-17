@@ -49,14 +49,14 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 ---  `...` - a single table of strings, or list of strings separated by commas, specifying the labels to assign to the radion buttons in the set.
 ---
 --- Returns:
----  * a new contentObject which can be used as an element to another `hs._asm.uitk.element.content` or assigned to an `hs._asm.uitk.panel` window directly.
+---  * a new contentObject which can be used as an element to another `hs._asm.uitk.element.content` or assigned to an `hs._asm.uitk.window` directly.
 ---
 --- Notes:
 ---  * Radio buttons in the same view (content) are treated as related and only one can be selected at a time. By grouping radio button sets in separate contents, these independant contents can be assigned to a parent content and each set will be seen as independent -- each set can have a selected item independent of the other radio sets which may also be displayed in the parent.
 ---
 ---  * For example:
 --- ~~~ lua
----     g = require("hs._asm.uitk.panel")
+---     g = require("hs._asm.uitk.window")
 ---     m = g.new{ x = 100, y = 100, h = 100, w = 130 }:content(g.content.new())():show()
 ---     m[1] = g.element.button.radioButtonSet(1, 2, 3, 4)
 ---     m[2] = g.element.button.radioButtonSet{"abc", "d", "efghijklmn"}

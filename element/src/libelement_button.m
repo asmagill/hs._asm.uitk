@@ -198,7 +198,7 @@ static void defineInternalDictionaryies(void) {
 
 /// hs._asm.uitk.element.button.buttonType(type, [frame]) -> buttonObject
 /// Constructor
-/// Creates a new button element of the specified type for `hs._asm.uitk.panel`.
+/// Creates a new button element of the specified type for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `button` - a string specifying the type of button to create. The string must be one of the following:
@@ -218,7 +218,7 @@ static void defineInternalDictionaryies(void) {
 ///  * a new buttonObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 ///
 ///  * See also:
 ///    * [hs._asm.uitk.element.button.buttonWithTitle](#buttonWithTitle)
@@ -254,7 +254,7 @@ static int button_newButtonType(lua_State *L) {
 
 /// hs._asm.uitk.element.button.buttonWithTitle(title) -> buttonObject
 /// Constructor
-/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title for `hs._asm.uitk.panel`.
+/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `title` - the title which will be displayed in the button
@@ -264,7 +264,7 @@ static int button_newButtonType(lua_State *L) {
 ///
 /// Notes:
 ///  * This creates a standard macOS push button with the title centered within the button.
-///  * The default frame created will be the minimum size necessary to display the button with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a panel manager (see `hs._asm.uitk.panel.manager`)
+///  * The default frame created will be the minimum size necessary to display the button with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a window content element (see `hs._asm.uitk.element.content`)
 ///
 ///  * See also:
 ///    * [hs._asm.uitk.element.button.buttonType](#buttonType)
@@ -287,7 +287,7 @@ static int button_newButtonWithTitle(lua_State *L) {
 
 /// hs._asm.uitk.element.button.buttonWithTitleAndImage(title, image) -> buttonObject
 /// Constructor
-/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title and image for `hs._asm.uitk.panel`.
+/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title and image for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `title` - the title which will be displayed in the button
@@ -298,7 +298,7 @@ static int button_newButtonWithTitle(lua_State *L) {
 ///
 /// Notes:
 ///  * This creates a standard macOS push button with an image at the left and the title centered within the button.
-///  * The default frame created will be the minimum size necessary to display the button with its image and title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a panel manager (see `hs._asm.uitk.panel.manager`)
+///  * The default frame created will be the minimum size necessary to display the button with its image and title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a window content element (see `hs._asm.uitk.element.content`)
 ///
 ///  * See also:
 ///    * [hs._asm.uitk.element.button.buttonType](#buttonType)
@@ -323,7 +323,7 @@ static int button_newButtonWithTitleAndImage(lua_State *L) {
 
 /// hs._asm.uitk.element.button.buttonWithImage(image) -> buttonObject
 /// Constructor
-/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title for `hs._asm.uitk.panel`.
+/// Creates a new button element of the specified of type "momentaryPushIn" with the specified title for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `image` - the `hs.image` object specifying the image to display in the button.
@@ -333,7 +333,7 @@ static int button_newButtonWithTitleAndImage(lua_State *L) {
 ///
 /// Notes:
 ///  * This creates a standard macOS push button with the image centered within the button.
-///  * The default frame created will be the minimum size necessary to display the button with the image. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a panel manager (see `hs._asm.uitk.panel.manager`)
+///  * The default frame created will be the minimum size necessary to display the button with the image. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a window content element (see `hs._asm.uitk.element.content`)
 ///
 ///  * See also:
 ///    * [hs._asm.uitk.element.button.buttonType](#buttonType)
@@ -356,7 +356,7 @@ static int button_newButtonWithImage(lua_State *L) {
 
 /// hs._asm.uitk.element.button.checkbox(title) -> buttonObject
 /// Constructor
-/// Creates a new checkbox button element of the specified of type "switch" with the specified title for `hs._asm.uitk.panel`.
+/// Creates a new checkbox button element of the specified of type "switch" with the specified title for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `title` - the title which will be displayed next to the checkbox
@@ -366,7 +366,7 @@ static int button_newButtonWithImage(lua_State *L) {
 ///
 /// Notes:
 ///  * This creates a standard macOS checkbox with the title next to it.
-///  * The default frame created will be the minimum size necessary to display the checkbox with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a panel manager (see `hs._asm.uitk.panel.manager`)
+///  * The default frame created will be the minimum size necessary to display the checkbox with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a window content element (see `hs._asm.uitk.element.content`)
 ///
 ///  * See also [hs._asm.uitk.element.button.buttonType](#buttonType)
 static int button_newButtonWithCheckbox(lua_State *L) {
@@ -386,7 +386,7 @@ static int button_newButtonWithCheckbox(lua_State *L) {
 
 /// hs._asm.uitk.element.button.radioButton(title) -> buttonObject
 /// Constructor
-/// Creates a new radio button element of the specified of type "radio" with the specified title for `hs._asm.uitk.panel`.
+/// Creates a new radio button element of the specified of type "radio" with the specified title for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `title` - the title which will be displayed next to the radio button
@@ -396,10 +396,10 @@ static int button_newButtonWithCheckbox(lua_State *L) {
 ///
 /// Notes:
 ///  * This creates a standard macOS radio button with the title next to it.
-///    * Only one radio button in the same manager can be active (selected) at one time; multiple radio buttons in the same manager are treated as a content or set.
-///    * To display multiple independent radio button sets in the same window or view (manager), each content must be in a separate `hs._asm.uitk.panel.manager` object and these separate objects may then be assigned as elements to a "parent" manager which is assigned to the `hs._asm.uitk.panel` window; alternatively use [hs._asm.uitk.element.button.radioButtonSet](#radioBUttonSet)
+///    * Only one radio button in the same content element can be active (selected) at one time; multiple radio buttons in the same content object  are treated as a set.
+///    * To display multiple independent radio button sets in the same window or content element), each set must be in a separate `hs._asm.uitk.element.content` object and these separate objects may then be assigned as elements to a "parent" content element which is assigned to the `hs._asm.uitk.window`; alternatively use [hs._asm.uitk.element.button.radioButtonSet](#radioBUttonSet)
 ///
-///  * The default frame created will be the minimum size necessary to display the checkbox with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a panel manager (see `hs._asm.uitk.panel.manager`)
+///  * The default frame created will be the minimum size necessary to display the checkbox with its title. If you need to adjust the button's size further, do so with the element frame details options available once the button element is attached to a window content element (see `hs._asm.uitk.element.content`)
 ///
 ///  * See also:
 ///    * [hs._asm.uitk.element.button.radioButtonSet](#radioBUttonSet)
@@ -569,7 +569,7 @@ static int button_transparent(lua_State *L) {
 ///
 /// Notes:
 ///  * Has no effect on buttons of type "switch" or "radio"
-///  * Changing this value will not affect whether or not the border is currently being displayed until the cursor actually hovers over the button or the button is clicked by the user. To keep the visual display in sync, make sure to set this value before displaying the panel (e.g. `hs._asm.uitk.panel:show()`) or set the border manually to the initial state you wish with [hs._asm.uitk.element.button:bordered](#bordered).
+///  * Changing this value will not affect whether or not the border is currently being displayed until the cursor actually hovers over the button or the button is clicked by the user. To keep the visual display in sync, make sure to set this value before displaying the window (e.g. `hs._asm.uitk.window:show()`) or set the border manually to the initial state you wish with [hs._asm.uitk.element.button:bordered](#bordered).
 static int button_borderOnHover(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;

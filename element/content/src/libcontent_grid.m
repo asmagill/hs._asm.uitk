@@ -177,7 +177,7 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
 
 /// hs._asm.uitk.element.content.grid.new(rows, columns) -> gridObject
 /// Constructor
-/// Creates a new grid content element for `hs._asm.uitk.panel` with the specified number of columns and rows.
+/// Creates a new grid content element for `hs._asm.uitk.window` with the specified number of columns and rows.
 ///
 /// Parameters:
 ///  * `rows`    - an integer greater than 0 specifying the number of rows in the grid
