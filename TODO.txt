@@ -1,44 +1,49 @@
 General
- +  __view needs wrap method that checks content manager for way to wrap element
+ +  __view needs wrap method that checks content element for way to wrap element
  +  add wrap method to content, content.scroller, content.grid
 
-    rename textView to just text?
+  rename textView to just text?
 
-    move in canvas
-        and wrapper
-    move in turtleDraw
-    move in webView
-        and wrapper
+  move in canvas
+      and wrapper
+  move in turtleDraw
+  move in webView
+      and wrapper
 
-    NSSavePanel  ?
-    NSOpenPanel  ?
-    NSFontPanel  ?
-    NSColorPanel ?
+  document
 
-    document
+  examples
+      individual
+      combinations
 
-    examples
-        individual
-        combinations
+  panel
+      NSSavePanel
+      NSOpenPanel
+      NSFontPanel   -- may be some methods in text*... move out?
+      NSColorPanel  -- move out of colorwell? is it in others?
+
++ table
+      add lua file so column data can be wrapped as well
+      other metamethods?
 
 + grid
- +  add table parsing to new, :insertColumn, and :insertRow
-    merge at grid level for 2d merge?
+   +  add table parsing to new, :insertColumn, and :insertRow
+      merge at grid level for 2d merge (mergeCellsInHorizontalRange:verticalRange:)?
 
-popUpButton
-    investigate setTitle
-        but for pullsDown(false), it *shouldn't* create a new item if doesn't exist
-        for pullsDown(true) does it create new item or change 1st menu item?
-    should inherit from NSButton -- it is a subclass
-        but most additions don't look that useful...
-        make it a submodule (like textField stuff) or copy methods into?
+  popUpButton
+      investigate setTitle
+          but for pullsDown(false), it *shouldn't* create a new item if doesn't exist
+          for pullsDown(true) does it create new item or change 1st menu item?
+      should inherit from NSButton -- it is a subclass
+          but most additions don't look that useful...
+          make it a submodule (like textField stuff) or copy methods into?
 
-textField
-    what level of parity can this have with textView?
-    NSSearchField?
-    NSTokenField?
+  textField
+      what level of parity can this have with textView?
+      NSSearchField?
+      NSTokenField?
 
-textView
+  textView
         remove ruler, etc. stuff that requires scrollbar to work anyways?
         what should callback?
             -- add same editing/callbacks as textField?
