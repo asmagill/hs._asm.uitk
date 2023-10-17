@@ -18,7 +18,7 @@ local module = {}
 
 local tableRows = {}
 
-for i = 1, 10, 1 do
+for i = 1, 20, 1 do
     local modsMenu = uitk.menu("Mod " .. tostring(i)):callback(function(...)
                                                                    menuChangeCallback("mods", i, ...)
                                                                end)
@@ -88,17 +88,17 @@ scroller.element = {
                        end,
 }
 
-local panel    = uitk.panel{x = 100, y = 100, h = 200, w = 900 }:show():passthroughCallback(function(...)
-    print("panelPassthrough", finspect(...))
+local window = uitk.window{x = 100, y = 100, h = 200, w = 900 }:show():passthroughCallback(function(...)
+    print("windowPassthrough", finspect(...))
 end)
-local content  = panel:content()
+local content  = window:content()
 content[1] = {
     _userdata = scroller,
     frame            = { h = "100%", w = "100%" },
     verticalScroller = true,
 }
 
-module.panel = panel
+module.window = window
 module.tableRows = tableRows
 
 return module

@@ -214,15 +214,8 @@ static BOOL oneOfOurs(NSView *obj) {
     return rowCount ;
 }
 
-// docs say required for NSView based tables, but object value is something to be assigned to NSCell
-// based ones, so I dunno?
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    return nil ;
-}
-
-// - (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-// }
-
+// - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
 // - (id<NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row;
 // - (BOOL)tableView:(NSTableView *)tableView acceptDrop:(id<NSDraggingInfo>)info row:(NSInteger)row dropOperation:(NSTableViewDropOperation)dropOperation;
 // - (NSDragOperation)tableView:(NSTableView *)tableView validateDrop:(id<NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)dropOperation;
@@ -232,31 +225,6 @@ static BOOL oneOfOurs(NSView *obj) {
 // - (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray<NSSortDescriptor *> *)oldDescriptors;
 
 #pragma mark - NSTableViewDelegate -
-
-// - (BOOL)selectionShouldChangeInTableView:(NSTableView *)tableView;
-// - (BOOL)tableView:(NSTableView *)tableView isGroupRow:(NSInteger)row;
-// - (BOOL)tableView:(NSTableView *)tableView shouldEditTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
-// - (BOOL)tableView:(NSTableView *)tableView shouldReorderColumn:(NSInteger)columnIndex toColumn:(NSInteger)newColumnIndex;
-
-- (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row {
-    return YES ;
-}
-
-- (BOOL)tableView:(NSTableView *)tableView shouldSelectTableColumn:(NSTableColumn *)tableColumn {
-    return YES ;
-}
-
-// - (BOOL)tableView:(NSTableView *)tableView shouldShowCellExpansionForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
-// - (BOOL)tableView:(NSTableView *)tableView shouldTrackCell:(NSCell *)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
-// - (BOOL)tableView:(NSTableView *)tableView shouldTypeSelectForEvent:(NSEvent *)event withCurrentSearchString:(NSString *)searchString;
-// - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row;
-// - (CGFloat)tableView:(NSTableView *)tableView sizeToFitWidthOfColumn:(NSInteger)column;
-// - (NSCell *)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
-// - (NSIndexSet *)tableView:(NSTableView *)tableView selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes;
-// - (NSInteger)tableView:(NSTableView *)tableView nextTypeSelectMatchFromRow:(NSInteger)startRow toRow:(NSInteger)endRow forString:(NSString *)searchString;
-// - (NSString *)tableView:(NSTableView *)tableView toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation;
-// - (NSString *)tableView:(NSTableView *)tableView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
-// - (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row;
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
     NSView *viewAtCell = nil ;
@@ -288,12 +256,44 @@ static BOOL oneOfOurs(NSView *obj) {
     return viewAtCell ;
 }
 
-// - (NSArray<NSTableViewRowAction *> *)tableView:(NSTableView *)tableView rowActionsForRow:(NSInteger)row edge:(NSTableRowActionEdge)edge;
+- (void)tableView:(NSTableView *)tableView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
+    LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
+//     [skin logInfo:[NSString stringWithFormat:@"%s:didAddRow - retaining row %ld", USERDATA_TAG, row]] ;
+    for (NSInteger i = 0 ; i < rowView.numberOfColumns ; i++) {
+        NSView *view = [rowView viewAtColumn:i] ;
+        if (view) [skin luaRetain:refTable forNSObject:view] ;
+    }
+}
 
-// - (void)tableView:(NSTableView *)tableView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row;
+- (void)tableView:(NSTableView *)tableView didRemoveRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
+    LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
+//     [skin logInfo:[NSString stringWithFormat:@"%s:didRemoveRow - releasing row %ld", USERDATA_TAG, row]] ;
+    for (NSInteger i = 0 ; i < rowView.numberOfColumns ; i++) {
+        NSView *view = [rowView viewAtColumn:i] ;
+        if (view) [skin luaRelease:refTable forNSObject:view] ;
+    }
+}
+
+// - (BOOL)selectionShouldChangeInTableView:(NSTableView *)tableView;
+// - (BOOL)tableView:(NSTableView *)tableView isGroupRow:(NSInteger)row;
+// - (BOOL)tableView:(NSTableView *)tableView shouldEditTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (BOOL)tableView:(NSTableView *)tableView shouldReorderColumn:(NSInteger)columnIndex toColumn:(NSInteger)newColumnIndex;
+// - (BOOL)tableView:(NSTableView *)tableView shouldSelectRow:(NSInteger)row;
+// - (BOOL)tableView:(NSTableView *)tableView shouldSelectTableColumn:(NSTableColumn *)tableColumn;
+// - (BOOL)tableView:(NSTableView *)tableView shouldShowCellExpansionForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (BOOL)tableView:(NSTableView *)tableView shouldTrackCell:(NSCell *)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (BOOL)tableView:(NSTableView *)tableView shouldTypeSelectForEvent:(NSEvent *)event withCurrentSearchString:(NSString *)searchString;
+// - (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row;
+// - (CGFloat)tableView:(NSTableView *)tableView sizeToFitWidthOfColumn:(NSInteger)column;
+// - (NSArray<NSTableViewRowAction *> *)tableView:(NSTableView *)tableView rowActionsForRow:(NSInteger)row edge:(NSTableRowActionEdge)edge;
+// - (NSCell *)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (NSIndexSet *)tableView:(NSTableView *)tableView selectionIndexesForProposedSelection:(NSIndexSet *)proposedSelectionIndexes;
+// - (NSInteger)tableView:(NSTableView *)tableView nextTypeSelectMatchFromRow:(NSInteger)startRow toRow:(NSInteger)endRow forString:(NSString *)searchString;
+// - (NSString *)tableView:(NSTableView *)tableView toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation;
+// - (NSString *)tableView:(NSTableView *)tableView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
+// - (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row;
 // - (void)tableView:(NSTableView *)tableView didClickTableColumn:(NSTableColumn *)tableColumn;
 // - (void)tableView:(NSTableView *)tableView didDragTableColumn:(NSTableColumn *)tableColumn;
-// - (void)tableView:(NSTableView *)tableView didRemoveRowView:(NSTableRowView *)rowView forRow:(NSInteger)row;
 // - (void)tableView:(NSTableView *)tableView mouseDownInHeaderOfTableColumn:(NSTableColumn *)tableColumn;
 // - (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
 // - (void)tableViewColumnDidMove:(NSNotification *)notification;
@@ -307,7 +307,7 @@ static BOOL oneOfOurs(NSView *obj) {
 
 /// hs._asm.uitk.element.table.new([frame]) -> tableObject
 /// Constructor
-/// Creates a new table element for `hs._asm.uitk.panel`.
+/// Creates a new table element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -316,7 +316,7 @@ static BOOL oneOfOurs(NSView *obj) {
 ///  * the tableObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a manager or to a `hs._asm.uitk.panel` window.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
 static int table_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1114,7 +1114,7 @@ static int table_selectedColumns(lua_State *L) {
         NSIndexSet     *set   = [table selectedColumnIndexes] ;
         NSMutableArray *array = [NSMutableArray array] ;
         [set enumerateIndexesUsingBlock:^(NSUInteger idx, __unused BOOL *stop) {
-            [array addObject:@(idx)] ;
+            [array addObject:@(idx + 1)] ;
         }];
         [skin pushNSObject:array] ;
     } else {
@@ -1127,18 +1127,18 @@ static int table_selectedColumns(lua_State *L) {
         }
 
         NSMutableIndexSet *indexes  = [NSMutableIndexSet indexSet] ;
-        __block BOOL      goodTable = ![selection isKindOfClass:[NSArray class]] ;
+        __block BOOL      goodTable = [selection isKindOfClass:[NSArray class]] ;
         NSInteger         colCount  = table.numberOfColumns ;
 
         if (goodTable) {
             [selection enumerateObjectsUsingBlock:^(NSNumber *obj, __unused NSUInteger i, BOOL *stop) {
                 if ([obj isKindOfClass:[NSNumber class]]) {
                     NSInteger idx = obj.integerValue ;
-                    if (idx < 0 || idx >= colCount) {
+                    if (idx < 1 || idx > colCount) {
                         goodTable = NO ;
                         *stop = YES ;
                     } else {
-                        [indexes addIndex:(NSUInteger)idx] ;
+                        [indexes addIndex:(NSUInteger)(idx - 1)] ;
                     }
                 } else {
                     goodTable = NO ;
@@ -1169,7 +1169,7 @@ static int table_selectedRows(lua_State *L) {
         NSIndexSet     *set   = [table selectedRowIndexes] ;
         NSMutableArray *array = [NSMutableArray array] ;
         [set enumerateIndexesUsingBlock:^(NSUInteger idx, __unused BOOL *stop) {
-            [array addObject:@(idx)] ;
+            [array addObject:@(idx + 1)] ;
         }];
         [skin pushNSObject:array] ;
     } else {
@@ -1182,18 +1182,18 @@ static int table_selectedRows(lua_State *L) {
         }
 
         NSMutableIndexSet *indexes  = [NSMutableIndexSet indexSet] ;
-        __block BOOL      goodTable = ![selection isKindOfClass:[NSArray class]] ;
-        NSInteger         colCount  = table.numberOfRows ;
+        __block BOOL      goodTable = [selection isKindOfClass:[NSArray class]] ;
+        NSInteger         rowCount  = table.numberOfRows ;
 
         if (goodTable) {
             [selection enumerateObjectsUsingBlock:^(NSNumber *obj, __unused NSUInteger i, BOOL *stop) {
                 if ([obj isKindOfClass:[NSNumber class]]) {
                     NSInteger idx = obj.integerValue ;
-                    if (idx < 0 || idx >= colCount) {
+                    if (idx < 1 || idx > rowCount) {
                         goodTable = NO ;
                         *stop = YES ;
                     } else {
-                        [indexes addIndex:(NSUInteger)idx] ;
+                        [indexes addIndex:(NSUInteger)(idx - 1)] ;
                     }
                 } else {
                     goodTable = NO ;
@@ -1612,6 +1612,12 @@ static int userdata_gc(lua_State* L) {
             obj.dataSourceRef  = [skin luaUnref:refTable ref:obj.dataSourceRef] ;
             obj.storedHeader   = nil ;
             obj.storedCorner   = nil ;
+            [obj enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, __unused NSInteger row) {
+                for (NSInteger i = 0 ; i < rowView.numberOfColumns ; i++) {
+                    NSView *view = [rowView viewAtColumn:i] ;
+                    if (view) [skin luaRelease:refTable forNSObject:view] ;
+                }
+            }] ;
         }
         obj = nil ;
     }
