@@ -1726,24 +1726,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {NULL,                         NULL}
 } ;
 
-#if defined(SOURCE_PATH) && ! defined(RELEASE_VERSION)
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-static int source_path(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TBREAK] ;
-    lua_pushstring(L, TOSTRING(SOURCE_PATH)) ;
-    return 1 ;
-}
-#undef TOSTRING
-#undef STRINGIFY
-#endif
-
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-#if defined(SOURCE_PATH) && ! defined(RELEASE_VERSION)
-    {"_source_path",        source_path},
-#endif
     {"minimumWidth",        window_minFrameWidthWithTitle},
     {"contentRectForFrame", window_contentRectForFrameRect},
     {"frameRectForContent", window_frameRectForContentRect},

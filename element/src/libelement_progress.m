@@ -11,7 +11,7 @@ static NSDictionary *PROGRESS_SIZE ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     if (@available(macOS 11, *)) {
         PROGRESS_SIZE = @{
             @"regular" : @(NSControlSizeRegular),
@@ -548,7 +548,7 @@ int luaopen_hs__asm_uitk_libelement_progress(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementProgress         forClass:"HSUITKElementProgress"];
     [skin registerLuaObjectHelper:toHSUITKElementProgressFromLua forClass:"HSUITKElementProgress"

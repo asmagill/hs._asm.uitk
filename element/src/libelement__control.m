@@ -44,7 +44,7 @@ BOOL oneOfOurs(NSControl *obj) {
            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
 }
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     if (@available(macOS 11, *)) {
         CONTROL_SIZE = @{
             @"regular" : @(NSControlSizeRegular),
@@ -483,7 +483,7 @@ int luaopen_hs__asm_uitk_libelement__control(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin registerLibrary:USERDATA_TAG functions:userdata_metaLib metaFunctions:nil] ;
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin pushNSObject:@[
         @"font",

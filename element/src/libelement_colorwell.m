@@ -16,7 +16,7 @@ static NSDictionary *COLORWELL_STYLE ;
 @property            int        callbackRef ;
 @end
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     if (@available(macOS 13, *)) {
         COLORWELL_STYLE = @{
             @"default"  : @(NSColorWellStyleDefault),
@@ -150,33 +150,33 @@ static int colorwell_ignoresAlpha(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.colorwell.panelVisible([state]) -> boolean
-/// Function
-/// Get or set whether the color picker panel is currently open and visible or not.
-///
-/// Parameters:
-///  * `state` - an optional boolean, default false, specifying whether or not the color picker is currently visible, displaying or closing it as specified.
-///
-/// Returns:
-///  * a boolean representing the, possibly new, state
-///
-/// Notes:
-///  * if a colorwell is currently the active element, invoking this function with a false argument will trigger the colorwell's close callback -- see [hs._asm.uitk.element.colorwell:callback](#callback).
-static int colorwell_pickerVisible(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-
-    NSColorPanel *picker = [NSColorPanel sharedColorPanel] ;
-    if (lua_gettop(L) == 1) {
-        if (lua_toboolean(L, 1)) {
-            [picker makeKeyAndOrderFront:nil] ;
-        } else {
-            [picker close] ;
-        }
-    }
-    lua_pushboolean(L, picker.visible) ;
-    return 1 ;
-}
+// /// hs._asm.uitk.element.colorwell.panelVisible([state]) -> boolean
+// /// Function
+// /// Get or set whether the color picker panel is currently open and visible or not.
+// ///
+// /// Parameters:
+// ///  * `state` - an optional boolean, default false, specifying whether or not the color picker is currently visible, displaying or closing it as specified.
+// ///
+// /// Returns:
+// ///  * a boolean representing the, possibly new, state
+// ///
+// /// Notes:
+// ///  * if a colorwell is currently the active element, invoking this function with a false argument will trigger the colorwell's close callback -- see [hs._asm.uitk.element.colorwell:callback](#callback).
+// static int colorwell_pickerVisible(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+//
+//     NSColorPanel *picker = [NSColorPanel sharedColorPanel] ;
+//     if (lua_gettop(L) == 1) {
+//         if (lua_toboolean(L, 1)) {
+//             [picker makeKeyAndOrderFront:nil] ;
+//         } else {
+//             [picker close] ;
+//         }
+//     }
+//     lua_pushboolean(L, picker.visible) ;
+//     return 1 ;
+// }
 
 #pragma mark - Module Methods -
 
@@ -396,15 +396,11 @@ static id toHSUITKElementColorWellFromLua(lua_State *L, int idx) {
 
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
-static int meta_call(lua_State *L) {
-    lua_remove(L, 1) ;
-    return colorwell_new(L) ;
-}
-
-static int meta_gc(lua_State* __unused L) {
-    [[NSColorPanel sharedColorPanel] close] ;
-    return 0 ;
-}
+// handled in uitk.panel.colorPanel now
+// static int meta_gc(lua_State* __unused L) {
+//     [[NSColorPanel sharedColorPanel] close] ;
+//     return 0 ;
+// }
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
@@ -424,25 +420,24 @@ static const luaL_Reg userdata_metaLib[] = {
 static luaL_Reg moduleLib[] = {
     {"new",          colorwell_new},
     {"ignoresAlpha", colorwell_ignoresAlpha},
-    {"panelVisible", colorwell_pickerVisible},
+//     {"panelVisible", colorwell_pickerVisible},
     {NULL,           NULL}
 };
 
 // Metatable for module, if needed
-static const luaL_Reg module_metaLib[] = {
-    {"__call", meta_call},
-    {"__gc",   meta_gc},
-    {NULL,     NULL}
-};
+// static const luaL_Reg module_metaLib[] = {
+//     {"__gc",   meta_gc},
+//     {NULL,     NULL}
+// };
 
 int luaopen_hs__asm_uitk_libelement_colorwell(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
-                                 metaFunctions:module_metaLib
+                                 metaFunctions:NULL // module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementColorWell         forClass:"HSUITKElementColorWell"];
     [skin registerLuaObjectHelper:toHSUITKElementColorWellFromLua forClass:"HSUITKElementColorWell"

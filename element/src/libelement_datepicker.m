@@ -10,7 +10,7 @@ static NSDictionary *DATEPICKER_STYLES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     DATEPICKER_STYLES = @{
         @"textFieldAndStepper" : @(NSTextFieldAndStepperDatePickerStyle),
         @"clockAndCalendar"    : @(NSClockAndCalendarDatePickerStyle),
@@ -776,7 +776,7 @@ int luaopen_hs__asm_uitk_libelement_datepicker(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementDatePicker         forClass:"HSUITKElementDatePicker"];
     [skin registerLuaObjectHelper:toHSUITKElementDatePickerFromLua forClass:"HSUITKElementDatePicker"

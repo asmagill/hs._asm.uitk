@@ -26,7 +26,7 @@ static NSDictionary *MENU_ITEM_STATES ;
 
 #pragma mark - Support Functions and Classes
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     MENU_ITEM_STATES = @{
         @"on"    : @(NSControlStateValueOn),
         @"off"   : @(NSControlStateValueOff),
@@ -1055,7 +1055,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushNSMenuItem         forClass:"NSMenuItem"];
     [skin registerLuaObjectHelper:toNSMenuItemFromLua forClass:"NSMenuItem"

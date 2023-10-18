@@ -10,7 +10,7 @@ static NSDictionary *PATHCONTROL_STYLES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     PATHCONTROL_STYLES = @{
         @"standard"   : @(NSPathStyleStandard),
         @"popUp"      : @(NSPathStylePopUp),
@@ -347,7 +347,7 @@ int luaopen_hs__asm_uitk_libelement_pathControl(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementPathControl         forClass:"HSUITKElementPathControl"];
     [skin registerLuaObjectHelper:toHSUITKElementPathControlFromLua forClass:"HSUITKElementPathControl"

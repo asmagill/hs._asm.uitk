@@ -20,7 +20,7 @@ static NSDictionary *IMAGE_SCALING_TYPES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     BUTTON_STYLES = @{
         @"momentaryLight"        : @(NSButtonTypeMomentaryLight),
         @"pushOnPushOff"         : @(NSButtonTypePushOnPushOff),
@@ -1101,7 +1101,7 @@ int luaopen_hs__asm_uitk_libelement_button(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementButton         forClass:"HSUITKElementButton"];
     [skin registerLuaObjectHelper:toHSUITKElementButtonFromLua forClass:"HSUITKElementButton"

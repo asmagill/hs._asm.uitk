@@ -11,7 +11,7 @@ static NSDictionary *COMBO_BUTTON_STYLE ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     IMAGE_SCALING_TYPES = @{
         @"proportionallyDown"     : @(NSImageScaleProportionallyDown),
         @"axesIndependently"      : @(NSImageScaleAxesIndependently),
@@ -395,7 +395,7 @@ int luaopen_hs__asm_uitk_libelement_comboButton(lua_State* L) {
                                      metaFunctions:nil
                                    objectFunctions:userdata_metaLib];
 
-        defineInternalDictionaryies() ;
+        defineInternalDictionaries() ;
 
         [skin registerPushNSHelper:pushHSUITKElementComboButton         forClass:"HSUITKElementComboButton"];
         [skin registerLuaObjectHelper:toHSUITKElementComboButtonFromLua forClass:"HSUITKElementComboButton"

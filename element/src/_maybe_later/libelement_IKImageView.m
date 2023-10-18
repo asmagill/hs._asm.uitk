@@ -11,7 +11,7 @@ static NSDictionary *IMAGE_TOOLMODES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     IMAGE_TOOLMODES = @{
         @"none"          : IKToolModeNone,
         @"move"          : IKToolModeMove,
@@ -504,7 +504,7 @@ int luaopen_hs__asm_uitk_libelement_image(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementImage         forClass:"HSUITKElementImage"];
     [skin registerLuaObjectHelper:toHSUITKElementImageFromLua forClass:"HSUITKElementImage"

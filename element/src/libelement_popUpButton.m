@@ -10,7 +10,7 @@ static NSDictionary *POPUPBUTTON_EDGES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     POPUPBUTTON_EDGES = @{
         @"left"   : @(NSMinXEdge),
         @"top"    : @(NSMinYEdge),
@@ -372,7 +372,7 @@ int luaopen_hs__asm_uitk_libelement_popUpButton(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementPopUpButton         forClass:"HSUITKElementPopUpButton"];
     [skin registerLuaObjectHelper:toHSUITKElementPopUpButtonFromLua forClass:"HSUITKElementPopUpButton"

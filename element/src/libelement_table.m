@@ -16,7 +16,7 @@ static NSDictionary *INTERFACE_LAYOUTDIRECTION ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     COLUMN_RESIZING = @{
         @"none" : @(NSTableColumnNoResizing),
         @"auto" : @(NSTableColumnAutoresizingMask),
@@ -1720,7 +1720,7 @@ int luaopen_hs__asm_uitk_libelement_table(lua_State* L) {
 
     [skin registerObject:UD_COLUMN_TAG  objectFunctions:ud_column_metaLib] ;
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementTableView         forClass:"HSUITKElementTableView"];
     [skin registerLuaObjectHelper:toHSUITKElementTableViewFromLua forClass:"HSUITKElementTableView"

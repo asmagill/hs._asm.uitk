@@ -13,7 +13,7 @@ static NSDictionary *IMAGE_SCALING_TYPES ;
 
 #pragma mark - Support Functions and Classes
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     IMAGE_SCALING_TYPES = @{
         @"proportionallyDown"     : @(NSImageScaleProportionallyDown),
         @"axesIndependently"      : @(NSImageScaleAxesIndependently),
@@ -799,7 +799,7 @@ int luaopen_hs__asm_uitk_libmenubar(lua_State* L) {
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSStatusItemWrapper         forClass:"HSStatusItemWrapper"];
     [skin registerLuaObjectHelper:toHSStatusItemWrapperFromLua forClass:"HSStatusItemWrapper"

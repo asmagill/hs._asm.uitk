@@ -14,7 +14,7 @@ static NSDictionary *IMAGE_SCALING_TYPES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     SEGMENTS_STYLE = @{
         @"automatic"       : @(NSSegmentStyleAutomatic),
         @"rounded"         : @(NSSegmentStyleRounded),
@@ -788,7 +788,7 @@ int luaopen_hs__asm_uitk_libelement_segmentBar(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementSegmentedControl         forClass:"HSUITKElementSegmentedControl"];
     [skin registerLuaObjectHelper:toHSUITKElementSegmentedControlFromLua forClass:"HSUITKElementSegmentedControl"

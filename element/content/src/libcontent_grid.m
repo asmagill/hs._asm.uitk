@@ -18,7 +18,7 @@ static NSDictionary *GRID_CELL_PLACEMENT ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     GRID_ROW_ALIGNMENT = @{
         @"firstBaseline" : @(NSGridRowAlignmentFirstBaseline),
         @"inherited"     : @(NSGridRowAlignmentInherited),
@@ -1573,7 +1573,7 @@ int luaopen_hs__asm_uitk_element_libcontent_grid(lua_State* L) {
     [skin registerObject:UD_COL_TAG  objectFunctions:ud_col_metaLib] ;
     [skin registerObject:UD_CELL_TAG objectFunctions:ud_cell_metaLib] ;
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementGridView         forClass:"HSUITKElementGridView"];
     [skin registerLuaObjectHelper:toHSUITKElementGridViewFromLua forClass:"HSUITKElementGridView"

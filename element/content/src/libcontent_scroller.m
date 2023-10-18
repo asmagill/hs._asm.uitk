@@ -14,7 +14,7 @@ static NSDictionary *FIND_BAR_POSITION ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     BORDER_TYPE = @{
         @"bezel"  : @(NSBezelBorder),
         @"groove" : @(NSGrooveBorder),
@@ -1065,7 +1065,7 @@ int luaopen_hs__asm_uitk_element_libcontent_scroller(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementScrollView         forClass:"HSUITKElementScrollView"];
     [skin registerLuaObjectHelper:toHSUITKElementScrollViewFromLua forClass:"HSUITKElementScrollView"

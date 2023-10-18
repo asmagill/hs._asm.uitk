@@ -13,7 +13,7 @@ static NSDictionary *BEZEL_STYLES ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     if (@available(macOS 11, *)) {
         LINE_BREAK_STRATEGIES = @{
             @"none"       : @(NSLineBreakStrategyNone),
@@ -1173,7 +1173,7 @@ int luaopen_hs__asm_uitk_element_libtextField(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementTextField         forClass:"HSUITKElementTextField"];
     [skin registerLuaObjectHelper:toHSUITKElementTextFieldFromLua forClass:"HSUITKElementTextField"

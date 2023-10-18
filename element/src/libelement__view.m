@@ -42,7 +42,7 @@ BOOL oneOfOurs(NSView *obj) {
            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
 }
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     VIEW_FOCUSRINGTYPE = @{
         @"default"  : @(NSFocusRingTypeDefault),
         @"none"     : @(NSFocusRingTypeNone),
@@ -434,7 +434,7 @@ int luaopen_hs__asm_uitk_libelement__view(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin registerLibrary:USERDATA_TAG functions:userdata_metaLib metaFunctions:nil] ;
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin pushNSObject:@[
         @"tooltip",

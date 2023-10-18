@@ -12,7 +12,7 @@ static NSDictionary *LEVELINDICATOR_TICKMARK_POSITION ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     LEVELINDICATOR_STYLES = @{
         @"relevancy"  : @(NSLevelIndicatorStyleRelevancy),
         @"continuous" : @(NSLevelIndicatorStyleContinuousCapacity),
@@ -538,7 +538,7 @@ int luaopen_hs__asm_uitk_libelement_levelIndicator(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementLevelIndicator         forClass:"HSUITKElementLevelIndicator"];
     [skin registerLuaObjectHelper:toHSUITKElementLevelIndicatorFromLua forClass:"HSUITKElementLevelIndicator"

@@ -15,7 +15,7 @@ static NSArray      *TEXTVIEW_ACTIONS ;
 
 static int NSAttributedStringKeyDictionary_toLua(lua_State *L, id obj) ;
 
-static void defineInternalDictionaryies(void) {
+static void defineInternalDictionaries(void) {
     TEXTVIEW_SELECTION_GRANULARITY = @{
         @"character" : @(NSSelectByCharacter),
         @"word"      : @(NSSelectByWord),
@@ -2042,7 +2042,7 @@ int luaopen_hs__asm_uitk_libelement_textView(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    defineInternalDictionaryies() ;
+    defineInternalDictionaries() ;
 
     textView_actions(L) ;            lua_setfield(L, -2, "actions") ;
     textView_findPanelActions(L) ;   lua_setfield(L, -2, "findPanelActions") ;
