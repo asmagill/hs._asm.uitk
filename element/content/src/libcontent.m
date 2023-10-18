@@ -279,7 +279,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
             value = convertPercentageStringToNumber((NSString *)value) ;
             value = @(self.frame.size.width * value.doubleValue) ;
         }
-        frame.origin.x = value.doubleValue - (frame.size.width / 2) ;
+        frame.origin.x = (self.frame.size.width - frame.size.width) / 2 + value.doubleValue ;
     }
     if (details[@"cY"]) {
         NSNumber *value = details[@"cY"] ;
@@ -287,7 +287,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
             value = convertPercentageStringToNumber((NSString *)value) ;
             value = @(self.frame.size.height * value.doubleValue) ;
         }
-        frame.origin.y = value.doubleValue - (frame.size.height / 2) ;
+        frame.origin.y = (self.frame.size.height - frame.size.height) / 2 + value.doubleValue ;
     }
 
     if (details[@"rX"]) {
@@ -296,7 +296,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
             value = convertPercentageStringToNumber((NSString *)value) ;
             value = @(self.frame.size.width * value.doubleValue) ;
         }
-        frame.origin.x = value.doubleValue - frame.size.width ;
+        frame.origin.x = (self.frame.size.width - frame.size.width) - value.doubleValue ;
     }
     if (details[@"bY"]) {
         NSNumber *value = details[@"bY"] ;
@@ -304,7 +304,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
             value = convertPercentageStringToNumber((NSString *)value) ;
             value = @(self.frame.size.height * value.doubleValue) ;
         }
-        frame.origin.y = value.doubleValue - frame.size.height ;
+        frame.origin.y = (self.frame.size.height - frame.size.height) - value.doubleValue;
     }
 //     [LuaSkin logInfo:[NSString stringWithFormat:@"newFrame: %@", NSStringFromRect(frame)]] ;
     view.frame = frame ;
@@ -341,6 +341,8 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
     // increase lua reference count of subview so it won't be collected
     if (![skin luaRetain:refTable forNSObject:subview]) {
         [skin logDebug:[NSString stringWithFormat:@"%s:didAddSubview - unrecognized subview added:%@", USERDATA_TAG, subview]] ;
+
+        [self updateFrameFor:subview] ;
     }
 }
 
