@@ -27,7 +27,7 @@ for i = 1, 20, 1 do
     for j = 65, 90, 1 do keysMenu[#keysMenu + 1] = { title = string.char(j) } end
 
     local label    = uitk.element.textField.newLabel("Action " .. tostring(i))
-    local action   = uitk.element.content()
+    local action   = uitk.element.container()
     action[1] = {
         _userdata = uitk.element.textField.newTextField(),
         frame     = { w = 300 },
@@ -71,7 +71,7 @@ local tableView = uitk.element.table():dataSourceCallback(dataSourceCallback)
                                           print("tablePassthrough", finspect(...))
                                       end)
 
-local scroller = uitk.element.content.scroller{}
+local scroller = uitk.element.container.scroller{}
 
 scroller.element = {
     _userdata        = tableView,

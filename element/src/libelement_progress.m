@@ -107,9 +107,9 @@ static void defineInternalDictionaries(void) {
 ///  * the progressObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container element or to a `hs._asm.uitk.window`.
 ///
-///  * The bar progress indicator type does not have a default width; if you are assigning the progress element to an `hs._asm.uitk.element.content`, be sure to specify a width in the frame details or the element may not be visible.
+///  * The bar progress indicator type does not have a default width; if you are assigning the progress element to an `hs._asm.uitk.element.container`, be sure to specify a width in the frame details or the element may not be visible.
 static int progress_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -554,7 +554,7 @@ int luaopen_hs__asm_uitk_libelement_progress(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementProgressFromLua forClass:"HSUITKElementProgress"
                                                        withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"threaded",

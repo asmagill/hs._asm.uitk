@@ -41,25 +41,26 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 
 -- Public interface ------------------------------------------------------
 
---- hs._asm.uitk.element.button.radioButtonSet(...) -> contentObject
+--- hs._asm.uitk.element.button.radioButtonSet(...) -> containerObject
 --- Constructor
---- Creates an `hs._asm.uitk.element.content` object which can be used as an element containing a set of radio buttons with labels defined by the specified title strings.
+--- Creates an `hs._asm.uitk.element.container` object which can be used as an element containing a set of radio buttons with labels defined by the specified title strings.
 ---
 --- Parameters:
 ---  `...` - a single table of strings, or list of strings separated by commas, specifying the labels to assign to the radion buttons in the set.
 ---
 --- Returns:
----  * a new contentObject which can be used as an element to another `hs._asm.uitk.element.content` or assigned to an `hs._asm.uitk.window` directly.
+---  * a new containerObject which can be used as an element to another `hs._asm.uitk.element.container` or assigned to an `hs._asm.uitk.window` directly.
 ---
 --- Notes:
----  * Radio buttons in the same view (content) are treated as related and only one can be selected at a time. By grouping radio button sets in separate contents, these independant contents can be assigned to a parent content and each set will be seen as independent -- each set can have a selected item independent of the other radio sets which may also be displayed in the parent.
+---  * Radio buttons in the same view (container) are treated as related and only one can be selected at a time. By grouping radio button sets in separate containers, these independant containers can be assigned to a parent container and each set will be seen as independent -- each set can have a selected item independent of the other radio sets which may also be displayed in the parent.
 ---
 ---  * For example:
 --- ~~~ lua
----     g = require("hs._asm.uitk.window")
----     m = g.new{ x = 100, y = 100, h = 100, w = 130 }:content(g.content.new())():show()
----     m[1] = g.element.button.radioButtonSet(1, 2, 3, 4)
----     m[2] = g.element.button.radioButtonSet{"abc", "d", "efghijklmn"}
+---     uitk = require("hs._asm.uitk")
+---     w = uitk.window{ x = 100, y = 100, h = 100, w = 130 }:content(uitk.element.container()):show()
+---     m = w:container()
+---     m[1] = uitk.element.button.radioButtonSet(1, 2, 3, 4)
+---     m[2] = uitk.element.button.radioButtonSet{"abc", "d", "efghijklmn"}
 ---     m(2):position("after", m(1), 10, "center")
 --- ~~~
 ---
@@ -72,10 +73,10 @@ module.radioButtonSet = function(...)
     end
 
     if args.n > 0 then
-        local content = require(USERDATA_TAG:gsub("%.button", ".content"))
-        local result = content.new()
+        local container = require(USERDATA_TAG:gsub("%.button", ".container"))
+        local result    = container.new()
         for i,v in ipairs(args) do
-            result[i] = module.button.radioButton(tostring(v))
+            result[i] = module.radioButton(tostring(v))
         end
         result:sizeToFit()
         return result

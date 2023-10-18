@@ -401,7 +401,7 @@ int luaopen_hs__asm_uitk_libelement_comboButton(lua_State* L) {
         [skin registerLuaObjectHelper:toHSUITKElementComboButtonFromLua forClass:"HSUITKElementComboButton"
                                                               withUserdataMapping:USERDATA_TAG];
 
-        // properties for this item that can be modified through content metamethods
+        // properties for this item that can be modified through container metamethods
         luaL_getmetatable(L, USERDATA_TAG) ;
         [skin pushNSObject:@[
             @"title",

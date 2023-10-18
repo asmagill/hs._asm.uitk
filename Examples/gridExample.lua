@@ -22,7 +22,7 @@ local textStyleCheckbox          = uitk.element.button.checkbox("Show text style
 local showAlertCheckbox          = uitk.element.button.checkbox("Show alert messages for duration")
 
 -- create grid view
-local gridView = uitk.element.content.grid({
+local gridView = uitk.element.container.grid({
     { brailleTranslationLabel, brailleTranslationPopup    },
     { false,                   showContractedCheckbox     },
     { false,                   showEightDotCheckbox       },
@@ -68,7 +68,7 @@ local window = uitk.window.new{
 
 -- each element and menu item could have its own callback, but we can also leverage the passthroughs:
 gridView:passthroughCallback(function(...)
-    print("content.grid passthrough:", finspect(...))
+    print("container.grid passthrough:", finspect(...))
 end)
 brailleMenu:passthroughCallback(function(...)
     print("menu passthrough:", finspect(...))

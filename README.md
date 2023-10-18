@@ -27,9 +27,9 @@ Once you load `hs._asm.uitk`, it can lazily (and silently) load any submodule yo
 
 ~~~lua
 
-local uitk = require("hs._asm.uitk")
-local element = uitk.element
-local content = uitk.element.content -- or just element.content, since we did that above
+local uitk      = require("hs._asm.uitk")
+local element   = uitk.element
+local container = uitk.element.container -- or just element.container, since we did that above
 ... etc ...
 
 ~~~

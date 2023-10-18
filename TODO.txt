@@ -1,6 +1,6 @@
 General
- +  __view needs wrap method that checks content element for way to wrap element
- +  add wrap method to content, content.scroller, content.grid
+ +  __view needs wrap method that checks container for way to wrap element
+ +  add wrap method to container, container.scroller, container.grid
 
   rename textView to just text?
 

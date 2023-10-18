@@ -44,9 +44,9 @@
 *   @interface NSProgressIndicator    : NSView
 +   @interface NSGridView             : NSView
 +   @interface NSScrollView           : NSView
-        @interface NSClipView             : NSView -- paired with NSScrollView
-        @interface NSRulerView            : NSView -- for custom in NSText/NSScrollView
-        @interface NSScroller             : NSControl  -- for custom in NSScrollView
+        @interface NSClipView             : NSView    -- paired with NSScrollView
+        @interface NSRulerView            : NSView    -- for custom in NSText/NSScrollView
+        @interface NSScroller             : NSControl -- for custom in NSScrollView
 +   @interface NSTextView             : NSText
         @interface OSAScriptView          : NSTextView
 

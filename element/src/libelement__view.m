@@ -66,7 +66,7 @@ static void defineInternalDictionaries(void) {
 ///  * The dimensions provided can be used to determine a minimum size for the element to display fully based on its current properties and may change as these change.
 ///  * Not all elements provide one or both of these fields; in such a case, the value for the missing or unspecified field will be 0.
 ///
-///  * If you do not specify an elements height or width with the elements constructor, with [hs._asm.uitk.element._view:frameSize](#frameSize), or within the content that it is assigned to, the value returned by this method will be used instead; in cases where a specific dimension is not defined by this method, you should make sure to specify it or the element may not be visible.
+///  * If you do not specify an elements height or width with the elements constructor, with [hs._asm.uitk.element._view:frameSize](#frameSize), or within the container that it is assigned to, the value returned by this method will be used instead; in cases where a specific dimension is not defined by this method, you should make sure to specify it or the element may not be visible.
 static int view_fittingSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -93,7 +93,7 @@ static int view_fittingSize(lua_State *L) {
 ///  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the element should be resized to.
 ///
 ///  * this method is primarily used to adjust an elements size before it has been assigned to a pane or window, but was not assigned during the element's creation with its constructor, perhaps because the size wasn't known or calculable at the time.
-///  * if the element is already assigned to a content or window, this method will likely have no effect.
+///  * if the element is already assigned to a container or window, this method will likely have no effect.
 static int view_frameSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;

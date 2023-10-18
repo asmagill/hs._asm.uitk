@@ -64,7 +64,7 @@ everything: all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content all
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField all
 
 everything-universal: universal
@@ -73,7 +73,7 @@ everything-universal: universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField universal
 
 clean-everything: clean
@@ -82,7 +82,7 @@ clean-everything: clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content clean
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField clean
 
 install-everything: install
@@ -91,7 +91,7 @@ install-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content install
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install
 
 install-everything-universal: install-universal
@@ -100,17 +100,11 @@ install-everything-universal: install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content install-universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install-universal
 
 uninstall-everything: uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField uninstall
+	(pushd $(PREFIX)/$(MODPATH)/ ; rm -v -fr $(MODULE) ; popd)
 
 everything-docs: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window docs
@@ -118,7 +112,7 @@ everything-docs: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content docs
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField docs
 
 everything-markdown: markdown
@@ -127,7 +121,7 @@ everything-markdown: markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content markdown
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdown
 
 everything-markdownWithTOC: markdownWithTOC
@@ -136,7 +130,7 @@ everything-markdownWithTOC: markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content markdownWithTOC
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdownWithTOC
 
 echo:

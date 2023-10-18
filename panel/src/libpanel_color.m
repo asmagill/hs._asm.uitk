@@ -294,15 +294,15 @@ static int color_accessoryView(lua_State *L) {
             }
             colorPanel.accessoryView = nil ;
         } else {
-            NSView *content = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-            if (!content || !oneOfOurs(content)) {
+            NSView *container = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+            if (!container || !oneOfOurs(container)) {
                 return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
             }
             if (colorPanel.accessoryView) {
                 [skin luaRelease:refTable forNSObject:colorPanel.accessoryView] ;
             }
-            [skin luaRetain:refTable forNSObject:content] ;
-            colorPanel.accessoryView = content ;
+            [skin luaRetain:refTable forNSObject:container] ;
+            colorPanel.accessoryView = container ;
         }
     }
 

@@ -139,7 +139,7 @@ static void defineInternalDictionaries(void) {
 ///  * the segmentBarObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container element or to a `hs._asm.uitk.window`.
 static int segmentBar_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -794,7 +794,7 @@ int luaopen_hs__asm_uitk_libelement_segmentBar(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementSegmentedControlFromLua forClass:"HSUITKElementSegmentedControl"
                                                                withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"segmentCount",

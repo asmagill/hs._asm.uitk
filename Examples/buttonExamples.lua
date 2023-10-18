@@ -40,9 +40,9 @@ grp[#grp + 1] = uitk.element.button.buttonWithTitleAndImage("buttonWithTitleAndI
 grp[#grp + 1] = uitk.element.button.checkbox("checkbox")
 grp[#grp + 1] = uitk.element.button.radioButton("radioButton")
 
--- radio buttons within the same view (content element) only allow one at a time to be selected (they automatically unselect the others)
--- to have multiple sets of radio buttons they need to be in different views
-local radio = uitk.element.content():tooltip("grouped radiobuttons")
+-- radio buttons within the same view (container element) only allow one at a time to be selected (they automatically
+-- unselect the others) to have multiple sets of radio buttons they need to be in different views
+local radio = uitk.element.container():tooltip("grouped radiobuttons")
 radio:insert(uitk.element.button.radioButton("A"):tooltip("A"))
 radio:insert(uitk.element.button.radioButton("B"):tooltip("not A"))
 radio:insert(uitk.element.button.radioButton("C"):tooltip("also not A"))

@@ -266,9 +266,9 @@ BOOL oneOfOurs(NSTextField *obj) {
 ///  * the textFieldObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container or to a `hs._asm.uitk.window`.
 ///
-///  * The textField element does not have a default width unless you assign a value to it with [hs._asm.uitk.element.textField:value](#value); if you are assigning an empty textField element to an `hs._asm.uitk.element.content`, be sure to specify a width in the frame details or the element may not be visible.
+///  * The textField element does not have a default width unless you assign a value to it with [hs._asm.uitk.element.textField:value](#value); if you are assigning an empty textField element to an `hs._asm.uitk.element.container`, be sure to specify a width in the frame details or the element may not be visible.
 static int textField_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -771,7 +771,7 @@ static int textField_preferredMaxLayoutWidth(lua_State *L) {
 ///
 /// Notes:
 ///  * If the text reaches the number of lines allowed, or the height of the container cannot accommodate the number of lines needed, the text will be clipped or truncated.
-///    * Affects the default fitting size when the textField is assigned to an `hs._asm.uitk.element.content` object if the textField element's height and width are not specified when assigned.
+///    * Affects the default fitting size when the textField is assigned to an `hs._asm.uitk.element.container` object if the textField element's height and width are not specified when assigned.
 static int textField_maximumNumberOfLines(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1179,7 +1179,7 @@ int luaopen_hs__asm_uitk_element_libtextField(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementTextFieldFromLua forClass:"HSUITKElementTextField"
                                                         withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"styleEditable",

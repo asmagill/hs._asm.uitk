@@ -378,7 +378,7 @@ int luaopen_hs__asm_uitk_libelement_popUpButton(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementPopUpButtonFromLua forClass:"HSUITKElementPopUpButton"
                                                           withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
     ]] ;

@@ -24,11 +24,11 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.uitk.element.content ===
+--- === hs._asm.uitk.element.container ===
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk.element.content"
+local USERDATA_TAG = "hs._asm.uitk.element.container"
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 
@@ -173,7 +173,7 @@ moduleMT.wrap = function(self)
     return wrapped_userdataWithMT(self)
 end
 
--- shortcut so ...:content(id | idx) returns element or nil
+-- shortcut so ...:container(id | idx) returns element or nil
 moduleMT.__call  = function(self, ...) return self:element(...) end
 
 -- moduleMT.__len   = function(self) return #self:elements() end
@@ -191,7 +191,7 @@ moduleMT.__index = function(self, key)
 
     if type(result) ~= "nil" then return result end
 
--- check to see if its an index or key to an element of this content
+-- check to see if its an index or key to an element of this container
     local element = self(key)
     if element then
         return wrapped_userdataWithMT(element)
@@ -286,7 +286,7 @@ moduleMT.__pairs = function(self)
     end, self, nil
 end
 
---- hs._asm.uitk.element.content:elementPropertyList(element) -> contentObject
+--- hs._asm.uitk.element.container:elementPropertyList(element) -> containerObject
 --- Method
 --- Return a table of key-value pairs containing the properties for the specified element
 ---
@@ -297,9 +297,9 @@ end
 ---  * a table containing key-value pairs describing the properties of the element.
 ---
 --- Notes:
----  * The table returned by this method does not support modifying the property values as can be done through the `hs._asm.uitk.element.content` metamethods (see the top-level documentation for `hs._asm.uitk.element.content`).
+---  * The table returned by this method does not support modifying the property values as can be done through the `hs._asm.uitk.element.container` metamethods (see the top-level documentation for `hs._asm.uitk.element.container`).
 ---
----  * This method is wrapped so that elements which are assigned to a content can access this method as `hs._asm.uitk.element:propertyList()`
+---  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:propertyList()`
 moduleMT.elementPropertyList = function(self, element, ...)
     local args = table.pack(...)
     if args.n == 0 then
@@ -319,18 +319,18 @@ moduleMT.elementPropertyList = function(self, element, ...)
 end
 
 
---- hs._asm.uitk.element.content:remove([item]) -> contentObject
+--- hs._asm.uitk.element.container:remove([item]) -> containerObject
 --- Method
---- Remove an element from the content.
+--- Remove an element from the container.
 ---
 --- Parameters:
----  * `item` - the index position specifying the element to remove, a string specifying the `id` of the element to remove, or the userdata of the element itself.  Defaults to `#hs._asm.uitk.element.content:elements()` (the last element)
+---  * `item` - the index position specifying the element to remove, a string specifying the `id` of the element to remove, or the userdata of the element itself.  Defaults to `#hs._asm.uitk.element.container:elements()` (the last element)
 ---
 --- Returns:
----  * the content object
+---  * the container object
 ---
 --- Notes:
----  * This method is wrapped so that elements which are assigned to a content can access this method as `hs._asm.uitk.element:removeFromGroup()`
+---  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:removeFromGroup()`
 local originalRemove = moduleMT.remove
 moduleMT.remove = function(self, ...)
     local args = { ... }
@@ -353,7 +353,7 @@ moduleMT.remove = function(self, ...)
     return originalRemove(self, table.unpack(args))
 end
 
---- hs._asm.uitk.element.content:elementID(element, [id]) -> contentObject | string
+--- hs._asm.uitk.element.container:elementID(element, [id]) -> containerObject | string
 --- Method
 --- Get or set the string identifier for the specified element.
 ---
@@ -362,13 +362,13 @@ end
 ---  * `id`      - an optional string, or explicit nil to remove, to change the element's identifier to
 ---
 --- Returns:
----  * If an argument is provided, the content object; otherwise the current value.
+---  * If an argument is provided, the container object; otherwise the current value.
 ---
 --- Notes:
 ---
----  * This method is syntactic sugar for [hs._asm.uitk.element.content:elementFrame().id](#elementFrame) and [hs._asm.uitk.element.content:elementFrame({ id = "string" })](#elementFrame)
+---  * This method is syntactic sugar for [hs._asm.uitk.element.container:elementFrame().id](#elementFrame) and [hs._asm.uitk.element.container:elementFrame({ id = "string" })](#elementFrame)
 ---
----  * This method is wrapped so that elements which are assigned to a content can access this method as `hs._asm.uitk.element:id([id])`
+---  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:id([id])`
 moduleMT.elementID = function(self, element, ...)
     local args = table.pack(...)
     local details = self:elementFrame(element)

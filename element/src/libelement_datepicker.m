@@ -107,7 +107,7 @@ static void defineInternalDictionaries(void) {
 ///  * the datepickerObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container element or to a `hs._asm.uitk.window`.
 ///
 ///  * The initial date and time represented by the element will be the date and time when this function is invoked.  See [hs._asm.uitk.element.datepicker:date](#date).
 static int datepicker_new(lua_State *L) {
@@ -786,7 +786,7 @@ int luaopen_hs__asm_uitk_libelement_datepicker(lua_State* L) {
     datepicker_timezoneAbbreviations(L) ; lua_setfield(L, -2, "timezoneAbbreviations") ;
     datepicker_timeZoneNames(L) ;         lua_setfield(L, -2, "timezoneNames") ;
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"drawsBackground",

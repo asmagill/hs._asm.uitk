@@ -34,7 +34,7 @@ Things to do before migration into core
 
 Things to do after migrated into core (in no particular order):
 
-    * mouse tracking for elements, not just content element
+    * mouse tracking for elements, not just container element
 
     * rewrite canvas so it's parent window is no longer necessary -- it can use `hs._asm.guitk` with appropriate constructor wrapper
       * add support for cX, cY, rX, and bY

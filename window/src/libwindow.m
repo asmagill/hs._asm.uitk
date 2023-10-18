@@ -575,7 +575,7 @@ static int window_opaque(lua_State *L) {
 ///
 /// Notes:
 ///  * Setting this to true will prevent elements in the window from receiving mouse button events or mouse movement events which affect the focus of the window or its elements. For elements which accept keyboard entry, this *may* also prevent the user from focusing the element for keyboard input unless the element is focused programmatically with [hs._asm.uitk.window:activeElement](#activeElement).
-///  * Mouse tracking events (see `hs._asm.uitk.window.content:mouseCallback`) will still occur, even if this is true; however if two windows at the same level (see [hs._asm.uitk.window:level](#level)) both occupy the current mouse location and one or both of the windows have this attribute set to false, spurious and unpredictable mouse callbacks may occur as the "frontmost" window changes based on which is acting on the event at that instant in time.
+///  * Mouse tracking events (see `hs._asm.uitk.element.container:mouseCallback`) will still occur, even if this is true; however if two windows at the same level (see [hs._asm.uitk.window:level](#level)) both occupy the current mouse location and one or both of the windows have this attribute set to false, spurious and unpredictable mouse callbacks may occur as the "frontmost" window changes based on which is acting on the event at that instant in time.
 static int window_ignoresMouseEvents(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1292,16 +1292,16 @@ static int window_notificationWatchFor(lua_State *L) {
 /// Get or set the content element for the window.
 ///
 /// Parameters:
-///  * `view` - a userdata representing a content element, individual element, or an explcit nil to remove, to assign to the window.
+///  * `view` - a userdata representing a container element, individual element, or an explcit nil to remove, to assign to the window.
 ///
 /// Returns:
 ///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * This module provides the window or "frame" for displaying visual or user interface elements, however the content itself is provided by other modules. This method allows you to assign a content element or single element directly to the window for display and user interaction.
+///  * This module provides the window or "frame" for displaying visual or user interface elements, however the container itself is provided by other modules. This method allows you to assign a container element or single element directly to the window for display and user interaction.
 ///
-///  * A content element allows for attaching multiple elements to the same window, for example a series of buttons and text fields for user input.
-///  * If the window is being used to display a single element, you can by skip using the content element and assign the element directly with this method. This works especially well for fully contained elements like `hs._asm.uitk.element.avplayer` or `hs.canvas`, but may be useful at times with other elements as well.  The following should be kept in mind when not using a content element:
+///  * A container element allows for attaching multiple elements to the same window, for example a series of buttons and text fields for user input.
+///  * If the window is being used to display a single element, you can by skip using the container element and assign the element directly with this method. This works especially well for fully contained elements like `hs._asm.uitk.element.avplayer` or `hs.canvas`, but may be useful at times with other elements as well.  The following should be kept in mind when not using a container element:
 ///    * The element's size is the window's size -- you cannot specify a specific location for the element within the window or make it smaller than the window to give it a visual border.
 ///    * Only one element can be assigned at a time. For canvas, which has its own methods for handling multiple visual elements, this isn't necessarily an issue.
 static int window_contentView(lua_State *L) {
@@ -1321,13 +1321,13 @@ static int window_contentView(lua_State *L) {
             // placeholder, since a window always has one after init, let's follow that pattern
             window.contentView = [[NSView alloc] initWithFrame:window.contentView.bounds] ;
         } else {
-            NSView *content = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!content || !oneOfOurs(content)) {
+            NSView *container = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+            if (!container || !oneOfOurs(container)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             [skin luaRelease:refTable forNSObject:window.contentView] ;
-            [skin luaRetain:refTable forNSObject:content] ;
-            window.contentView = content ;
+            [skin luaRetain:refTable forNSObject:container] ;
+            window.contentView = container ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -1347,9 +1347,9 @@ static int window_contentView(lua_State *L) {
 /// Notes:
 ///  * The active element of a window is the element which is currently receiving mouse or keyboard activity from the user when the window is focused.
 ///
-///  * Not all elements can become the active element, for example textField elements which are neither editable or selectable. If you try to make such an element active, the content element or window itself will become the active element.
-///  * Passing an explicit nil to this method will make the content element or window itself the active element.
-///    * Making the content element or window itself the active element has the visual effect of making no element active but leaving the window focus unchanged.
+///  * Not all elements can become the active element, for example textField elements which are neither editable or selectable. If you try to make such an element active, the container element or window itself will become the active element.
+///  * Passing an explicit nil to this method will make the container element or window itself the active element.
+///    * Making the container element or window itself the active element has the visual effect of making no element active but leaving the window focus unchanged.
 static int window_firstResponder(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;

@@ -82,7 +82,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 ///  * the sliderObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container element or to a `hs._asm.uitk.window`.
 static int slider_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -555,11 +555,11 @@ static int slider_rectOfTickMarkAtIndex(lua_State *L) {
 ///  * If the specified point is within the frame of a tick mark, returns the index of the matching tick mark; otherwise returns nil.
 ///
 /// Notes:
-///  * It is currently not possible to invoke mouse tracking on just a single element; instead you must enable it for the content element the slider belongs to and calculate the point to compare by adjusting it to be relative to the slider elements top left point, e.g.
+///  * It is currently not possible to invoke mouse tracking on just a single element; instead you must enable it for the container element the slider belongs to and calculate the point to compare by adjusting it to be relative to the slider elements top left point, e.g.
 /// ~~~lua
 ///    g = require("hs._asm.uitk.window")
-///    w = g.new{ x = 100, y = 100, h = 100, w = 300 }:content(g.content.new()):show()
-///    m = w:content():mouseCallback(function(mgr, message, point)
+///    w = g.new{ x = 100, y = 100, h = 100, w = 300 }:content(g.container.new()):show()
+///    m = w:container():mouseCallback(function(mgr, message, point)
 ///                              local geomPoint   = hs.geometry.new(point)
 ///                              local slider      = mgr(1)
 ///                              local sliderFrame = slider:frameDetails()._effective
@@ -661,7 +661,7 @@ int luaopen_hs__asm_uitk_libelement_slider(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementSliderFromLua forClass:"HSUITKElementSlider"
                                                      withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"tickMarksOnly",

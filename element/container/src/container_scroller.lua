@@ -24,15 +24,15 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.uitk.element.content.scroller ===
+--- === hs._asm.uitk.element.container.scroller ===
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk.element.content.scroller"
-local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontent_"))
+local USERDATA_TAG = "hs._asm.uitk.element.container.scroller"
+local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-local content      = require("hs._asm.uitk.element.content")
+local container    = require("hs._asm.uitk.element.container")
 
 local fnutils = require("hs.fnutils")
 
@@ -165,7 +165,7 @@ moduleMT.__newindex = function(self, key, value)
         -- assign document or modify an existing one
         if type(value) == "table" then
             local element = value._userdata or self:document()
-            if content._isElementType(element) then
+            if container._isElementType(element) then
                 newindex_applyProperties(element, value)
                 -- add new document if one was supplied
                 if value._userdata then self:document(element) end

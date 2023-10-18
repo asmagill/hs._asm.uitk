@@ -28,9 +28,9 @@
 ---
 --- A basic container within which complex windows and graphical elements can be combined.
 ---
---- This module provides a basic container within which Hammerspoon can build more complex windows and graphical elements. The approach taken with this module is to create a "window" or rectangular space within which a content element from one of the submodules of `hs._asm.uitk.element` can be assigned. Canvas, WebView, and other visual or GUI elements can then be assigned to the content element and will be positioned and auto-arranged as determined by the rules governing the chosen element.
+--- This module provides a basic container within which Hammerspoon can build more complex windows and graphical elements. The approach taken with this module is to create a "window" or rectangular space within which a container element from one of the submodules of `hs._asm.uitk.element` can be assigned. Canvas, WebView, and other visual or GUI elements can then be assigned to the container element and will be positioned and auto-arranged as determined by the rules governing the chosen element.
 ---
---- This approach allows concentrating the common code necessary for managing macOS window and visual containers in one place while leveraging content element views within macOS to easily encorporate different GUI elements. This will allow the creation of significantly more complex and varied displays and input mechanisms than are currently difficult or impossible to create with just `hs.canvas` or `hs.webview`.
+--- This approach allows concentrating the common code necessary for managing macOS window and visual containers in one place while leveraging container element views within macOS to easily encorporate different GUI elements. This will allow the creation of significantly more complex and varied displays and input mechanisms than are currently difficult or impossible to create with just `hs.canvas` or `hs.webview`.
 ---
 --- This is a work in progress and is still extremely experimental.
 
@@ -57,7 +57,7 @@ require("hs.window")
 
 module._new = module.new
 module.new = function(...)
-    return module._new(...):content(module.element.content())
+    return module._new(...):content(module.element.container())
 end
 
 module.behaviors     = ls.makeConstantsTable(module.behaviors)

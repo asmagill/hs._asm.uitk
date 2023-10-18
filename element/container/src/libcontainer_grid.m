@@ -4,10 +4,10 @@
 // for our purposes this is 1/1000 of a screen point; small enough that it can't be seen so effectively 0
 #define FLOAT_EQUIVALENT_TO_ZERO 0.001
 
-static const char * const USERDATA_TAG = "hs._asm.uitk.element.content.grid" ;
-static const char * const UD_ROW_TAG   = "hs._asm.uitk.element.content.grid.row" ;
-static const char * const UD_COL_TAG   = "hs._asm.uitk.element.content.grid.column" ;
-static const char * const UD_CELL_TAG  = "hs._asm.uitk.element.content.grid.cell" ;
+static const char * const USERDATA_TAG = "hs._asm.uitk.element.container.grid" ;
+static const char * const UD_ROW_TAG   = "hs._asm.uitk.element.container.grid.row" ;
+static const char * const UD_COL_TAG   = "hs._asm.uitk.element.container.grid.column" ;
+static const char * const UD_CELL_TAG  = "hs._asm.uitk.element.container.grid.cell" ;
 
 static LSRefTable         refTable     = LUA_NOREF ;
 
@@ -175,9 +175,9 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
 
 #pragma mark - Module Functions -
 
-/// hs._asm.uitk.element.content.grid.new(rows, columns) -> gridObject
+/// hs._asm.uitk.element.container.grid.new(rows, columns) -> gridObject
 /// Constructor
-/// Creates a new grid content element for `hs._asm.uitk.window` with the specified number of columns and rows.
+/// Creates a new grid container element for `hs._asm.uitk.window` with the specified number of columns and rows.
 ///
 /// Parameters:
 ///  * `rows`    - an integer greater than 0 specifying the number of rows in the grid
@@ -238,22 +238,22 @@ static int grid_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.element.content.grid:passthroughCallback([fn | nil]) -> contentObject | fn | nil
+/// hs._asm.uitk.element.container.grid:passthroughCallback([fn | nil]) -> containerObject | fn | nil
 /// Method
-/// Get or set the pass through callback for the content.
+/// Get or set the pass through callback for the container.
 ///
 /// Parameters:
 ///  * `fn` - a function, or an explicit nil to remove, specifying the callback to invoke for elements which do not have their own callbacks assigned.
 ///
 /// Returns:
-///  * If an argument is provided, the content object; otherwise the current value.
+///  * If an argument is provided, the container object; otherwise the current value.
 ///
 /// Notes:
 ///  * The pass through callback should expect one or two arguments and return none.
 ///
 ///  * The pass through callback is designed so that elements which trigger a callback based on user interaction which do not have a specifically assigned callback can still report user interaction through a common fallback.
 ///  * The arguments received by the pass through callback will be organized as follows:
-///    * the content userdata object
+///    * the container userdata object
 ///    * a table containing the arguments provided by the elements callback itself, usually the element userdata followed by any additional arguments as defined for the element's callback function.
 ///
 ///  * Note that elements which have a callback that returns a response cannot use this common pass through callback method; in such cases a specific callback must be assigned to the element directly as described in the element's documentation.
@@ -1562,7 +1562,7 @@ static luaL_Reg moduleLib[] = {
     {NULL,  NULL}
 };
 
-int luaopen_hs__asm_uitk_element_libcontent_grid(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libcontainer_grid(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
@@ -1591,7 +1591,7 @@ int luaopen_hs__asm_uitk_element_libcontent_grid(lua_State* L) {
     [skin registerLuaObjectHelper:toNSGridCellFromLua forClass:"NSGridCell"
                                            withUserdataMapping:UD_CELL_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"passthroughCallback",

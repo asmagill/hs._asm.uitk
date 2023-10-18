@@ -50,7 +50,7 @@ local _viewMT      = require(USERDATA_TAG:match("^(.+)%.") ..".libelement__view"
 
 local subModules = {
 --  name         lua or library?
-    content         = "hs._asm.uitk.element.content",
+    container       = "hs._asm.uitk.element.container",
     switch          = false,
     colorwell       = false,
     progress        = false,
@@ -199,7 +199,7 @@ module._elementControlViewWrapper = function(elMT)
         elMT.wrap = function(self) return wrapped_userdataWithMT(self) end
     end
 
-    -- allow content to provide inheritable methods
+    -- allow container to provide inheritable methods
     local old_index = elMT.__index
     elMT.__index = function(self, key)
         local value = nil

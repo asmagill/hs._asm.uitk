@@ -1,7 +1,7 @@
 @import Cocoa ;
 @import LuaSkin ;
 
-static const char * const USERDATA_TAG = "hs._asm.uitk.element.content.scroller" ;
+static const char * const USERDATA_TAG = "hs._asm.uitk.element.container.scroller" ;
 static LSRefTable         refTable     = LUA_NOREF ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
@@ -179,9 +179,9 @@ BOOL oneOfOurs(NSView *obj) {
 
 #pragma mark - Module Functions -
 
-/// hs._asm.uitk.element.content.scroller.new([frame]) -> scrollerObject
+/// hs._asm.uitk.element.container.scroller.new([frame]) -> scrollerObject
 /// Constructor
-/// Creates a new scroller content element for `hs._asm.uitk.window`.
+/// Creates a new scroller container element for `hs._asm.uitk.window`.
 ///
 /// Parameters:
 ///  * `frame` - an optional frame table specifying the position and size of the frame for the element.
@@ -190,7 +190,7 @@ BOOL oneOfOurs(NSView *obj) {
 ///  * the scrollerObject
 ///
 /// Notes:
-///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a content element or to a `hs._asm.uitk.window`.
+///  * In most cases, setting the frame is not necessary and will be overridden when the element is assigned to a container element or to a `hs._asm.uitk.window`.
 static int scroller_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -209,22 +209,22 @@ static int scroller_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.element.content.scroller:passthroughCallback([fn | nil]) -> contentObject | fn | nil
+/// hs._asm.uitk.element.container.scroller:passthroughCallback([fn | nil]) -> containerObject | fn | nil
 /// Method
-/// Get or set the pass through callback for the content.
+/// Get or set the pass through callback for the container.
 ///
 /// Parameters:
 ///  * `fn` - a function, or an explicit nil to remove, specifying the callback to invoke for elements which do not have their own callbacks assigned.
 ///
 /// Returns:
-///  * If an argument is provided, the content object; otherwise the current value.
+///  * If an argument is provided, the container object; otherwise the current value.
 ///
 /// Notes:
 ///  * The pass through callback should expect one or two arguments and return none.
 ///
 ///  * The pass through callback is designed so that elements which trigger a callback based on user interaction which do not have a specifically assigned callback can still report user interaction through a common fallback.
 ///  * The arguments received by the pass through callback will be organized as follows:
-///    * the content userdata object
+///    * the container userdata object
 ///    * a table containing the arguments provided by the elements callback itself, usually the element userdata followed by any additional arguments as defined for the element's callback function.
 ///
 ///  * Note that elements which have a callback that returns a response cannot use this common pass through callback method; in such cases a specific callback must be assigned to the element directly as described in the element's documentation.
@@ -1058,7 +1058,7 @@ static luaL_Reg moduleLib[] = {
     {NULL,  NULL}
 };
 
-int luaopen_hs__asm_uitk_element_libcontent_scroller(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libcontainer_scroller(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
@@ -1071,7 +1071,7 @@ int luaopen_hs__asm_uitk_element_libcontent_scroller(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementScrollViewFromLua forClass:"HSUITKElementScrollView"
                                                         withUserdataMapping:USERDATA_TAG];
 
-    // properties for this item that can be modified through content metamethods
+    // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"passthroughCallback",
