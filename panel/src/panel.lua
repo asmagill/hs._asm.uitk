@@ -24,22 +24,40 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.uitk ===
+--- === hs._asm.module ===
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk"
+local USERDATA_TAG = "hs._asm.uitk.panel"
 -- local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 
 local module = {}
 
 local subModules = {
-    element = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
-    menu    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menu",
-    menubar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menubar",
-    window  = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
-    panel   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
+    color = false,
+    font  = false,
+    open  = false,
+    save  = false,
 }
+
+local preload = function(m, isLua)
+    return function()
+        local el = isLua and require(USERDATA_TAG .. "_" .. m)
+                         or  require(USERDATA_TAG:match("^(.+)%.") .. ".lib" ..
+                                     USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
+--         if getmetatable(el) == nil and type(el.new) == "function" then
+--             el = setmetatable(el, { __call = function(self, ...) return self.new(...) end })
+--         end
+        return el
+    end
+end
+
+for k, v in pairs(subModules) do
+    if type(v) == "boolean" then
+        package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
+    end
+end
+
 
 -- private variables and methods -----------------------------------------
 
@@ -48,7 +66,6 @@ local subModules = {
 -- Return Module Object --------------------------------------------------
 
 return setmetatable(module, {
---     __call  = function(self, ...) return self.new(...) end,
     __index = function(self, key)
         if type(subModules[key]) ~= "nil" then
             module[key] = require(USERDATA_TAG .. "." ..key)

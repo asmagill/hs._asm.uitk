@@ -20,7 +20,9 @@ General
       NSSavePanel
       NSOpenPanel
       NSFontPanel   -- may be some methods in text*... move out?
-      NSColorPanel  -- move out of colorwell? is it in others?
+  +   NSColorPanel  -- move out of colorwell? is it in others?
+          add NSColorList support?
+          should accessory be auto-removed whenever panel hidden?
 
 + table
       add lua file so column data can be wrapped as well

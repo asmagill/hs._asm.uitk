@@ -8,7 +8,7 @@ current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
 MODULE := $(lastword $(subst ., ,$(current_dir)))
 PREFIX ?= ~/.hammerspoon
-MODPATH = hs/_asm
+MODPATH = hs/_asm/uitk
 VERSION ?= 0.x
 HS_APPLICATION ?= /Applications
 
@@ -57,87 +57,6 @@ releaseWithDocs: CFLAGS  += -DRELEASE_VERSION=$(VERSION)
 LDFLAGS += -dynamiclib -undefined dynamic_lookup $(EXTRA_LDFLAGS)
 
 all: verify $(shell uname -m)
-
-everything: all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField all
-
-everything-universal: universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField universal
-
-clean-everything: clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField clean
-
-install-everything: install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install
-
-install-everything-universal: install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install-universal
-
-uninstall-everything: uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content uninstall
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField uninstall
-
-everything-docs: docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField docs
-
-everything-markdown: markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdown
-
-everything-markdownWithTOC: markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/content markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdownWithTOC
 
 echo:
 	@echo mkfile_path     = ${mkfile_path}
@@ -208,8 +127,7 @@ obj_universal:
 verify: $(LUAFILES)
 	@if $$(hash lua >& /dev/null); then (luac -p $(LUAFILES) && echo "Lua Compile Verification Passed"); else echo "Skipping Lua Compile Verification"; fi
 
-# install: install-$(shell uname -m)
-install: verify install-lua
+install: install-$(shell uname -m)
 
 install-lua: $(LUAFILES)
 	mkdir -p $(PREFIX)/$(MODPATH)
@@ -265,11 +183,11 @@ markdown:
 markdownWithTOC:
 	hs -c "dofile(\"$(MARKDOWNMAKER)\").genMarkdown([[$(join $(dir $(mkfile_path)), /src)]], true)" > README.tmp.md
 
-release: clean-everything
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-everything-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
+release: clean all
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
 
-releaseWithDocs: clean-everything everything-docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-everything-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
+releaseWithDocs: clean all docs
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
 
-.PHONY: all clean verify install install-lua install-x86_64 install-arm64 install-universal docs markdown markdownWithTOC release releaseWithDocs uninstall everything everything-universal clean-everything install-everything install-everything-universal uninstall-everything everything-docs everything-markdown everything-markdownWithTOC
+.PHONY: all clean verify install install-lua install-x86_64 install-arm64 install-universal docs markdown markdownWithTOC release releaseWithDocs
 
