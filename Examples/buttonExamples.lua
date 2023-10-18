@@ -1,8 +1,7 @@
 local uitk    = require("hs._asm.uitk")
 local image   = require("hs.image")
-local inspect = require("hs.inspect")
 
-local finspect = function(...) return (inspect({...}):gsub("%s+", " ")) end
+local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
 local module = {}
 

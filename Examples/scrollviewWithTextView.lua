@@ -1,4 +1,5 @@
 uitk = require("hs._asm.uitk")
+local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
 p = uitk.window{x = 100, y = 100, h = 500, w = 500 }:show():passthroughCallback(cbinspect)
 c = p:content()

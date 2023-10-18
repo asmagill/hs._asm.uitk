@@ -2,15 +2,7 @@
 
 local uitk  = require("hs._asm.uitk")
 
-local finspect = function(...)
-    local args = table.pack(...)
-    if args.n == 1 then
-        args = args[1]
-    else
-        args.n = nil -- supress the count from table.pack
-    end
-    return inspect(args, { newline = " ", indent = "" })
-end
+local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
 local module = {}
 

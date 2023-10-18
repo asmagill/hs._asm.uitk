@@ -1,4 +1,5 @@
 local uitk = require("hs._asm.uitk")
+local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
 m   = uitk.menu("myMenu"):callback(function(...) print("m", timestamp(), finspect(...)) end)
 
