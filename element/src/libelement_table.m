@@ -237,7 +237,7 @@ static BOOL oneOfOurs(NSView *obj) {
         [skin pushNSObject:tableView] ;
         lua_pushstring(L, "view") ;
         lua_pushinteger(L, row + 1) ;
-        [skin pushNSObject:tableColumn] ;
+        [skin pushNSObject:tableColumn.identifier] ;
         if (![skin protectedCallAndTraceback:4 nresults:1]) {
             NSString *errorMessage = [skin toNSObjectAtIndex:-1] ;
             [skin logError:[NSString stringWithFormat:@"%s:dataSource callback error:%@", USERDATA_TAG, errorMessage]] ;

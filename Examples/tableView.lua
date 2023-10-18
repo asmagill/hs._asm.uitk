@@ -48,9 +48,10 @@ local dataSourceCallback = function(tbl, action, ...)
     if action == "count" then
         return #tableRows
     elseif action == "view" then
-        local r, c = ...
-        print(r,c)
-        return tableRows[r][c:identifier()]
+        local r, cIdentifier = ...
+-- uncomment to see when rows are repopulated...
+--         print(r,cIdentifier)
+        return tableRows[r][cIdentifier]
     else
         return "unknown: " .. tostring(action)
     end
