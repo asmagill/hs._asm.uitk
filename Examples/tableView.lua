@@ -2,17 +2,13 @@ local uitk = require("hs._asm.uitk")
 
 local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
-local menuChangeCallback = function(name, row, ...)
-    print(name, row, finspect(...))
-end
-
 local module = {}
 
 local tableRows = {}
 
 for i = 1, 20, 1 do
     local modsMenu = uitk.menu("Mod " .. tostring(i)):callback(function(...)
-                                                                   menuChangeCallback("mods", i, ...)
+                                                                   print("mods", i, finspect(...))
                                                                end)
     modsMenu[1] = { title = ""        }
     modsMenu[2] = { title = "Cmd"     }
@@ -21,7 +17,7 @@ for i = 1, 20, 1 do
     modsMenu[5] = { title = "Option"  }
 
     local keysMenu = uitk.menu("Key " .. tostring(i)):callback(function(...)
-                                                                   menuChangeCallback("keys", i, ...)
+                                                                   print("keys", i, finspect(...))
                                                                end)
     keysMenu[1] = { title = "" }
     for j = 65, 90, 1 do keysMenu[#keysMenu + 1] = { title = string.char(j) } end
@@ -57,19 +53,19 @@ local dataSourceCallback = function(tbl, action, ...)
     end
 end
 
-local labelColumn    = uitk.element.table.newColumn("label"):title("Label")
-local actionColumn   = uitk.element.table.newColumn("action"):title("Action"):width(actionFittingSize.w)
-local modifierColumn = uitk.element.table.newColumn("modifier"):title("Modifier")
-local keyColumn      = uitk.element.table.newColumn("key"):title("Key")
+local labelColumn    = uitk.element.container.table.newColumn("label"):title("Label")
+local actionColumn   = uitk.element.container.table.newColumn("action"):title("Action"):width(actionFittingSize.w)
+local modifierColumn = uitk.element.container.table.newColumn("modifier"):title("Modifier")
+local keyColumn      = uitk.element.container.table.newColumn("key"):title("Key")
 
-local tableView = uitk.element.table():dataSourceCallback(dataSourceCallback)
-                                      :addColumn(labelColumn)
-                                      :addColumn(actionColumn)
-                                      :addColumn(modifierColumn)
-                                      :addColumn(keyColumn)
-                                      :passthroughCallback(function(...)
-                                          print("tablePassthrough", finspect(...))
-                                      end)
+local tableView = uitk.element.container.table():dataSourceCallback(dataSourceCallback)
+                                                :addColumn(labelColumn)
+                                                :addColumn(actionColumn)
+                                                :addColumn(modifierColumn)
+                                                :addColumn(keyColumn)
+                                                :passthroughCallback(function(...)
+                                                    print("tablePassthrough", finspect(...))
+                                                end)
 
 local scroller = uitk.element.container.scroller{}
 
@@ -92,6 +88,6 @@ content[1] = {
 }
 
 module.window = window
-module.tableRows = tableRows
+-- module.tableRows = tableRows
 
 return module

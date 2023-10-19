@@ -40,6 +40,7 @@ local subModules = {
 --  name       lua or library?
     scroller = true,
     grid     = true,
+    table    = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or

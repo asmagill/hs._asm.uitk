@@ -65,7 +65,6 @@ local subModules = {
     textField       = "hs._asm.uitk.element.textField",
     segmentBar      = true,
     textView        = true,
-    table           = false,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or

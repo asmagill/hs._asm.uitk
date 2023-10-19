@@ -1,9 +1,11 @@
 @import Cocoa ;
 @import LuaSkin ;
 
-static const char * const USERDATA_TAG  = "hs._asm.uitk.element.table" ;
-static const char * const UD_COLUMN_TAG = "hs._asm.uitk.element.table.column" ;
-static LSRefTable         refTable     = LUA_NOREF ;
+static const char * const USERDATA_TAG  = "hs._asm.uitk.element.container.table" ;
+static const char * const UD_ROW_TAG    = "hs._asm.uitk.element.container.table.row" ;
+static const char * const UD_COLUMN_TAG = "hs._asm.uitk.element.container.table.column" ;
+
+static LSRefTable         refTable      = LUA_NOREF ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
@@ -882,15 +884,25 @@ static int table_removeTableColumn(lua_State *L) {
 
 static int table_columnWithIdentifier(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
-    NSString               *identifier = [skin toNSObjectAtIndex:2] ;
 
-    NSTableColumn *column = [table tableColumnWithIdentifier:identifier] ;
-    if (column) {
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        NSString      *identifier = [skin toNSObjectAtIndex:2] ;
+        NSTableColumn *column     = [table tableColumnWithIdentifier:identifier] ;
         [skin pushNSObject:column] ;
     } else {
-        lua_pushnil(L) ;
+        NSInteger idx   = lua_tointeger(L, 2) ;
+        NSInteger count = table.numberOfColumns ;
+
+        if (idx < 0) idx = count + 1 + idx ;
+        idx-- ;
+        if (idx < 0 || idx >= count) {
+            lua_pushnil(L) ;
+        } else {
+            NSTableColumn *col = [table.tableColumns objectAtIndex:(NSUInteger)idx] ;
+            [skin pushNSObject:col] ;
+        }
     }
     return 1 ;
 }
@@ -911,11 +923,17 @@ static int table_viewAtRowColumn(lua_State *L) {
     NSInteger              row         = lua_tointeger(L, 2) ;
     NSInteger              col         = lua_tointeger(L, 3) ;
 
-    if (row < 1 || row > table.numberOfRows) {
-        return luaL_argerror(L, 2, "index out of bounds") ;
+    NSInteger rCount = table.numberOfRows ;
+    if (row < 0) row = rCount + 1 + row ;
+    if (row < 1 || row > rCount) {
+        lua_pushnil(L) ;
+        return 1;
     }
-    if (col < 1 || col > table.numberOfColumns) {
-        return luaL_argerror(L, 3, "index out of bounds") ;
+    NSInteger cCount = table.numberOfColumns ;
+    if (col < 0) col = cCount + 1 + col ;
+    if (col < 1 || col > cCount) {
+        lua_pushnil(L) ;
+        return 1;
     }
 
     NSView *view = [table viewAtColumn:(col - 1) row:(row - 1) makeIfNecessary:YES] ;
@@ -960,8 +978,10 @@ static int table_hideRow(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx = lua_tointeger(L, 2) ;
-    if (idx < 1 || idx > table.numberOfRows) {
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfRows ;
+    if (idx < 0) idx = count + 1 + idx ;
+    if (idx < 1 || idx > count) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
@@ -1014,8 +1034,10 @@ static int table_scrollToRow(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx = lua_tointeger(L, 2) ;
-    if (idx < 1 || idx > table.numberOfRows) {
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfRows ;
+    if (idx < 0) idx = count + 1 + idx ;
+    if (idx < 1 || idx > count) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
@@ -1029,8 +1051,10 @@ static int table_scrollToColumn(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx = lua_tointeger(L, 2) ;
-    if (idx < 1 || idx > table.numberOfColumns) {
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfColumns ;
+    if (idx < 0) idx = count + 1 + idx ;
+    if (idx < 1 || idx > count) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
@@ -1134,6 +1158,7 @@ static int table_selectedColumns(lua_State *L) {
             [selection enumerateObjectsUsingBlock:^(NSNumber *obj, __unused NSUInteger i, BOOL *stop) {
                 if ([obj isKindOfClass:[NSNumber class]]) {
                     NSInteger idx = obj.integerValue ;
+                    if (idx < 0) idx = colCount + 1 + idx ;
                     if (idx < 1 || idx > colCount) {
                         goodTable = NO ;
                         *stop = YES ;
@@ -1189,6 +1214,7 @@ static int table_selectedRows(lua_State *L) {
             [selection enumerateObjectsUsingBlock:^(NSNumber *obj, __unused NSUInteger i, BOOL *stop) {
                 if ([obj isKindOfClass:[NSNumber class]]) {
                     NSInteger idx = obj.integerValue ;
+                    if (idx < 0) idx = rowCount + 1 + idx ;
                     if (idx < 1 || idx > rowCount) {
                         goodTable = NO ;
                         *stop = YES ;
@@ -1217,8 +1243,10 @@ static int table_isColumnSelected(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx = lua_tointeger(L, 2) ;
-    if (idx < 1 || idx > table.numberOfColumns) {
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfColumns ;
+    if (idx < 0) idx = count + 1 + idx ;
+    if (idx < 1 || idx > count) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
@@ -1231,12 +1259,33 @@ static int table_isRowSelected(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx = lua_tointeger(L, 2) ;
-    if (idx < 1 || idx > table.numberOfRows) {
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfRows ;
+    if (idx < 0) idx = count + 1 + idx ;
+    if (idx < 1 || idx > count) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
     lua_pushboolean(L, [table isRowSelected:idx]) ;
+    return 1 ;
+}
+
+static int table_rowViewAtRow(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = table.numberOfRows ;
+
+    if (idx < 0) idx = count + 1 + idx ;
+    idx-- ;
+    if (idx < 0 || idx >= count) {
+        lua_pushnil(L) ;
+    } else {
+        NSTableRowView *row = [table rowViewAtRow:idx makeIfNecessary:YES] ;
+        [skin pushNSObject:row] ;
+    }
     return 1 ;
 }
 
@@ -1262,6 +1311,140 @@ static int table_isRowSelected(lua_State *L) {
 // - (void)reloadDataForRowIndexes:(NSIndexSet *)rowIndexes columnIndexes:(NSIndexSet *)columnIndexes;
 // @property BOOL rowActionsVisible;
 // @property(copy) NSArray<NSSortDescriptor *> *sortDescriptors;
+
+#pragma mark - NSTableRowView Methods -
+
+static int tableRow_viewAtColumn(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger count = row.numberOfColumns ;
+
+    if (idx < 0) idx = count + 1 + idx ;
+    idx-- ;
+    if (idx < 0 || idx >= count) {
+        lua_pushnil(L) ;
+    } else {
+        NSView *view = [row viewAtColumn:idx] ;
+        [skin pushNSObject:view] ;
+    }
+    return 1 ;
+}
+
+static int tableRow_selectionHighlightStyle(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, (row.selectionHighlightStyle == NSTableViewSelectionHighlightStyleRegular)) ;
+    } else {
+        row.selectionHighlightStyle = lua_toboolean(L, 2) ? NSTableViewSelectionHighlightStyleRegular
+                                                          : NSTableViewSelectionHighlightStyleNone ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_backgroundColor(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:row.backgroundColor] ;
+    } else {
+        row.backgroundColor = [skin luaObjectAtIndex:2 toClass:"NSColor"] ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_emphasized(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.emphasized) ;
+    } else {
+        row.emphasized = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_floating(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.floating) ;
+    } else {
+        row.floating = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_groupRowStyle(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.groupRowStyle) ;
+    } else {
+        row.groupRowStyle = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_nextRowSelected(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.nextRowSelected) ;
+    } else {
+        row.nextRowSelected = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_previousRowSelected(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.previousRowSelected) ;
+    } else {
+        row.previousRowSelected = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tableRow_selected(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, row.selected) ;
+    } else {
+        row.selected = lua_toboolean(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
 
 #pragma mark - NSTableColumn Methods -
 
@@ -1478,7 +1661,9 @@ static int tableColumn_moveColumn(lua_State *L) {
     HSUITKElementTableView *table  = (HSUITKElementTableView *)column.tableView ;
 
     if (table) {
-        if (destCol < 1 || destCol > table.numberOfRows) {
+        NSInteger count = table.numberOfColumns ;
+        if (destCol < 0) destCol = count + 1 + destCol ;
+        if (destCol < 1 || destCol > count) {
             return luaL_argerror(L, 2, "index out of bounds") ;
         }
         NSInteger fromCol = [table columnWithIdentifier:column.identifier] ;
@@ -1557,6 +1742,27 @@ static id toNSTableColumnFromLua(lua_State *L, int idx) {
     return value ;
 }
 
+static int pushNSTableRowView(lua_State *L, id obj) {
+    NSTableRowView *value = obj;
+    void** valuePtr = lua_newuserdata(L, sizeof(NSTableRowView *));
+    *valuePtr = (__bridge_retained void *)value;
+    luaL_getmetatable(L, UD_ROW_TAG);
+    lua_setmetatable(L, -2);
+    return 1;
+}
+
+static id toNSTableRowViewFromLua(lua_State *L, int idx) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    NSTableRowView *value ;
+    if (luaL_testudata(L, idx, UD_ROW_TAG)) {
+        value = get_objectFromUserdata(__bridge NSTableRowView, L, idx, UD_ROW_TAG) ;
+    } else {
+        [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", UD_ROW_TAG,
+                                                   lua_typename(L, lua_type(L, idx))]] ;
+    }
+    return value ;
+}
+
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int table_object_tostring(lua_State *L) {
@@ -1569,10 +1775,7 @@ static int table_object_tostring(lua_State *L) {
         lua_pop(L, 2) ;
     }
 
-    NSTableColumn *col = [skin toNSObjectAtIndex:1] ;
-    NSString *identifier = col.identifier ;
-
-    [skin pushNSObject:[NSString stringWithFormat:@"%@: %@ (%p)", tag, identifier, lua_topointer(L, 1)]] ;
+    [skin pushNSObject:[NSString stringWithFormat:@"%@: (%p)", tag, lua_topointer(L, 1)]] ;
     return 1 ;
 }
 
@@ -1660,7 +1863,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"columns",                    table_columns},
     {"addColumn",                  table_addTableColumn},
     {"removeColumn",               table_removeTableColumn},
-    {"columnWithIdentifier",       table_columnWithIdentifier},
+    {"column",                     table_columnWithIdentifier},
     {"tableColumns",               table_tableColumns},
     {"element",                    table_viewAtRowColumn},
     {"reloadData",                 table_reloadData},
@@ -1674,11 +1877,30 @@ static const luaL_Reg userdata_metaLib[] = {
     {"sizeToFit",                  table_sizeToFit},
     {"isColumnSelected",           table_isColumnSelected},
     {"isRowSelected",              table_isRowSelected},
+    {"row",                        table_rowViewAtRow},
 
 // other metamethods inherited from _control and _view
     {"__gc",                       userdata_gc},
     {NULL,                         NULL}
 };
+
+static const luaL_Reg ud_row_metaLib[] = {
+    {"selectionHighlightStyle", tableRow_selectionHighlightStyle},
+    {"backgroundColor",         tableRow_backgroundColor},
+    {"emphasized",              tableRow_emphasized},
+    {"floating",                tableRow_floating},
+    {"groupRowStyle",           tableRow_groupRowStyle},
+    {"nextRowSelected",         tableRow_nextRowSelected},
+    {"previousRowSelected",     tableRow_previousRowSelected},
+    {"selected",                tableRow_selected},
+
+    {"viewAtColumn",            tableRow_viewAtColumn},
+
+    {"__tostring",              table_object_tostring},
+    {"__eq",                    table_object_eq},
+    {"__gc",                    table_object_gc},
+    {NULL,                      NULL}
+} ;
 
 static const luaL_Reg ud_column_metaLib[] = {
     {"maxWidth",       tableColumn_maxWidth},
@@ -1711,20 +1933,25 @@ static luaL_Reg moduleLib[] = {
     {NULL,        NULL}
 };
 
-int luaopen_hs__asm_uitk_libelement_table(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libcontainer_table(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerObject:UD_COLUMN_TAG  objectFunctions:ud_column_metaLib] ;
+    [skin registerObject:UD_ROW_TAG    objectFunctions:ud_row_metaLib] ;
+    [skin registerObject:UD_COLUMN_TAG objectFunctions:ud_column_metaLib] ;
 
     defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementTableView         forClass:"HSUITKElementTableView"];
     [skin registerLuaObjectHelper:toHSUITKElementTableViewFromLua forClass:"HSUITKElementTableView"
                                                      withUserdataMapping:USERDATA_TAG];
+
+    [skin registerPushNSHelper:pushNSTableRowView         forClass:"NSTableRowView"];
+    [skin registerLuaObjectHelper:toNSTableRowViewFromLua forClass:"NSTableRowView"
+                                               withUserdataMapping:UD_ROW_TAG];
 
     [skin registerPushNSHelper:pushNSTableColumn         forClass:"NSTableColumn"];
     [skin registerLuaObjectHelper:toNSTableColumnFromLua forClass:"NSTableColumn"
@@ -1763,6 +1990,20 @@ int luaopen_hs__asm_uitk_libelement_table(lua_State* L) {
     lua_setfield(L, -2, "_propertyList") ;
     // (all elements inherit from _view)
     lua_pushboolean(L, YES) ; lua_setfield(L, -2, "_inheritControl") ; // inherit from _control
+    lua_pop(L, 1) ;
+
+    luaL_getmetatable(L, UD_ROW_TAG) ;
+    [skin pushNSObject:@[
+        @"selectionHighlightStyle",
+        @"backgroundColor",
+        @"emphasized",
+        @"floating",
+        @"groupRowStyle",
+        @"nextRowSelected",
+        @"previousRowSelected",
+        @"selected",
+    ]] ;
+    lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;
 
     luaL_getmetatable(L, UD_COLUMN_TAG) ;
