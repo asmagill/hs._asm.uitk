@@ -32,8 +32,8 @@ local lastFrame = grp[#grp].frame._effective
 
 -- 10.12 constructors; approximations are used if 10.11 or 10.10 detected; included here so I can determine what to mimic
 grp[#grp + 1] = {
-    _userdata = uitk.element.button.buttonWithImage(image.imageFromName(image.systemImageNames.ApplicationIcon)),
-    frame     = { y = lastFrame.y + 2 * lastFrame.h }
+    _element = uitk.element.button.buttonWithImage(image.imageFromName(image.systemImageNames.ApplicationIcon)),
+    frame    = { y = lastFrame.y + 2 * lastFrame.h }
 }
 grp[#grp + 1] = uitk.element.button.buttonWithTitle("buttonWithTitle")
 grp[#grp + 1] = uitk.element.button.buttonWithTitleAndImage("buttonWithTitleAndImage", image.imageFromName(image.systemImageNames.ApplicationIcon))

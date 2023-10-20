@@ -7,28 +7,28 @@ local gui = uitk.window{ x = 100, y = 100, h = 100, w = 204 }:show()
 local grp = gui:content()
 
 grp[#grp + 1] = {
-    id        = "backgroundSpinner",
-    _userdata = uitk.element.progress.new():circular(true):start(),
+    id       = "backgroundSpinner",
+    _element = uitk.element.progress.new():circular(true):start(),
 }
 grp[#grp + 1] = {
-    id        = "foregroundSpinner",
-    _userdata = uitk.element.progress.new():circular(true):threaded(false):start(),
+    id       = "foregroundSpinner",
+    _element = uitk.element.progress.new():circular(true):threaded(false):start(),
 }
 
 grp[#grp + 1] = {
-    id        = "backgroundBar",
-    _userdata = uitk.element.progress.new():start(),
-    frame     = { x = 10, y = 10, w = 184 },
+    id       = "backgroundBar",
+    _element = uitk.element.progress.new():start(),
+    frame    = { x = 10, y = 10, w = 184 },
 }
 grp[#grp + 1] = {
-    id        = "foregroundBar",
-    _userdata = uitk.element.progress.new():threaded(false):start(),
-    frame     = { w = 184 },
+    id       = "foregroundBar",
+    _element = uitk.element.progress.new():threaded(false):start(),
+    frame    = { w = 184 },
 }
 
 grp[#grp + 1] = {
     id            = "hoursBar",
-    _userdata     = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     min           = 0,
     max           = 23,
     indeterminate = false,
@@ -39,7 +39,7 @@ grp[#grp + 1] = {
 }
 grp[#grp + 1] = {
     id            = "minutesBar",
-    _userdata      = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     min           = 0,
     max           = 60,
     indeterminate = false,
@@ -50,7 +50,7 @@ grp[#grp + 1] = {
 }
 grp[#grp + 1] = {
     id            = "secondsBar",
-    _userdata     = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     min           = 0,
     max           = 60,
     indeterminate = false,
@@ -62,7 +62,7 @@ grp[#grp + 1] = {
 
 grp[#grp + 1] = {
     id            = "hoursSpinner",
-    _userdata     = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     circular      = true,
     min           = 0,
     max           = 23,
@@ -73,7 +73,7 @@ grp[#grp + 1] = {
 }
 grp[#grp + 1] = {
     id            = "minutesSpinner",
-    _userdata     = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     circular      = true,
     min           = 0,
     max           = 60,
@@ -84,7 +84,7 @@ grp[#grp + 1] = {
 }
 grp[#grp + 1] = {
     id            = "secondsSpinner",
-    _userdata     = uitk.element.progress.new(),
+    _element      = uitk.element.progress.new(),
     circular      = true,
     min           = 0,
     max           = 60,

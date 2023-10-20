@@ -31,7 +31,7 @@
 local USERDATA_TAG = "hs._asm.uitk.element.container.grid"
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
 
-local container    = require("hs._asm.uitk.element.container")
+-- local container    = require("hs._asm.uitk.element.container")
 
 local gridMT     = hs.getObjectMetatable(USERDATA_TAG)
 local gridRowMT  = hs.getObjectMetatable(USERDATA_TAG .. ".row")
@@ -109,7 +109,8 @@ wrappedGridRowMT.__index = function(self, key)
 
 -- cell index
     elseif math.type(key) == "integer" then
-        return userdata:cell(key):wrap()
+        local result = userdata:cell(key)
+        return result and result:wrap() or nil
 
 -- unrecognized
     else
@@ -133,7 +134,8 @@ wrappedGridColMT.__index = function(self, key)
 
 -- cell index
     elseif math.type(key) == "integer" then
-        return userdata:cell(key):wrap()
+        local result = userdata:cell(key)
+        return result and result:wrap() or nil
 
 -- unrecognized
     else
@@ -301,14 +303,16 @@ gridMT.__index = function(self, key)
             return setmetatable({}, {
                 __index = function(_, colKey)
                     if math.type(colKey) == "integer" then
-                        return self:column(colKey):wrap()
+                        local result = self:column(colKey)
+                        return result and result:wrap() or nil
                     else
                         return nil
                     end
                 end,
             })
         else
-            return self:row(key):wrap()
+            local result = self:row(key)
+            return result and result:wrap() or nil
         end
     end
 

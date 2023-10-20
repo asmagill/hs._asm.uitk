@@ -6,7 +6,7 @@ c = p:content()
 s = uitk.element.container.scroller{}
 t = uitk.element.textView{}
 s.element = {
-    _userdata        = t,
+    _element         = t,
     allowsUndo       = true,
     usesInspectorBar = true,
     callback         = function(...) print("callback", finspect(...)) end,
@@ -14,7 +14,7 @@ s.element = {
     typingAttributes = { font = { name = "Courier New", size = 10 } },
 }
 c[1] = {
-    _userdata        = s,
+    _element         = s,
     frame            = { h = "100%", w = "100%" },
     verticalScroller = true,
     horizontalRuler  = true,

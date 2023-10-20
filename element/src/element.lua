@@ -96,9 +96,7 @@ end
 
 -- a wrapped userdata is an userdata "converted" into an object that can be modified like
 -- a lua key-value table
-local wrappedUserdataMT = {
-    __e = setmetatable({}, { __mode = "k" })
-}
+local wrappedUserdataMT = { __e = setmetatable({}, { __mode = "k" }) }
 
 local wrapped_userdataWithMT = function(userdata)
     local newItem = {}
@@ -114,7 +112,7 @@ wrappedUserdataMT.__index = function(self, key)
     local userdata = obj.userdata
 
 -- builtin convenience values
-    if key == "_userdata" then
+    if key == "_element" then
         return userdata
     elseif key == "_type" then
         return obj.userdataMT.__type
@@ -138,7 +136,7 @@ wrappedUserdataMT.__newindex = function(self, key, value)
     local userdata = obj.userdata
 
 -- builtin convenience read-only values
-    if key == "_userdata" or key == "_type" then
+    if key == "_element" or key == "_type" then
         error(key .. " cannot be modified", 3)
 
 -- property methods
@@ -161,7 +159,7 @@ wrappedUserdataMT.__pairs = function(self)
     local obj = wrappedUserdataMT.__e[self]
     local userdata = obj.userdata
 
-    local keys = {  "_userdata", "_type", }
+    local keys = {  "_element", "_type", }
     for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
 
     return function(_, k)

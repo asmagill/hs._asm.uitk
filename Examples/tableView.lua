@@ -25,13 +25,13 @@ for i = 1, 20, 1 do
     local label    = uitk.element.textField.newLabel("Action " .. tostring(i))
     local action   = uitk.element.container()
     action[1] = {
-        _userdata = uitk.element.textField.newTextField(),
-        frame     = { w = 300 },
+        _element = uitk.element.textField.newTextField(),
+        frame    = { w = 300 },
     }
     action[2] = uitk.element.button.buttonWithTitle("Select"):bezelStyle("roundRect")
-    action[2]._userdata:position("after", action[1]._userdata, 5, "center")
+    action[2]._element:position("after", action[1]._element, 5, "center")
     action[3] = uitk.element.button.buttonWithTitle("Clear"):bezelStyle("roundRect")
-    action[3]._userdata:position("after", action[2]._userdata, 5, "center")
+    action[3]._element:position("after", action[2]._element, 5, "center")
     local modifier = uitk.element.popUpButton(modsMenu):selectedIndex(1)
     local key      = uitk.element.popUpButton(keysMenu):selectedIndex(1)
 
@@ -70,7 +70,7 @@ local tableView = uitk.element.container.table():dataSourceCallback(dataSourceCa
 local scroller = uitk.element.container.scroller{}
 
 scroller.element = {
-    _userdata        = tableView,
+    _element         = tableView,
     columnAutosizing = "firstColumnOnly",
     callback         = function(...)
                            print("scrollerCallback", finspect(...))
@@ -82,7 +82,7 @@ local window = uitk.window{x = 100, y = 100, h = 200, w = 900 }:show():passthrou
 end)
 local content  = window:content()
 content[1] = {
-    _userdata = scroller,
+    _element         = scroller,
     frame            = { h = "100%", w = "100%" },
     verticalScroller = true,
 }

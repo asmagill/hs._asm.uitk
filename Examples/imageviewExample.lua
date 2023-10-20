@@ -9,9 +9,9 @@ local gui = uitk.window{ x = 100, y = 100, h = 500, w = 500 }:show()
 local mgr = gui:content()
 
 mgr[#mgr + 1] = {
-    _userdata = uitk.element.textField.newLabel(stext.new(
-                    "Drag an image file into the box or\npaste one from the clipboard",
-                    { paragraphStyle = { alignment = "center" } }
+    _element = uitk.element.textField.newLabel(stext.new(
+        "Drag an image file into the box or\npaste one from the clipboard",
+        { paragraphStyle = { alignment = "center" } }
     )),
     frame = {
         cX = "50%",

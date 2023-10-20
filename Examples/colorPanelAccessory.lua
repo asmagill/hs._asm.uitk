@@ -26,7 +26,7 @@ local cancelButton = uitk.element.button.buttonType("momentaryPushIn"):title("Ca
                                                                       :bezelStyle("rounded")
                                                                       :callback(cancelCallback)
 accessoryView[1] = button
-accessoryView[2] = { _userdata = cancelButton, frame = { rX = "100%", y = 0 } }
+accessoryView[2] = { _element = cancelButton, frame = { rX = "100%", y = 0 } }
 
 module.show = function()
     uitk.panel.color.accessory(accessoryView)

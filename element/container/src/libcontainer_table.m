@@ -1,11 +1,15 @@
 @import Cocoa ;
 @import LuaSkin ;
+@import ObjectiveC.runtime ;
 
 static const char * const USERDATA_TAG  = "hs._asm.uitk.element.container.table" ;
 static const char * const UD_ROW_TAG    = "hs._asm.uitk.element.container.table.row" ;
 static const char * const UD_COLUMN_TAG = "hs._asm.uitk.element.container.table.column" ;
 
 static LSRefTable         refTable      = LUA_NOREF ;
+
+static void *CALLBACKREF_KEY  = @"HS_callbackRefKey" ;
+static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
@@ -77,6 +81,53 @@ static BOOL oneOfOurs(NSView *obj) {
            [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
 }
+
+// probably won't ever use them, but lets do it right just in case...
+@interface NSTableRowView (HammerspoonAdditions)
+@property (nonatomic)           int  callbackRef ;
+@property (nonatomic)           int  selfRefCount ;
+@property (nonatomic, readonly) int  refTable ;
+
+- (int)callbackRef ;
+- (void)setCallbackRef:(int)value ;
+- (int)selfRefCount ;
+- (void)setSelfRefCount:(int)value ;
+- (int)refTable ;
+@end
+
+@implementation NSTableRowView (HammerspoonAdditions)
+- (void)setCallbackRef:(int)value {
+    NSNumber *valueWrapper = [NSNumber numberWithInt:value];
+    objc_setAssociatedObject(self, CALLBACKREF_KEY, valueWrapper, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (int)callbackRef {
+    NSNumber *valueWrapper = objc_getAssociatedObject(self, CALLBACKREF_KEY) ;
+    if (!valueWrapper) {
+        [self setCallbackRef:LUA_NOREF] ;
+        valueWrapper = @(LUA_NOREF) ;
+    }
+    return valueWrapper.intValue ;
+}
+
+- (void)setSelfRefCount:(int)value {
+    NSNumber *valueWrapper = [NSNumber numberWithInt:value];
+    objc_setAssociatedObject(self, SELFREFCOUNT_KEY, valueWrapper, OBJC_ASSOCIATION_RETAIN);
+}
+
+- (int)selfRefCount {
+    NSNumber *valueWrapper = objc_getAssociatedObject(self, SELFREFCOUNT_KEY) ;
+    if (!valueWrapper) {
+        [self setSelfRefCount:0] ;
+        valueWrapper = @(0) ;
+    }
+    return valueWrapper.intValue ;
+}
+
+- (int)refTable {
+    return refTable ;
+}
+@end
 
 @interface HSUITKElementTableView : NSTableView <NSTableViewDelegate, NSTableViewDataSource>
 @property            int               selfRefCount ;
@@ -260,6 +311,7 @@ static BOOL oneOfOurs(NSView *obj) {
 
 - (void)tableView:(NSTableView *)tableView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
+// TODO: need a callback because row settings are lost when non-visible rows are released
 //     [skin logInfo:[NSString stringWithFormat:@"%s:didAddRow - retaining row %ld", USERDATA_TAG, row]] ;
     for (NSInteger i = 0 ; i < rowView.numberOfColumns ; i++) {
         NSView *view = [rowView viewAtColumn:i] ;
@@ -269,6 +321,7 @@ static BOOL oneOfOurs(NSView *obj) {
 
 - (void)tableView:(NSTableView *)tableView didRemoveRowView:(NSTableRowView *)rowView forRow:(NSInteger)row {
     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
+// TODO: callback for one last chance to capture settings before it's cleared?
 //     [skin logInfo:[NSString stringWithFormat:@"%s:didRemoveRow - releasing row %ld", USERDATA_TAG, row]] ;
     for (NSInteger i = 0 ; i < rowView.numberOfColumns ; i++) {
         NSView *view = [rowView viewAtColumn:i] ;
@@ -866,12 +919,15 @@ static int table_removeTableColumn(lua_State *L) {
         NSString *identifier = [skin toNSObjectAtIndex:2] ;
         column = [table tableColumnWithIdentifier:identifier] ;
         if (!column) {
-            return luaL_argerror(L, 2, "no column with the specified identifier is attached to the table") ;
+            return luaL_argerror(L, 2, "identifier not recognized") ;
         }
     } else {
         [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-        NSInteger idx = lua_tointeger(L, 2) ;
-        if (idx < 1 || idx > (NSInteger)(table.tableColumns.count)) {
+        NSInteger idx   = lua_tointeger(L, 2) ;
+        NSInteger count = table.numberOfColumns ;
+
+        if (idx < 0) idx = count + 1 + idx ;
+        if (idx < 1 || idx > count) {
             return luaL_argerror(L, 2, "index out of bounds") ;
         }
         column = [table.tableColumns objectAtIndex:(NSUInteger)(idx - 1)] ;
@@ -884,7 +940,7 @@ static int table_removeTableColumn(lua_State *L) {
 
 static int table_columnWithIdentifier(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
 
     if (lua_type(L, 2) == LUA_TSTRING) {
@@ -918,10 +974,24 @@ static int table_tableColumns(lua_State *L) {
 
 static int table_viewAtRowColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TNUMBER | LS_TINTEGER,
+                    LS_TSTRING | LS_TNUMBER | LS_TINTEGER,
+                    LS_TBREAK] ;
     HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
     NSInteger              row         = lua_tointeger(L, 2) ;
-    NSInteger              col         = lua_tointeger(L, 3) ;
+    NSInteger              col         = (lua_type(L, 3) == LUA_TNUMBER) ? lua_tointeger(L, 3) : NSNotFound ;
+
+    if (lua_type(L, 3) == LUA_TSTRING) {
+        NSString      *identifier = [skin toNSObjectAtIndex:3] ;
+        NSTableColumn *column     = [table tableColumnWithIdentifier:identifier] ;
+        if (column) {
+            col = [table columnWithIdentifier:column.identifier] ;
+        } else {
+            lua_pushnil(L) ;
+            return 1 ;
+        }
+    }
 
     NSInteger rCount = table.numberOfRows ;
     if (row < 0) row = rCount + 1 + row ;
@@ -1048,10 +1118,20 @@ static int table_scrollToRow(lua_State *L) {
 
 static int table_scrollToColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger idx = (lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : NSNotFound ;
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        NSString      *identifier = [skin toNSObjectAtIndex:2] ;
+        NSTableColumn *column     = [table tableColumnWithIdentifier:identifier] ;
+        if (column) {
+            idx = [table columnWithIdentifier:column.identifier] ;
+        } else {
+            return luaL_argerror(L, 2, "identifier not recognized") ;
+        }
+    }
+
     NSInteger count = table.numberOfColumns ;
     if (idx < 0) idx = count + 1 + idx ;
     if (idx < 1 || idx > count) {
@@ -1240,10 +1320,20 @@ static int table_selectedRows(lua_State *L) {
 
 static int table_isColumnSelected(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger idx = (lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : NSNotFound ;
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        NSString      *identifier = [skin toNSObjectAtIndex:2] ;
+        NSTableColumn *column     = [table tableColumnWithIdentifier:identifier] ;
+        if (column) {
+            idx = [table columnWithIdentifier:column.identifier] ;
+        } else {
+            return luaL_argerror(L, 2, "identifier not recognized") ;
+        }
+    }
+
     NSInteger count = table.numberOfColumns ;
     if (idx < 0) idx = count + 1 + idx ;
     if (idx < 1 || idx > count) {
@@ -1316,10 +1406,27 @@ static int table_rowViewAtRow(lua_State *L) {
 
 static int tableRow_viewAtColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
     NSTableRowView *row = [skin toNSObjectAtIndex:1] ;
 
-    NSInteger idx   = lua_tointeger(L, 2) ;
+    NSInteger idx = (lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : NSNotFound ;
+    if (lua_type(L, 2) == LUA_TSTRING) {
+        NSString      *identifier = [skin toNSObjectAtIndex:2] ;
+        NSTableView *table = (NSTableView *)[row nextResponder] ;
+        if (table && [table isKindOfClass:[NSTableView class]]) {
+            NSTableColumn *column = [table tableColumnWithIdentifier:identifier] ;
+            if (column) {
+                idx = [table columnWithIdentifier:column.identifier] ;
+            } else {
+                lua_pushnil(L) ;
+                return 1 ;
+            }
+        } else {
+            lua_pushnil(L) ;
+            return 1 ;
+        }
+    }
+
     NSInteger count = row.numberOfColumns ;
 
     if (idx < 0) idx = count + 1 + idx ;
@@ -1744,6 +1851,7 @@ static id toNSTableColumnFromLua(lua_State *L, int idx) {
 
 static int pushNSTableRowView(lua_State *L, id obj) {
     NSTableRowView *value = obj;
+    value.selfRefCount++ ;
     void** valuePtr = lua_newuserdata(L, sizeof(NSTableRowView *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ROW_TAG);
@@ -1796,6 +1904,13 @@ static int table_object_eq(lua_State *L) {
 static int table_object_gc(lua_State *L) {
     NSObject *obj = (__bridge_transfer NSObject *)*((void**)lua_touserdata(L, 1)) ;
 
+    if ([obj isKindOfClass:[NSTableRowView class]]) {
+        NSTableRowView *view = (NSTableRowView *)obj ;
+        view.selfRefCount-- ;
+//         if (view.selfRefCount == 0) {
+//             // probably never going to need this, but placeholder here in case that changes
+//         }
+    }
     if (obj) obj = nil ;
 
     // Remove the Metatable so future use of the variable in Lua won't think its valid

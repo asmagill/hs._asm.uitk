@@ -44,80 +44,6 @@ local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTING
 
 -- private variables and methods -----------------------------------------
 
--- -- a wrapped element is an element "converted" into an object that can be modified like
--- -- a lua key-value table
--- local wrappedElementMT = {
---     __e = setmetatable({}, { __mode = "k" })
--- }
---
--- local wrappedElementWithMT = function(element)
---     local newItem = {}
---     wrappedElementMT.__e[newItem] = {
---         element   = element,
---         elementMT = getmetatable(element)
---     }
---     return setmetatable(newItem, wrappedElementMT)
--- end
---
--- wrappedElementMT.__index = function(self, key)
---     local obj = wrappedElementMT.__e[self]
---     local element = obj.element
---
--- -- builtin convenience values
---     if key == "_userdata" then
---         return element
---     elseif key == "_type" then
---         return (obj.elementMT or {}).__type
---
--- -- property methods
---     elseif fnutils.contains(((obj.elementMT or {})._propertyList or {}), key) then
---         return element[key](element)
---
--- -- unrecognized
---     else
---         return nil
---     end
--- end
---
--- wrappedElementMT.__newindex = function(self, key, value)
---     local obj = wrappedElementMT.__e[self]
---     local element = obj.element
---
--- -- builtin convenience read-only values
---     if key == "_userdata" or key == "_type" then
---         error(key .. " cannot be modified", 3)
---
--- -- property methods
---     elseif fnutils.contains(((obj.elementMT or {})._propertyList or {}), key) then
---         element[key](element, value)
---
--- -- unrecognized
---     else
---         error(tostring(key) .. " unrecognized property", 3)
---     end
--- end
---
--- wrappedElementMT.__tostring = function(self)
---     return "(wrapped) " .. tostring(wrappedElementMT.__e[self].element)
--- end
---
--- wrappedElementMT.__len = function(self) return 0 end
---
--- wrappedElementMT.__pairs = function(self)
---     local obj = wrappedElementMT.__e[self]
---     local element = obj.element
---
---     local keys = {  "_userdata", "_type" }
---     for i,v in ipairs(obj.elementMT._propertyList or {}) do table.insert(keys, v) end
---
---     return function(_, k)
---         local v = nil
---         k = table.remove(keys)
---         if k then v = self[k] end
---         return k, v
---     end, self, nil
--- end
-
 -- Public interface ------------------------------------------------------
 
 local mt_prevIndex = moduleMT.__index
@@ -136,7 +62,7 @@ moduleMT.__index = function(self, key)
 -- check to see if it's our wrapped way to access document()
     if key == "element" then
         local doc = self:document()
-        return doc and ((doc._wrap and doc:wrap()) or doc) or nil
+        return doc and ((doc.wrap and doc:wrap()) or doc) or nil
     end
 
 -- unrecognized
@@ -148,7 +74,7 @@ local newindex_applyProperties = function(element, propTable)
     local properties = elementMT._propertyList or {}
 
     for k,v in pairs(propTable) do
-        if k ~= "_userdata" then
+        if k ~= "_element" then
             if fnutils.contains(properties, k) then
                 element[k](element, v)
             else
@@ -160,15 +86,15 @@ end
 
 moduleMT.__newindex = function(self, key, value)
     if key == "element" then
-        if type(value) == "userdata" then value = { _userdata = value } end
+        if type(value) == "userdata" then value = { _element = value } end
 
         -- assign document or modify an existing one
         if type(value) == "table" then
-            local element = value._userdata or self:document()
+            local element = value._element or self:document()
             if container._isElementType(element) then
                 newindex_applyProperties(element, value)
                 -- add new document if one was supplied
-                if value._userdata then self:document(element) end
+                if value._element then self:document(element) end
                 return
             end
 

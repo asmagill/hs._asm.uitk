@@ -80,9 +80,7 @@ local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTING
 
 -- a wrapped userdata is an userdata "converted" into an object that can be modified like
 -- a lua key-value table
-local wrappedUserdataMT = {
-    __e = setmetatable({}, { __mode = "k" })
-}
+local wrappedUserdataMT = { __e = setmetatable({}, { __mode = "k" }) }
 
 local wrapped_userdataWithMT = function(userdata)
     local newItem = {}
@@ -98,7 +96,7 @@ wrappedUserdataMT.__index = function(self, key)
     local userdata = obj.userdata
 
 -- builtin convenience values
-    if key == "_userdata" then
+    if key == "_element" then
         return userdata
     elseif key == "_type" then
         return obj.userdataMT.__type
@@ -128,7 +126,7 @@ wrappedUserdataMT.__newindex = function(self, key, value)
     local userdata = obj.userdata
 
 -- builtin convenience read-only values
-    if key == "_userdata" or key == "_type" or key == "_fittingSize" then
+    if key == "_element" or key == "_type" or key == "_fittingSize" then
         error(key .. " cannot be modified", 3)
 
 -- because we can't add them to the property list of each element
@@ -157,7 +155,7 @@ wrappedUserdataMT.__pairs = function(self)
     local obj = wrappedUserdataMT.__e[self]
     local userdata = obj.userdata
 
-    local keys = {  "_userdata", "_fittingSize", "_type", "frame", "id" }
+    local keys = {  "_element", "_fittingSize", "_type", "frame", "id" }
     for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
 
     return function(_, k)
@@ -207,7 +205,7 @@ local newindex_applyProperties = function(element, propTable)
     local properties = elementMT._propertyList or {}
 
     for k, v in pairs(propTable) do
-        if k ~= "_userdata" and k ~= "frame" then
+        if k ~= "_element" and k ~= "frame" then
             if fnutils.contains(properties, k) then
                 element[k](element, v)
             else
@@ -238,18 +236,18 @@ moduleMT.__newindex = function(self, key, value)
             error("index out of bounds", 3)
         end
 
-        if type(value) == "userdata" then value = { _userdata = value } end
+        if type(value) == "userdata" then value = { _element = value } end
 
         -- add/insert new element
-        if type(value) == "table" and value._userdata then
-            if module._isElementType(value._userdata) then
+        if type(value) == "table" and value._element then
+            if module._isElementType(value._element) then
                 local details = value.frame or {}
                 if value.id then
                     details.id = value.id
                     value.id   = nil
                 end
 
-                local element   = value._userdata
+                local element   = value._element
                 newindex_applyProperties(element, value)
                 if self:element(key) then self:remove(key) end
                 self:insert(element, details, key)
@@ -307,7 +305,7 @@ moduleMT.elementPropertyList = function(self, element, ...)
         local results = {}
         local propertiesList = getmetatable(element)["_propertyList"] or {}
         for i,v in ipairs(propertiesList) do results[v] = element[v](element) end
-        results._userdata    = element
+        results._element     = element
         results.frame        = self:elementFrame(element)
         results.id           = results.frame.id
         results.frame.id     = nil

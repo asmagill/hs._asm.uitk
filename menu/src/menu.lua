@@ -67,9 +67,7 @@ end
 module.item = require(USERDATA_TAG .. ".item")
 local menuItemMT = hs.getObjectMetatable(USERDATA_TAG .. ".item")
 
-local wrappedItemMT = {
-    __i = setmetatable({}, { __mode = "k" })
-}
+local wrappedItemMT = { __i = setmetatable({}, { __mode = "k" }) }
 
 local wrappedItemWithMT = function(menu, item)
     local newItem = {}
