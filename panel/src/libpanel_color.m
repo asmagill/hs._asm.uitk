@@ -1,10 +1,3 @@
-
-/// --- hs._asm.uitk.panel.color ---
-///
-/// Provides access to the macOS Color Panel for the UI Toolkit.
-///
-/// Heavily influenced by the `hs.dialog` module.
-
 @import Cocoa ;
 @import LuaSkin ;
 
@@ -336,9 +329,23 @@ static int color_callback(lua_State *L) {
     return 1 ;
 }
 
-// TODO: add NSColorList support
-// - (void)attachColorList:(NSColorList *)colorList;
-// - (void)detachColorList:(NSColorList *)colorList;
+static int color_attachColorList(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.util.color.list", LS_TBREAK] ;
+
+    NSColorList *list = [skin toNSObjectAtIndex:1] ;
+    [colorPanel attachColorList:list] ;
+    return 0 ;
+}
+
+static int color_detachColorList(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.util.color.list", LS_TBREAK] ;
+
+    NSColorList *list = [skin toNSObjectAtIndex:1] ;
+    [colorPanel detachColorList:list] ;
+    return 0 ;
+}
 
 #pragma mark - Hammerspoon/Lua Infrastructure
 
@@ -365,17 +372,19 @@ static int meta_gc(lua_State *L) {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"mode",       color_mode},
-    {"color",      color_color},
-    {"continuous", color_continuous},
-    {"showsAlpha", color_showsAlpha},
-    {"alpha",      color_alpha},
-    {"show",       color_show},
-    {"hide",       color_hide},
-    {"accessory",  color_accessoryView},
-    {"callback",   color_callback},
-    {NULL, NULL}
-};
+    {"mode",            color_mode},
+    {"color",           color_color},
+    {"continuous",      color_continuous},
+    {"showsAlpha",      color_showsAlpha},
+    {"alpha",           color_alpha},
+    {"show",            color_show},
+    {"hide",            color_hide},
+    {"accessory",       color_accessoryView},
+    {"callback",        color_callback},
+    {"attachColorList", color_attachColorList},
+    {"detachColorList", color_detachColorList},
+    {NULL,              NULL}
+} ;
 
 // Metatable for module, if needed
 static const luaL_Reg module_metaLib[] = {

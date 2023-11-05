@@ -24,39 +24,17 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.module ===
+--- --- hs._asm.uitk.panel.color ---
 ---
---- Stuff about the module
+--- Provides access to the macOS Color Panel for the UI Toolkit.
+---
+--- Heavily influenced by the `hs.dialog` module.
 
-local USERDATA_TAG = "hs._asm.uitk.panel"
+local USERDATA_TAG = "hs._asm.uitk.panel.color"
 local uitk         = require("hs._asm.uitk")
-local module       = {}
+local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libpanel_"))
 
-local subModules = {
-    color = true,
-    font  = false,
-    open  = true,
-    save  = true,
-}
-
-local preload = function(m, isLua)
-    return function()
-        local el = isLua and require(USERDATA_TAG .. "_" .. m)
-                         or  require(USERDATA_TAG:match("^(.+)%.") .. ".lib" ..
-                                     USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
---         if getmetatable(el) == nil and type(el.new) == "function" then
---             el = setmetatable(el, { __call = function(self, ...) return self.new(...) end })
---         end
-        return el
-    end
-end
-
-for k, v in pairs(subModules) do
-    if type(v) == "boolean" then
-        package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
-    end
-end
-
+local color        = uitk.util.color -- make sure helpers for NSColor and NSColorList are loaded
 
 -- private variables and methods -----------------------------------------
 
@@ -64,13 +42,4 @@ end
 
 -- Return Module Object --------------------------------------------------
 
-return setmetatable(module, {
-    __index = function(self, key)
-        if type(subModules[key]) ~= "nil" then
-            module[key] = require(USERDATA_TAG .. "." ..key)
-            return module[key]
-        else
-            return nil
-        end
-    end,
-})
+return module
