@@ -29,7 +29,8 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element"
-local module       = {}
+local uitk         = require("hs._asm.uitk")
+local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -65,6 +66,8 @@ local subModules = {
     textField       = "hs._asm.uitk.element.textField",
     segmentBar      = true,
     textView        = true,
+    canvas          = true,
+    turtle          = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -172,6 +175,10 @@ end
 
 -- Public interface ------------------------------------------------------
 
+module.windowFor = _viewMT._window
+
+module.nextResponder = _viewMT._nextResponder
+
 module._elementControlViewWrapper = function(elMT)
     if elMT._inheritControl then
         for k, v in pairs(_controlMT) do
@@ -239,39 +246,4 @@ return setmetatable(module, {
             return nil
         end
     end,
-
--- The point was to allow tab completion in hammerspoon to be able to "see" the unloaded
--- submodule entry points in element, but the current implementation of tab completion
--- causes the loading of *ALL* of the submodules, so kinda defeats the purposes of lazy
--- loading...
---
--- same with hs.inspect
---
---     __pairs = function(self)
---         local unloadedSubModules = {}
---         for k,v in pairs(subModules) do
---             if not rawget(self, k) then table.insert(unloadedSubModules, k) end
---         end
---         local firstRun = true
---
---         return function(t, k)
---             local nk, nv
---             if firstRun then
---                 firstRun = false
---                 nk, nv = next(t, k)
---             elseif rawget(t, k) then
---                 nk, nv = next(t, k)
---             end
---
---             if not nk and not nv then
---                 nk, nv = table.remove(unloadedSubModules), nil
---             end
---
---             if nk then
---                 return nk, nv
---             else
---                 return nk
---             end
---         end, self, nil
---     end,
 })
