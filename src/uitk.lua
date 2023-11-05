@@ -29,9 +29,11 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk"
--- local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
+local module       = {}
 
-local module = {}
+local settings = require("hs.settings")
+
+local legacyWrappers = { "canvas", "webview", "color", "menubar" }
 
 local subModules = {
     element = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
@@ -39,11 +41,40 @@ local subModules = {
     menubar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menubar",
     window  = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
     panel   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
+    util    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".util",
 }
 
 -- private variables and methods -----------------------------------------
 
 -- Public interface ------------------------------------------------------
+
+for _, v in ipairs(legacyWrappers) do
+    local upperV = v:sub(1,1):upper() .. v:sub(2)
+    local fnName = "wrap" .. upperV
+    local tag    = "uitk_" .. fnName
+
+    module[fnName] = function(...)
+        local args = table.pack(...)
+
+        if args.n == 1 then
+            if type(args[1]) == "boolean" or type(args[1]) == "nil" then
+                settings.set(tag, args[1])
+            else
+                error(string.format("incorrect type '%s' for argument 1 (expected boolean or nil)", type(args[1])), 3)
+            end
+        elseif args.n > 1 then
+            error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
+        end
+
+        return settings.get(tag)
+    end
+end
+
+module.wrapperStatus = function()
+    for _, v in ipairs(legacyWrappers) do
+        print(v, settings.get("uitk_wrap" .. v:sub(1,1):upper() .. v:sub(2)))
+    end
+end
 
 -- Return Module Object --------------------------------------------------
 

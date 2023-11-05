@@ -128,15 +128,17 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 #pragma mark * Custom for Hammerspoon
 
 - (void)fadeIn:(NSTimeInterval)fadeTime {
+    CGFloat alphaSetting = self.alphaValue ;
     [self setAlphaValue:0.0] ;
     [self makeKeyAndOrderFront:nil] ;
     [NSAnimationContext beginGrouping] ;
-    [[NSAnimationContext currentContext] setDuration:fadeTime] ;
-    [[self animator] setAlphaValue:1.0] ;
+        [[NSAnimationContext currentContext] setDuration:fadeTime] ;
+        [[self animator] setAlphaValue:alphaSetting] ;
     [NSAnimationContext endGrouping] ;
 }
 
 - (void)fadeOut:(NSTimeInterval)fadeTime andClose:(BOOL)closeWindow {
+    CGFloat alphaSetting = self.alphaValue ;
     [NSAnimationContext beginGrouping] ;
       __weak HSUITKWindow *bself = self ;
       [[NSAnimationContext currentContext] setDuration:fadeTime] ;
@@ -149,7 +151,7 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
                   [mySelf close] ; // trigger callback, if set, then cleanup
               } else {
                   [mySelf orderOut:mySelf] ;
-                  [mySelf setAlphaValue:1.0] ;
+                  [mySelf setAlphaValue:alphaSetting] ;
               }
           }
       }] ;
@@ -1693,7 +1695,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"hide",                       window_hide},
     {"show",                       window_show},
 
-    {"alphaValue",                 window_alphaValue},
+    {"alpha",                      window_alphaValue},
     {"animationBehavior",          window_animationBehavior},
     {"backgroundColor",            window_backgroundColor},
     {"collectionBehavior",         window_collectionBehavior},

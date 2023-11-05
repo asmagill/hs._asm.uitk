@@ -29,6 +29,7 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.datepicker"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libelement_"))
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so

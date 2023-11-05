@@ -32,6 +32,7 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.menubar"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 module._legacy     = require(USERDATA_TAG .. "_legacy")
 
@@ -45,13 +46,9 @@ module._legacy     = require(USERDATA_TAG .. "_legacy")
 
 -- Public interface ------------------------------------------------------
 
--- Legacy support --------------------------------------------------------
-
-module.new             = module._legacy.new
-
 -- Return Module Object --------------------------------------------------
 
 return setmetatable(module, {
-    __call = function(self, ...) return self.create(...) end,
+    __call = function(self, ...) return self.new(...) end,
 })
 

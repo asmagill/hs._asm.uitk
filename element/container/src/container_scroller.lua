@@ -29,12 +29,12 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.container.scroller"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
+local container    = uitk.element.container
+local fnutils      = require("hs.fnutils")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-local container    = require("hs._asm.uitk.element.container")
-
-local fnutils = require("hs.fnutils")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -91,7 +91,7 @@ moduleMT.__newindex = function(self, key, value)
         -- assign document or modify an existing one
         if type(value) == "table" then
             local element = value._element or self:document()
-            if container._isElementType(element) then
+            if uitk.element.isElementType(element) then
                 newindex_applyProperties(element, value)
                 -- add new document if one was supplied
                 if value._element then self:document(element) end

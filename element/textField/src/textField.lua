@@ -29,12 +29,12 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.textField"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
+local element      = uitk.element
+local fnutils      = require("hs.fnutils")
+
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-
-local element = require("hs._asm.uitk.element")
-
-local fnutils = require("hs.fnutils")
 
 local subModules = {
 --  name       lua or library?

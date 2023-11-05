@@ -16,48 +16,48 @@ grp[#grp + 1] = {
 }
 
 grp[#grp + 1] = {
-    id       = "backgroundBar",
-    _element = uitk.element.progress.new():start(),
-    frame    = { x = 10, y = 10, w = 184 },
+    id             = "backgroundBar",
+    _element       = uitk.element.progress.new():start(),
+    containerFrame = { x = 10, y = 10, w = 184 },
 }
 grp[#grp + 1] = {
-    id       = "foregroundBar",
-    _element = uitk.element.progress.new():threaded(false):start(),
-    frame    = { w = 184 },
+    id             = "foregroundBar",
+    _element       = uitk.element.progress.new():threaded(false):start(),
+    containerFrame = { w = 184 },
 }
 
 grp[#grp + 1] = {
-    id            = "hoursBar",
-    _element      = uitk.element.progress.new(),
-    min           = 0,
-    max           = 23,
-    indeterminate = false,
-    indicatorSize = "small",
-    color         = { red   = 1 },
-    tooltip       = "hours",
-    frame         = { w = 120 },
+    id             = "hoursBar",
+    _element       = uitk.element.progress.new(),
+    min            = 0,
+    max            = 23,
+    indeterminate  = false,
+    indicatorSize  = "small",
+    color          = { red   = 1 },
+    tooltip        = "hours",
+    containerFrame = { w = 120 },
 }
 grp[#grp + 1] = {
-    id            = "minutesBar",
-    _element      = uitk.element.progress.new(),
-    min           = 0,
-    max           = 60,
-    indeterminate = false,
-    indicatorSize = "small",
-    color         = { green = 1 },
-    tooltip       = "minutes",
-    frame         = { w = 120 },
+    id             = "minutesBar",
+    _element       = uitk.element.progress.new(),
+    min            = 0,
+    max            = 60,
+    indeterminate  = false,
+    indicatorSize  = "small",
+    color          = { green = 1 },
+    tooltip        = "minutes",
+    containerFrame = { w = 120 },
 }
 grp[#grp + 1] = {
-    id            = "secondsBar",
-    _element      = uitk.element.progress.new(),
-    min           = 0,
-    max           = 60,
-    indeterminate = false,
-    indicatorSize = "small",
-    color         = { blue  = 1 },
-    tooltip       = "seconds",
-    frame         = { w = 120 },
+    id             = "secondsBar",
+    _element       = uitk.element.progress.new(),
+    min            = 0,
+    max            = 60,
+    indeterminate  = false,
+    indicatorSize  = "small",
+    color          = { blue  = 1 },
+    tooltip        = "seconds",
+    containerFrame = { w = 120 },
 }
 
 grp[#grp + 1] = {
@@ -94,7 +94,7 @@ grp[#grp + 1] = {
     tooltip       = "seconds",
 }
 
-grp("backgroundBar"):frame{ x = 10, y = 10, w = 184 }
+grp("backgroundBar"):containerFrame{ x = 10, y = 10, w = 184 }
 
 grp("backgroundSpinner"):position("below", grp("backgroundBar"), "start")
 grp("foregroundSpinner"):position("below", grp("backgroundBar"), "end")

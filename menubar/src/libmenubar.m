@@ -782,8 +782,8 @@ static const luaL_Reg userdata_metaLib[] = {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"create",    menubar_new},
-    {NULL,        NULL}
+    {"new", menubar_new},
+    {NULL,  NULL}
 };
 
 // // Metatable for module, if needed

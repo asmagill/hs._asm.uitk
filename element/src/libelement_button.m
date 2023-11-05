@@ -111,8 +111,8 @@ static void defineInternalDictionaries(void) {
 
 + (instancetype)buttonWithTitle:(NSString *)title {
     HSUITKElementButton *button = [HSUITKElementButton buttonWithTitle:title
-                                                                  target:nil
-                                                                  action:nil] ;
+                                                                target:nil
+                                                                action:nil] ;
 
     if (button) [button commonInit] ;
 
@@ -132,8 +132,8 @@ static void defineInternalDictionaries(void) {
 
 + (instancetype)buttonWithImage:(NSImage *)image {
     HSUITKElementButton *button = [HSUITKElementButton buttonWithImage:image
-                                                                  target:nil
-                                                                  action:nil] ;
+                                                                target:nil
+                                                                action:nil] ;
 
     if (button) [button commonInit] ;
 
@@ -142,8 +142,8 @@ static void defineInternalDictionaries(void) {
 
 + (instancetype)checkboxWithTitle:(NSString *)title {
     HSUITKElementButton *button = [HSUITKElementButton checkboxWithTitle:title
-                                                                    target:nil
-                                                                    action:nil] ;
+                                                                  target:nil
+                                                                  action:nil] ;
 
     if (button) [button commonInit] ;
 
@@ -152,8 +152,8 @@ static void defineInternalDictionaries(void) {
 
 + (instancetype)radioButtonWithTitle:(NSString *)title {
     HSUITKElementButton *button = [HSUITKElementButton radioButtonWithTitle:title
-                                                                       target:nil
-                                                                       action:nil] ;
+                                                                     target:nil
+                                                                     action:nil] ;
 
     if (button) [button commonInit] ;
 
@@ -1031,7 +1031,7 @@ static int button_periodicDelay(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

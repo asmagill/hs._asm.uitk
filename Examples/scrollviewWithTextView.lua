@@ -1,7 +1,7 @@
 uitk = require("hs._asm.uitk")
 local finspect = function(...) return (require("hs.inspect")({...}):gsub("%s+", " ")) end
 
-p = uitk.window{x = 100, y = 100, h = 500, w = 500 }:show():passthroughCallback(cbinspect)
+p = uitk.window{x = 100, y = 100, h = 500, w = 500 }:show():passthroughCallback(function(...) print("window", finspect(...)) end)
 c = p:content()
 s = uitk.element.container.scroller{}
 t = uitk.element.textView{}
@@ -15,7 +15,7 @@ s.element = {
 }
 c[1] = {
     _element         = s,
-    frame            = { h = "100%", w = "100%" },
+    containerFrame   = { h = "100%", w = "100%" },
     verticalScroller = true,
     horizontalRuler  = true,
     rulersVisible    = true,

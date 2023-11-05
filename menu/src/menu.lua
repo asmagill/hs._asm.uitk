@@ -29,6 +29,7 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.menu"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
@@ -179,7 +180,7 @@ moduleMT.__newindex = function(self, key, value)
                         if fnutils.contains(menuItemMT._propertyList, k) then
                             newItem[k](newItem, v)
                         else
-                            log.wf("insert metamethod, unrecognized key %s for %s", k, newItem.__type)
+                            log.wf("__newindex, unrecognized key %s for %s", k, newItem.__type)
                         end
                     end
                 end

@@ -36,7 +36,7 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
-@interface HSUITKElementGridView : NSGridView
+@interface HSUITKElementContainerGridView : NSGridView
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ; // in this case, it's the passthrough callback for subviews
@@ -100,7 +100,7 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
     }
 }
 
-@implementation HSUITKElementGridView
+@implementation HSUITKElementContainerGridView
 - (void)commonInit {
     _callbackRef    = LUA_NOREF ;
     _refTable       = refTable ;
@@ -108,7 +108,7 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
 }
 
 + (instancetype)gridWithRows:(NSArray<NSArray<NSView *> *> *)rows {
-    HSUITKElementGridView *grid = [HSUITKElementGridView gridViewWithViews:rows] ;
+    HSUITKElementContainerGridView *grid = [HSUITKElementContainerGridView gridViewWithViews:rows] ;
 
     if (grid) [grid commonInit] ;
 
@@ -116,7 +116,7 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
 }
 
 + (instancetype)gridWithColumns:(NSInteger)columnCount andRows:(NSInteger)rowCount {
-    HSUITKElementGridView *grid = [HSUITKElementGridView gridViewWithNumberOfColumns:columnCount
+    HSUITKElementContainerGridView *grid = [HSUITKElementContainerGridView gridViewWithNumberOfColumns:columnCount
                                                                                   rows:rowCount] ;
 
     if (grid) [grid commonInit] ;
@@ -187,7 +187,7 @@ static void retainGridElementArray(lua_State *L, NSArray *array) {
 ///  * the gridObject
 static int grid_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementGridView *grid = nil ;
+    HSUITKElementContainerGridView *grid = nil ;
 
     if (lua_type(L, 1) == LUA_TTABLE) {
         [skin checkArgs:LS_TTABLE, LS_TBREAK] ;
@@ -206,7 +206,7 @@ static int grid_new(lua_State *L) {
             }
 
             if (rows) {
-                grid = [HSUITKElementGridView gridWithRows:newRows] ;
+                grid = [HSUITKElementContainerGridView gridWithRows:newRows] ;
                 retainGridElementArray(L, newRows) ;
             } else {
                 return luaL_argerror(L, 1, "all rows must contain only uitk elements, nil, or false") ;
@@ -223,7 +223,7 @@ static int grid_new(lua_State *L) {
         if (columns < 1) return luaL_argerror(L, 1, "number of columns must be greater than 0") ;
         if (rows < 1) return luaL_argerror(L, 2, "number of rows must be greater than 0") ;
 
-        grid = [HSUITKElementGridView gridWithColumns:columns andRows:rows] ;
+        grid = [HSUITKElementContainerGridView gridWithColumns:columns andRows:rows] ;
     }
 
     if (grid) {
@@ -260,7 +260,7 @@ static int grid_new(lua_State *L) {
 static int grid_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         grid.callbackRef = [skin luaUnref:refTable ref:grid.callbackRef] ;
@@ -282,7 +282,7 @@ static int grid_passthroughCallback(lua_State *L) {
 static int grid_cellForView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
     if (view && oneOfOurs(view)) {
@@ -301,7 +301,7 @@ static int grid_cellForView(lua_State *L) {
 static int grid_columnAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = grid.numberOfColumns ;
@@ -319,7 +319,7 @@ static int grid_columnAtIndex(lua_State *L) {
 static int grid_rowAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = grid.numberOfRows ;
@@ -337,7 +337,7 @@ static int grid_rowAtIndex(lua_State *L) {
 static int grid_cellAtRowColIndicies(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger row    = lua_tointeger(L, 2) ;
     NSInteger rCount = grid.numberOfRows ;
@@ -362,7 +362,7 @@ static int grid_cellAtRowColIndicies(lua_State *L) {
 static int grid_columnCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, grid.numberOfColumns) ;
     return 1 ;
@@ -371,7 +371,7 @@ static int grid_columnCount(lua_State *L) {
 static int grid_rowCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, grid.numberOfRows) ;
     return 1 ;
@@ -380,7 +380,7 @@ static int grid_rowCount(lua_State *L) {
 static int grid_columnSpacing(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         if (fabs(NSGridViewSizeForContent - grid.columnSpacing) < FLOAT_EQUIVALENT_TO_ZERO) {
@@ -400,7 +400,7 @@ static int grid_columnSpacing(lua_State *L) {
 static int grid_rowSpacing(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         if (fabs(NSGridViewSizeForContent - grid.rowSpacing) < FLOAT_EQUIVALENT_TO_ZERO) {
@@ -420,7 +420,7 @@ static int grid_rowSpacing(lua_State *L) {
 static int grid_rowAlignment(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(grid.rowAlignment) ;
@@ -448,7 +448,7 @@ static int grid_rowAlignment(lua_State *L) {
 static int grid_xPlacement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(grid.xPlacement) ;
@@ -476,7 +476,7 @@ static int grid_xPlacement(lua_State *L) {
 static int grid_yPlacement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(grid.yPlacement) ;
@@ -507,7 +507,7 @@ static int grid_insertRow(lua_State *L) {
                     LS_TANY | LS_TOPTIONAL,
                     LS_TANY | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx     = -1 ;
     NSArray   *newRow = [NSArray array] ;
@@ -559,7 +559,7 @@ static int grid_insertRow(lua_State *L) {
 static int grid_removeRow(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = grid.numberOfRows ;
@@ -581,7 +581,7 @@ static int grid_insertColumn(lua_State *L) {
                     LS_TANY | LS_TOPTIONAL,
                     LS_TANY | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx     = -1 ;
     NSArray   *newCol = [NSArray array] ;
@@ -633,7 +633,7 @@ static int grid_insertColumn(lua_State *L) {
 static int grid_removeColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementGridView *grid = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = grid.numberOfColumns ;
@@ -1314,21 +1314,21 @@ static int gridCell_yPlacement(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSUITKElementGridView(lua_State *L, id obj) {
-    HSUITKElementGridView *value = obj;
+static int pushHSUITKElementContainerGridView(lua_State *L, id obj) {
+    HSUITKElementContainerGridView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementGridView *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerGridView *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSUITKElementGridViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerGridViewFromLua(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementGridView *value ;
+    HSUITKElementContainerGridView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSUITKElementGridView, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKElementContainerGridView, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -1403,14 +1403,14 @@ static id toNSGridCellFromLua(lua_State *L, int idx) {
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementGridView *obj = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerGridView *obj = [skin toNSObjectAtIndex:1] ;
 
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %ldx%ld (%p)", USERDATA_TAG, obj.numberOfRows, obj.numberOfColumns, lua_topointer(L, 1)]] ;
     return 1 ;
 }
 
 static int userdata_gc(lua_State* L) {
-    HSUITKElementGridView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementGridView, L, 1, USERDATA_TAG) ;
+    HSUITKElementContainerGridView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementContainerGridView, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -1575,9 +1575,9 @@ int luaopen_hs__asm_uitk_element_libcontainer_grid(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementGridView         forClass:"HSUITKElementGridView"];
-    [skin registerLuaObjectHelper:toHSUITKElementGridViewFromLua forClass:"HSUITKElementGridView"
-                                                      withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerGridView         forClass:"HSUITKElementContainerGridView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerGridViewFromLua forClass:"HSUITKElementContainerGridView"
+                                                               withUserdataMapping:USERDATA_TAG];
 
     [skin registerPushNSHelper:pushNSGridRow         forClass:"NSGridRow"];
     [skin registerLuaObjectHelper:toNSGridRowFromLua forClass:"NSGridRow"

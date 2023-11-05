@@ -30,9 +30,8 @@
 
 local USERDATA_TAG = "hs._asm.uitk.element.container.table"
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
-
--- local container     = require("hs._asm.uitk.element.container")
-local element       = require("hs._asm.uitk.element")
+local uitk         = require("hs._asm.uitk")
+local element      = uitk.element
 
 local tableMT       = hs.getObjectMetatable(USERDATA_TAG)
 local tableRowMT    = hs.getObjectMetatable(USERDATA_TAG .. ".row")
@@ -41,11 +40,11 @@ local tableColumnMT = hs.getObjectMetatable(USERDATA_TAG .. ".column")
 -- row is a View type element, but column isn't
 element._elementControlViewWrapper(tableRowMT)
 
--- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
--- in general it's a good idea not to include periods
-local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
-local settings     = require("hs.settings")
-local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
+-- -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
+-- -- in general it's a good idea not to include periods
+-- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+-- local settings     = require("hs.settings")
+-- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 local fnutils = require("hs.fnutils")
 
@@ -253,5 +252,8 @@ tableRowMT.wrap = function(self) return wrapped_tableRowWithMT(self) end
 tableColumnMT.wrap = function(self) return wrapped_tableColWithMT(self) end
 
 -- Return Module Object --------------------------------------------------
+
+-- since we can be a nextResponder, we can provide additional methods to our children
+-- moduleMT._inheritableMethods = { }
 
 return module

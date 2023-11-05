@@ -29,22 +29,20 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.container.grid"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
-
--- local container    = require("hs._asm.uitk.element.container")
+local fnutils      = require("hs.fnutils")
 
 local gridMT     = hs.getObjectMetatable(USERDATA_TAG)
 local gridRowMT  = hs.getObjectMetatable(USERDATA_TAG .. ".row")
 local gridColMT  = hs.getObjectMetatable(USERDATA_TAG .. ".column")
 local gridCellMT = hs.getObjectMetatable(USERDATA_TAG .. ".cell")
 
-local fnutils = require("hs.fnutils")
-
--- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
--- in general it's a good idea not to include periods
-local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
-local settings     = require("hs.settings")
-local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
+-- -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
+-- -- in general it's a good idea not to include periods
+-- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+-- local settings     = require("hs.settings")
+-- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 -- private variables and methods -----------------------------------------
 

@@ -29,12 +29,12 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.container"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
+local fnutils      = require("hs.fnutils")
+local settings     = require("hs.settings")
+
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-
-local element = require("hs._asm.uitk.element")
-
-local fnutils = require("hs.fnutils")
 
 local subModules = {
 --  name       lua or library?
@@ -52,7 +52,7 @@ local preload = function(m, isLua)
                                      USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
         local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
         if el and elMT then
-            element._elementControlViewWrapper(elMT)
+            uitk.element._elementControlViewWrapper(elMT)
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then
@@ -67,12 +67,11 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-element._elementControlViewWrapper(moduleMT)
+uitk.element._elementControlViewWrapper(moduleMT)
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
 local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
-local settings     = require("hs.settings")
 local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 
@@ -104,8 +103,8 @@ wrappedUserdataMT.__index = function(self, key)
         return userdata:fittingSize()
 
 -- because we can't add them to the property list of each element
-    elseif key == "frame" then
-        local result = userdata:frame()
+    elseif key == "containerFrame" then
+        local result = userdata:containerFrame()
         result.id = nil
         return result
     elseif key == "id" then
@@ -130,8 +129,8 @@ wrappedUserdataMT.__newindex = function(self, key, value)
         error(key .. " cannot be modified", 3)
 
 -- because we can't add them to the property list of each element
-    elseif key == "frame" then
-        userdata:frame(value)
+    elseif key == "containerFrame" then
+        userdata:containerFrame(value)
     elseif key == "id" then
         userdata:id(value)
 
@@ -155,7 +154,7 @@ wrappedUserdataMT.__pairs = function(self)
     local obj = wrappedUserdataMT.__e[self]
     local userdata = obj.userdata
 
-    local keys = {  "_element", "_fittingSize", "_type", "frame", "id" }
+    local keys = {  "_element", "_fittingSize", "_type", "containerFrame", "id" }
     for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
 
     return function(_, k)
@@ -205,7 +204,7 @@ local newindex_applyProperties = function(element, propTable)
     local properties = elementMT._propertyList or {}
 
     for k, v in pairs(propTable) do
-        if k ~= "_element" and k ~= "frame" then
+        if k ~= "_element" and k ~= "containerFrame" then
             if fnutils.contains(properties, k) then
                 element[k](element, v)
             else
@@ -240,8 +239,8 @@ moduleMT.__newindex = function(self, key, value)
 
         -- add/insert new element
         if type(value) == "table" and value._element then
-            if module._isElementType(value._element) then
-                local details = value.frame or {}
+            if uitk.element.isElementType(value._element) then
+                local details = value.containerFrame or {}
                 if value.id then
                     details.id = value.id
                     value.id   = nil
@@ -256,7 +255,7 @@ moduleMT.__newindex = function(self, key, value)
         -- update existing element
         elseif type(value) == "table" then
             local element = self:element(key)
-            if element and module._isElementType(element) then
+            if element and uitk.element.isElementType(element) then
                 newindex_applyProperties(element, value)
                 return
             end
@@ -305,12 +304,12 @@ moduleMT.elementPropertyList = function(self, element, ...)
         local results = {}
         local propertiesList = getmetatable(element)["_propertyList"] or {}
         for i,v in ipairs(propertiesList) do results[v] = element[v](element) end
-        results._element     = element
-        results.frame        = self:elementFrame(element)
-        results.id           = results.frame.id
-        results.frame.id     = nil
-        results._fittingSize = self:elementFittingSize(element)
-        results._type        = getmetatable(element).__type
+        results._element          = element
+        results.containerFrame    = self:elementFrame(element)
+        results.id                = results.containerFrame.id
+        results.containerFrame.id = nil
+        results._fittingSize      = self:elementFittingSize(element)
+        results._type             = getmetatable(element).__type
         return results
     else
         error("unexpected arguments", 3)
@@ -381,11 +380,28 @@ moduleMT.elementID = function(self, element, ...)
     end
 end
 
+
+module.suppressZeroSizeWarnings = function(...)
+    local args = table.pack(...)
+
+    if args.n == 1 then
+        if type(args[1]) == "boolean" or type(args[1]) == "nil" then
+            settings.set("uitk_containerSuppressZeroWarnings", args[1])
+        else
+            error(string.format("incorrect type '%s' for argument 1 (expected boolean or nil)", type(args[1])), 3)
+        end
+    elseif args.n > 1 then
+        error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
+    end
+
+    return settings.get("uitk_containerSuppressZeroWarnings")
+end
+
 -- Return Module Object --------------------------------------------------
 
 -- since we can be a nextResponder, we can provide additional methods to our children
 moduleMT._inheritableMethods = {
-    frame           = moduleMT.elementFrame,
+    containerFrame  = moduleMT.elementFrame,
     position        = moduleMT.positionElement,
     id              = moduleMT.elementID,
     removeFromGroup = moduleMT.remove,

@@ -358,6 +358,18 @@ static int view__nextResponder(lua_State *L) {
     return 1 ;
 }
 
+static int view__window(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK] ;
+    NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!view || !oneOfOurs(view)) {
+        return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
+    }
+
+    [skin pushNSObject:view.window] ;
+    return 1 ;
+}
+
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
@@ -397,6 +409,8 @@ static int userdata_gc(lua_State* L) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
             obj = nil ;
+
+            [obj removeFromSuperview] ;
         }
         // Remove the Metatable so future use of the variable in Lua won't think its valid
         lua_pushnil(L) ;
@@ -419,6 +433,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"frameSize",      view_frameSize},
     {"needsDisplay",   view_needsDisplay},
 
+    {"_window",        view__window},
     {"_nextResponder", view__nextResponder},
 
 //     {"frameRotation",  view_frameRotation},
@@ -442,6 +457,7 @@ int luaopen_hs__asm_uitk_libelement__view(lua_State* L) {
         @"hidden",
         @"alphaValue",
         @"focusRingType",
+        @"frameSize",
 
 //         @"frameRotation",
 //         @"boundsRotation",

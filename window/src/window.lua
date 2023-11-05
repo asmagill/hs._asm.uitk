@@ -35,10 +35,10 @@
 --- This is a work in progress and is still extremely experimental.
 
 local USERDATA_TAG = "hs._asm.uitk.window"
+local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
-module.element     = require(USERDATA_TAG:match("^(.+)%.") .. ".element")
 
-local windowMT = hs.getObjectMetatable(USERDATA_TAG)
+local windowMT     = hs.getObjectMetatable(USERDATA_TAG)
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -57,7 +57,7 @@ require("hs.window")
 
 module._new = module.new
 module.new = function(...)
-    return module._new(...):content(module.element.container())
+    return module._new(...):content(uitk.element.container())
 end
 
 module.behaviors     = ls.makeConstantsTable(module.behaviors)

@@ -11,7 +11,7 @@ local canvas     = require "hs.canvas"
 module.restingImage   = image.imageFromName("NSStatusAvailable")
 module.receivingImage = image.imageFromName("NSStatusPartiallyAvailable")
 
-module.menu = uitk.menubar.create(true):image(module.restingImage):draggingCallback(function(si, msg, details)
+module.menu = uitk.menubar(true):image(module.restingImage):draggingCallback(function(si, msg, details)
     hs.printf("%s:%s - %s", timestamp(), msg, (inspect(details):gsub("%s+", " ")))
 
 -- the drag entered our view frame

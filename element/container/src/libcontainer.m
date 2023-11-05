@@ -11,7 +11,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 #pragma mark - Support Functions and Classes -
 
-@interface HSUITKElementView : NSView <NSDraggingDestination>
+@interface HSUITKElementContainerView : NSView <NSDraggingDestination>
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ; // in this case, it's the passthrough callback for subviews
@@ -24,7 +24,6 @@ static LSRefTable         refTable     = LUA_NOREF ;
 @property int            draggingCallbackRef ;
 @property NSMapTable     *subviewDetails ;
 @property NSColor        *frameDebugColor ;
-@property NSTrackingArea *trackingArea ;
 @end
 
 
@@ -60,7 +59,10 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
     return tmpValue ;
 }
 
-@implementation HSUITKElementView
+@implementation HSUITKElementContainerView {
+    NSTrackingArea *_trackingArea ;
+}
+
 - (instancetype)initWithFrame:(NSRect)frameRect {
     @try {
         self = [super initWithFrame:frameRect] ;
@@ -82,6 +84,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
         _subviewDetails      = [NSMapTable strongToStrongObjectsMapTable] ;
         _frameDebugColor     = nil ;
 
+        self.postsFrameChangedNotifications = YES ;
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(frameChangedNotification:)
                                                      name:NSViewFrameDidChangeNotification
@@ -342,7 +345,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
     if (![skin luaRetain:refTable forNSObject:subview]) {
         [skin logDebug:[NSString stringWithFormat:@"%s:didAddSubview - unrecognized subview added:%@", USERDATA_TAG, subview]] ;
 
-        [self updateFrameFor:subview] ;
+//         [self updateFrameFor:subview] ;
     }
 }
 
@@ -571,7 +574,7 @@ static void validateElementDetailsTable(lua_State *L, int idx, NSMutableDictiona
     }
 }
 
-static void adjustElementDetailsTable(lua_State *L, HSUITKElementView *container, NSView *element, NSDictionary *changes) {
+static void adjustElementDetailsTable(lua_State *L, HSUITKElementContainerView *container, NSView *element, NSDictionary *changes) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSMutableDictionary *details = [container.subviewDetails objectForKey:element] ;
     if (!details) details = [[NSMutableDictionary alloc] init] ;
@@ -600,7 +603,7 @@ static int container_new(lua_State *L) {
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
 
     NSRect frameRect = (lua_gettop(L) == 1) ? [skin tableToRectAtIndex:1] : NSZeroRect ;
-    HSUITKElementView *container = [[HSUITKElementView alloc] initWithFrame:frameRect];
+    HSUITKElementContainerView *container = [[HSUITKElementContainerView alloc] initWithFrame:frameRect];
     if (container) {
         if (lua_gettop(L) != 1) [container setFrameSize:[container fittingSize]] ;
         [skin pushNSObject:container] ;
@@ -610,20 +613,6 @@ static int container_new(lua_State *L) {
 
     return 1 ;
 }
-
-static int container__isElementType(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TANY, LS_TBREAK] ;
-
-    if (lua_type(L, 1) == LUA_TUSERDATA) {
-        NSView *view = [skin toNSObjectAtIndex:1] ;
-        lua_pushboolean(L, oneOfOurs(view)) ;
-    } else {
-        lua_pushboolean(L, NO) ;
-    }
-    return 1 ;
-}
-
 
 #pragma mark - Module Methods -
 
@@ -646,7 +635,7 @@ static int container__isElementType(lua_State *L) {
 static int container__debugFrames(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TNIL | LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     if (lua_gettop(L) == 1) {
         if (container.frameDebugColor) {
             [skin pushNSObject:container.frameDebugColor] ;
@@ -687,7 +676,7 @@ static int container__debugFrames(lua_State *L) {
 // static int container_autoPosition(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+//     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 //     [container frameChangedNotification:[NSNotification notificationWithName:NSViewFrameDidChangeNotification object:container]] ;
 //     lua_pushvalue(L, 1) ;
 //     return 1 ;
@@ -710,7 +699,7 @@ static int container__debugFrames(lua_State *L) {
 static int container_insertElement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
     if (!item || !oneOfOurs(item)) {
@@ -740,11 +729,16 @@ static int container_insertElement(lua_State *L) {
     adjustElementDetailsTable(L, container, item, details) ;
 
     // Comparing floats is problematic; but if the item is effectively invisible, warn if not set on purpose
-    if ((item.fittingSize.height < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"h"]) {
-        [skin logWarn:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
-    }
-    if ((item.fittingSize.width < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"w"]) {
-        [skin logWarn:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
+    id suppressWarnings = [[NSUserDefaults standardUserDefaults] objectForKey:@"uitk_containerSuppressZeroWarnings" ] ;
+    BOOL ignoreZeros = suppressWarnings ? ((NSNumber *)suppressWarnings).boolValue : NO ;
+
+    if (!ignoreZeros) {
+        if ((item.fittingSize.height < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"h"]) {
+            [skin logWarn:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
+        }
+        if ((item.fittingSize.width < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"w"]) {
+            [skin logWarn:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
+        }
     }
 
     container.needsDisplay = YES ;
@@ -756,7 +750,7 @@ static int container_removeElement(lua_State *L) {
 // NOTE: this method is wrapped in element_container.lua
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSInteger idx = ((lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : (NSInteger)container.subviews.count) - 1 ;
     if ((idx < 0) || (idx >= (NSInteger)container.subviews.count)) return luaL_argerror(L, lua_gettop(L), "index out of bounds") ;
 
@@ -791,7 +785,7 @@ static int container_removeElement(lua_State *L) {
 static int container_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         container.callbackRef = [skin luaUnref:refTable ref:container.callbackRef] ;
@@ -830,7 +824,7 @@ static int container_passthroughCallback(lua_State *L) {
 static int container_frameChangeCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         container.frameChangeCallback = [skin luaUnref:refTable ref:container.frameChangeCallback] ;
@@ -882,7 +876,7 @@ static int container_frameChangeCallback(lua_State *L) {
 static int container_draggingCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         // We're either removing callback(s), or setting new one(s). Either way, remove existing.
@@ -928,7 +922,7 @@ static int container_draggingCallback(lua_State *L) {
 static int container_mouseCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         container.mouseCallback    = [skin luaUnref:refTable ref:container.mouseCallback] ;
@@ -966,7 +960,7 @@ static int container_mouseCallback(lua_State *L) {
 static int container_trackMouseMove(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, container.trackMouseMove) ;
@@ -992,7 +986,7 @@ static int container_trackMouseMove(lua_State *L) {
 static int container_element(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     if (lua_type(L, 2) == LUA_TSTRING) {
         NSString *identifier = [skin toNSObjectAtIndex:2] ;
         BOOL found = NO ;
@@ -1034,7 +1028,7 @@ static int container_element(lua_State *L) {
 static int container_sizeToFit(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 
     CGFloat hPadding = (lua_gettop(L) > 1) ? lua_tonumber(L, 2) : 0.0 ;
     CGFloat vPadding = (lua_gettop(L) > 2) ? lua_tonumber(L, 3) : ((lua_gettop(L) > 1) ? hPadding : 0.0) ;
@@ -1094,7 +1088,7 @@ static int container_sizeToFit(lua_State *L) {
 static int container_elements(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     LS_NSConversionOptions options = (lua_gettop(L) == 1) ? LS_TNONE : (lua_toboolean(L, 2) ? LS_NSDescribeUnknownTypes : LS_TNONE) ;
     [skin pushNSObject:container.subviews withOptions:options] ;
     return 1 ;
@@ -1117,7 +1111,7 @@ static int container_elements(lua_State *L) {
 // static int container_elementAutoPosition(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-//     HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+//     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 //     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 //
 //     if (!item || !oneOfOurs(item)) {
@@ -1149,7 +1143,7 @@ static int container_elementFittingSize(lua_State *L) {
 // This is a method so it can be inherited by elements, but it doesn't really have to be
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-//     HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+//     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
     if (!item || !oneOfOurs(item)) {
@@ -1190,7 +1184,7 @@ static int container_elementFittingSize(lua_State *L) {
 static int container_elementFrame(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
     if (!item || !oneOfOurs(item)) {
@@ -1246,7 +1240,7 @@ static int container_moveElement(lua_State *L) {
                     LS_TNUMBER | LS_TSTRING | LS_TOPTIONAL,
                     LS_TSTRING | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementView *container = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView             *element1 = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
     NSView             *element2 = (lua_type(L, 4) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:4] : nil ;
     NSString           *where    = [skin toNSObjectAtIndex:3] ;
@@ -1335,21 +1329,21 @@ static int container_moveElement(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSUITKElementView(lua_State *L, id obj) {
-    HSUITKElementView *value = obj;
+static int pushHSUITKElementContainerView(lua_State *L, id obj) {
+    HSUITKElementContainerView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementView *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerView *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSUITKElementViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerViewFromLua(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementView *value ;
+    HSUITKElementContainerView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSUITKElementView, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKElementContainerView, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -1361,7 +1355,7 @@ static id toHSUITKElementViewFromLua(lua_State *L, int idx) {
 
 static int userdata_len(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementView *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKElementView"] ;
+    HSUITKElementContainerView *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKElementContainerView"] ;
     if (obj.subviews) {
         lua_pushinteger(L, (lua_Integer)obj.subviews.count) ;
     } else {
@@ -1372,14 +1366,14 @@ static int userdata_len(lua_State *L) {
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementView *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKElementView"] ;
+    HSUITKElementContainerView *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKElementContainerView"] ;
     NSString *title = NSStringFromRect(obj.frame) ;
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ (%p)", USERDATA_TAG, title, lua_topointer(L, 1)]] ;
     return 1 ;
 }
 
 static int userdata_gc(lua_State* L) {
-    HSUITKElementView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementView, L, 1, USERDATA_TAG) ;
+    HSUITKElementContainerView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementContainerView, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -1433,7 +1427,6 @@ static const luaL_Reg userdata_metaLib[] = {
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
     {"new",            container_new},
-    {"_isElementType", container__isElementType},
     {NULL,             NULL}
 };
 
@@ -1444,9 +1437,9 @@ int luaopen_hs__asm_uitk_element_libcontainer(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKElementView         forClass:"HSUITKElementView"];
-    [skin registerLuaObjectHelper:toHSUITKElementViewFromLua forClass:"HSUITKElementView"
-                                                   withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerView         forClass:"HSUITKElementContainerView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerViewFromLua forClass:"HSUITKElementContainerView"
+                                                           withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

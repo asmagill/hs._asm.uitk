@@ -1,7 +1,7 @@
 local uitk   = require("hs._asm.uitk")
 local image  = require("hs.image")
 local stext  = require("hs.styledtext")
-local canvas = require("hs.canvas")
+local canvas = uitk.element.canvas
 
 local module = {}
 
@@ -13,7 +13,7 @@ mgr[#mgr + 1] = {
         "Drag an image file into the box or\npaste one from the clipboard",
         { paragraphStyle = { alignment = "center" } }
     )),
-    frame = {
+    containerFrame = {
         cX = "50%",
         y  = 5,
     }

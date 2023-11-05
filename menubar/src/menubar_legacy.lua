@@ -1,14 +1,10 @@
 local USERDATA_TAG = "hs.menubar.legacy"
-local module = {}
+local uitk         = require("hs._asm.uitk")
+local module       = {}
 
--- predeclare, but don't load until actually needed to prevent loop, since this would cause a loop in menubar
-local menubar    = nil -- require("hs._asm.uitk.menubar")
-local menu       = require("hs._asm.uitk.menu")
-local menuitem   = require("hs._asm.uitk.menu.item")
-
-local styledtext = require("hs.styledtext")
-local eventtap   = require("hs.eventtap")
-local image      = require("hs.image")
+local styledtext   = require("hs.styledtext")
+local eventtap     = require("hs.eventtap")
+local image        = require("hs.image")
 
 local log = require("hs.logger").new(USERDATA_TAG, require"hs.settings".get(USERDATA_TAG .. ".logLevel") or "warning")
 
@@ -29,7 +25,7 @@ parseMenuTable = function(self, menuTable, targetMenu)
                     log.wf("entry %d is not a menu item table", i)
                     break
                 end
-                local s, item = pcall(menuitem.new, v.title)
+                local s, item = pcall(uitk.menu.item.new, v.title)
                 if not s then
                     log.wf("malformed menu table entry; missing or invalid title string for entry %d (%s)", i, item)
                     break
@@ -38,7 +34,7 @@ parseMenuTable = function(self, menuTable, targetMenu)
                 if v.title == "-" then break end -- separator; nothing else matters
                 if type(v.menu) ~= "nil" then
                     if type(v.menu) == "table" then
-                        local newMenu = menu.new("HammerspoonSubMenu")
+                        local newMenu = uitk.menu.new("HammerspoonSubMenu")
                         parseMenuTable(self, v.menu, newMenu)
                         item:submenu(newMenu)
                     else
@@ -303,9 +299,9 @@ end
 legacyMT.returnToMenuBar = function(self)
     local obj = internalData[self]
     if not obj._menubar then
-        obj._menubar = menubar.create(true):title(obj._title)
-                                           :tooltip(obj._tooltip)
-                                           :menu(obj._menu)
+        obj._menubar = uitk.menubar(true):title(obj._title)
+                                         :tooltip(obj._tooltip)
+                                         :menu(obj._menu)
 
         if obj._icon then obj._menubar:image(obj._icon) end
         obj._frame = nil
@@ -340,17 +336,14 @@ legacyMT._setIcon = legacyMT.setIcon
 legacyMT.__gc     = legacyMT.delete
 
 module.new = function(inMenuBar)
-    -- prevents loop when menubar module loaded since it loads this file as part of its setup
-    if not menubar then menubar = require("hs._asm.uitk.menubar") end
-
     inMenuBar = type(inMenuBar) == "nil" and true or inMenuBar
 
     local newMenu = {}
     internalData[newMenu] = {
-        _menubar    = menubar.create(true):callback(function(_, msg, ...)
+        _menubar    = uitk.menubar(true):callback(function(_, msg, ...)
             if msg == "mouseClick" then menubarClick(newMenu) end
         end),
-        _menu          = menu.new("HammerspoonPlaceholderMenu"):callback(function(_, msg, ...)
+        _menu          = uitk.menu.new("HammerspoonPlaceholderMenu"):callback(function(_, msg, ...)
             if msg == "update" then updateMenu(newMenu) end
         end),
         _menuCallback   = nil,

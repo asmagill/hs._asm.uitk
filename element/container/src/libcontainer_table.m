@@ -129,7 +129,7 @@ static BOOL oneOfOurs(NSView *obj) {
 }
 @end
 
-@interface HSUITKElementTableView : NSTableView <NSTableViewDelegate, NSTableViewDataSource>
+@interface HSUITKElementContainerTableView : NSTableView <NSTableViewDelegate, NSTableViewDataSource>
 @property            int               selfRefCount ;
 @property (readonly) LSRefTable        refTable ;
 @property            int               callbackRef ;
@@ -139,7 +139,7 @@ static BOOL oneOfOurs(NSView *obj) {
 @property            NSView            *storedCorner ;
 @end
 
-@implementation HSUITKElementTableView
+@implementation HSUITKElementContainerTableView
 - (instancetype)initWithFrame:(NSRect)frameRect {
     @try {
         self = [super initWithFrame:frameRect] ;
@@ -377,7 +377,7 @@ static int table_new(lua_State *L) {
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
 
     NSRect frameRect = (lua_gettop(L) == 1) ? [skin tableToRectAtIndex:1] : NSZeroRect ;
-    HSUITKElementTableView *element = [[HSUITKElementTableView alloc] initWithFrame:frameRect];
+    HSUITKElementContainerTableView *element = [[HSUITKElementContainerTableView alloc] initWithFrame:frameRect];
     if (element) {
         if (lua_gettop(L) != 1) [element setFrameSize:[element fittingSize]] ;
         [skin pushNSObject:element] ;
@@ -407,7 +407,7 @@ static int table_newColumn(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.element.table:passthroughCallback([fn | nil]) -> tableObject | fn | nil
+/// hs._asm.uitk.element.containertable:passthroughCallback([fn | nil]) -> tableObject | fn | nil
 /// Method
 /// Get or set the pass through callback for the table
 ///
@@ -429,7 +429,7 @@ static int table_newColumn(lua_State *L) {
 static int table_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         table.passThroughRef = [skin luaUnref:refTable ref:table.passThroughRef] ;
@@ -451,7 +451,7 @@ static int table_passthroughCallback(lua_State *L) {
 static int table_dataSourceCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         table.dataSourceRef = [skin luaUnref:refTable ref:table.dataSourceRef] ;
@@ -474,7 +474,7 @@ static int table_dataSourceCallback(lua_State *L) {
 static int table_allowsColumnReordering(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnReordering) ;
@@ -488,7 +488,7 @@ static int table_allowsColumnReordering(lua_State *L) {
 static int table_allowsColumnResizing(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnResizing) ;
@@ -502,7 +502,7 @@ static int table_allowsColumnResizing(lua_State *L) {
 static int table_allowsColumnSelection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnSelection) ;
@@ -516,7 +516,7 @@ static int table_allowsColumnSelection(lua_State *L) {
 static int table_allowsEmptySelection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsEmptySelection) ;
@@ -530,7 +530,7 @@ static int table_allowsEmptySelection(lua_State *L) {
 static int table_allowsMultipleSelection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsMultipleSelection) ;
@@ -544,7 +544,7 @@ static int table_allowsMultipleSelection(lua_State *L) {
 static int table_allowsTypeSelect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsTypeSelect) ;
@@ -558,7 +558,7 @@ static int table_allowsTypeSelect(lua_State *L) {
 static int table_autosaveTableColumns(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.autosaveTableColumns) ;
@@ -572,7 +572,7 @@ static int table_autosaveTableColumns(lua_State *L) {
 static int table_usesAlternatingRowBackgroundColors(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.usesAlternatingRowBackgroundColors) ;
@@ -586,7 +586,7 @@ static int table_usesAlternatingRowBackgroundColors(lua_State *L) {
 static int table_usesAutomaticRowHeights(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.usesAutomaticRowHeights) ;
@@ -600,7 +600,7 @@ static int table_usesAutomaticRowHeights(lua_State *L) {
 static int table_verticalMotionCanBeginDrag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.verticalMotionCanBeginDrag) ;
@@ -614,7 +614,7 @@ static int table_verticalMotionCanBeginDrag(lua_State *L) {
 static int table_rowHeight(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, table.rowHeight) ;
@@ -630,7 +630,7 @@ static int table_rowHeight(lua_State *L) {
 static int table_rows(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, table.numberOfRows) ;
     return 1 ;
@@ -639,7 +639,7 @@ static int table_rows(lua_State *L) {
 static int table_columns(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, table.numberOfColumns) ;
     return 1 ;
@@ -648,7 +648,7 @@ static int table_columns(lua_State *L) {
 static int table_autosaveName(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:table.autosaveName] ;
@@ -666,7 +666,7 @@ static int table_autosaveName(lua_State *L) {
 static int table_backgroundColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:table.backgroundColor] ;
@@ -680,7 +680,7 @@ static int table_backgroundColor(lua_State *L) {
 static int table_gridColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:table.gridColor] ;
@@ -694,7 +694,7 @@ static int table_gridColor(lua_State *L) {
 static int table_intercellSpacing(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSSize:table.intercellSpacing] ;
@@ -709,7 +709,7 @@ static int table_intercellSpacing(lua_State *L) {
 static int table_columnAutoresizingStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(table.columnAutoresizingStyle) ;
@@ -737,7 +737,7 @@ static int table_columnAutoresizingStyle(lua_State *L) {
 static int table_gridStyleMask(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(table.gridStyleMask) ;
@@ -765,7 +765,7 @@ static int table_gridStyleMask(lua_State *L) {
 static int table_rowSizeStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(table.rowSizeStyle) ;
@@ -804,7 +804,7 @@ static int table_rowSizeStyle(lua_State *L) {
 static int table_selectionHighlightStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, (table.selectionHighlightStyle == NSTableViewSelectionHighlightStyleRegular)) ;
@@ -819,7 +819,7 @@ static int table_selectionHighlightStyle(lua_State *L) {
 static int table_style(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (@available(macOS 11, *)) {
         if (lua_gettop(L) == 1) {
@@ -868,7 +868,7 @@ static int table_style(lua_State *L) {
 static int table_userInterfaceLayoutDirection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(table.userInterfaceLayoutDirection) ;
@@ -896,7 +896,7 @@ static int table_userInterfaceLayoutDirection(lua_State *L) {
 static int table_addTableColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, UD_COLUMN_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
     NSTableColumn          *column = [skin toNSObjectAtIndex:2] ;
 
     [table addTableColumn:column] ;
@@ -908,7 +908,7 @@ static int table_addTableColumn(lua_State *L) {
 static int table_removeTableColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-    HSUITKElementTableView *table  = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
     NSTableColumn *column     = nil ;
     if (lua_type(L, 2) == LUA_TUSERDATA) {
@@ -941,7 +941,7 @@ static int table_removeTableColumn(lua_State *L) {
 static int table_columnWithIdentifier(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table      = [skin toNSObjectAtIndex:1] ;
 
     if (lua_type(L, 2) == LUA_TSTRING) {
         NSString      *identifier = [skin toNSObjectAtIndex:2] ;
@@ -966,7 +966,7 @@ static int table_columnWithIdentifier(lua_State *L) {
 static int table_tableColumns(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table      = [skin toNSObjectAtIndex:1] ;
 
     [skin pushNSObject:table.tableColumns] ;
     return 1 ;
@@ -978,7 +978,7 @@ static int table_viewAtRowColumn(lua_State *L) {
                     LS_TNUMBER | LS_TINTEGER,
                     LS_TSTRING | LS_TNUMBER | LS_TINTEGER,
                     LS_TBREAK] ;
-    HSUITKElementTableView *table      = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table      = [skin toNSObjectAtIndex:1] ;
     NSInteger              row         = lua_tointeger(L, 2) ;
     NSInteger              col         = (lua_type(L, 3) == LUA_TNUMBER) ? lua_tointeger(L, 3) : NSNotFound ;
 
@@ -1020,7 +1020,7 @@ static int table_viewAtRowColumn(lua_State *L) {
 static int table_reloadData(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     [table reloadData] ;
     lua_pushvalue(L, 1) ;
@@ -1030,7 +1030,7 @@ static int table_reloadData(lua_State *L) {
 static int table_hiddenRows(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSIndexSet     *rows  = [table hiddenRowIndexes] ;
     NSMutableArray *array = [NSMutableArray array] ;
@@ -1046,7 +1046,7 @@ static int table_hiddenRows(lua_State *L) {
 static int table_hideRow(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = table.numberOfRows ;
@@ -1074,7 +1074,7 @@ static int table_hideRow(lua_State *L) {
 static int table_showHeader(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.headerView ? YES : NO) ;
@@ -1102,7 +1102,7 @@ static int table_showHeader(lua_State *L) {
 static int table_scrollToRow(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = table.numberOfRows ;
@@ -1119,7 +1119,7 @@ static int table_scrollToRow(lua_State *L) {
 static int table_scrollToColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx = (lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : NSNotFound ;
     if (lua_type(L, 2) == LUA_TSTRING) {
@@ -1146,7 +1146,7 @@ static int table_scrollToColumn(lua_State *L) {
 static int table_selectAll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_toboolean(L, 2)) {
         [table selectAll:table] ;
@@ -1160,7 +1160,7 @@ static int table_selectAll(lua_State *L) {
 static int table_rowForElement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_type(L, 2) == LUA_TUSERDATA) {
         NSView *view = [skin toNSObjectAtIndex:2] ;
@@ -1176,7 +1176,7 @@ static int table_rowForElement(lua_State *L) {
 static int table_columnForElement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_type(L, 2) == LUA_TUSERDATA) {
         NSView *view = [skin toNSObjectAtIndex:2] ;
@@ -1192,7 +1192,7 @@ static int table_columnForElement(lua_State *L) {
 static int table_sizeToFit(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     BOOL lastColumnOnly = (lua_gettop(L) == 2) ? lua_toboolean(L, 2) : NO ;
 
@@ -1212,7 +1212,7 @@ static int table_selectedColumns(lua_State *L) {
                     LS_TTABLE | LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
                     LS_TBOOLEAN | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSIndexSet     *set   = [table selectedColumnIndexes] ;
@@ -1268,7 +1268,7 @@ static int table_selectedRows(lua_State *L) {
                     LS_TTABLE | LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
                     LS_TBOOLEAN | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSIndexSet     *set   = [table selectedRowIndexes] ;
@@ -1321,7 +1321,7 @@ static int table_selectedRows(lua_State *L) {
 static int table_isColumnSelected(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx = (lua_type(L, 2) == LUA_TNUMBER) ? lua_tointeger(L, 2) : NSNotFound ;
     if (lua_type(L, 2) == LUA_TSTRING) {
@@ -1347,7 +1347,7 @@ static int table_isColumnSelected(lua_State *L) {
 static int table_isRowSelected(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = table.numberOfRows ;
@@ -1363,7 +1363,7 @@ static int table_isRowSelected(lua_State *L) {
 static int table_rowViewAtRow(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSUITKElementTableView *table = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
     NSInteger idx   = lua_tointeger(L, 2) ;
     NSInteger count = table.numberOfRows ;
@@ -1738,7 +1738,7 @@ static int tableColumn_indicatorImage(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_COLUMN_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
     NSTableColumn          *column = [skin toNSObjectAtIndex:1] ;
-    HSUITKElementTableView *table  = (HSUITKElementTableView *)column.tableView ;
+    HSUITKElementContainerTableView *table  = (HSUITKElementContainerTableView *)column.tableView ;
 
     if (lua_gettop(L) == 1) {
         if (table) {
@@ -1765,7 +1765,7 @@ static int tableColumn_moveColumn(lua_State *L) {
     NSTableColumn *column = [skin toNSObjectAtIndex:1] ;
     NSInteger     destCol = lua_tointeger(L, 2) ;
 
-    HSUITKElementTableView *table  = (HSUITKElementTableView *)column.tableView ;
+    HSUITKElementContainerTableView *table  = (HSUITKElementContainerTableView *)column.tableView ;
 
     if (table) {
         NSInteger count = table.numberOfColumns ;
@@ -1787,7 +1787,7 @@ static int tableColumn_index(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, UD_COLUMN_TAG, LS_TBREAK] ;
     NSTableColumn *column = [skin toNSObjectAtIndex:1] ;
 
-    HSUITKElementTableView *table  = (HSUITKElementTableView *)column.tableView ;
+    HSUITKElementContainerTableView *table  = (HSUITKElementContainerTableView *)column.tableView ;
 
     if (table) {
         lua_pushinteger(L, [table columnWithIdentifier:column.identifier] + 1) ;
@@ -1806,21 +1806,21 @@ static int tableColumn_index(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSUITKElementTableView(lua_State *L, id obj) {
-    HSUITKElementTableView *value = obj;
+static int pushHSUITKElementContainerTableView(lua_State *L, id obj) {
+    HSUITKElementContainerTableView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementTableView *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerTableView *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSUITKElementTableViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerTableViewFromLua(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementTableView *value ;
+    HSUITKElementContainerTableView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSUITKElementTableView, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKElementContainerTableView, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -1920,7 +1920,7 @@ static int table_object_gc(lua_State *L) {
 }
 
 static int userdata_gc(lua_State* L) {
-    HSUITKElementTableView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementTableView, L, 1, USERDATA_TAG) ;
+    HSUITKElementContainerTableView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementContainerTableView, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -2060,8 +2060,8 @@ int luaopen_hs__asm_uitk_element_libcontainer_table(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementTableView         forClass:"HSUITKElementTableView"];
-    [skin registerLuaObjectHelper:toHSUITKElementTableViewFromLua forClass:"HSUITKElementTableView"
+    [skin registerPushNSHelper:pushHSUITKElementContainerTableView         forClass:"HSUITKElementContainerTableView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerTableViewFromLua forClass:"HSUITKElementContainerTableView"
                                                      withUserdataMapping:USERDATA_TAG];
 
     [skin registerPushNSHelper:pushNSTableRowView         forClass:"NSTableRowView"];

@@ -46,7 +46,7 @@ static void defineInternalDictionaries(void) {
     };
 }
 
-@interface HSUITKElementScrollView : NSScrollView
+@interface HSUITKElementContainerScrollView : NSScrollView
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ; // in this case, it's the passthrough callback for subviews
@@ -64,7 +64,7 @@ BOOL oneOfOurs(NSView *obj) {
            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
 }
 
-@implementation HSUITKElementScrollView
+@implementation HSUITKElementContainerScrollView
 - (instancetype)initWithFrame:(NSRect)frameRect {
     @try {
         self = [super initWithFrame:frameRect] ;
@@ -196,7 +196,7 @@ static int scroller_new(lua_State *L) {
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
 
     NSRect frameRect = (lua_gettop(L) == 1) ? [skin tableToRectAtIndex:1] : NSZeroRect ;
-    HSUITKElementScrollView *element = [[HSUITKElementScrollView alloc] initWithFrame:frameRect];
+    HSUITKElementContainerScrollView *element = [[HSUITKElementContainerScrollView alloc] initWithFrame:frameRect];
     if (element) {
         if (lua_gettop(L) != 1) [element setFrameSize:[element fittingSize]] ;
         [skin pushNSObject:element] ;
@@ -231,7 +231,7 @@ static int scroller_new(lua_State *L) {
 static int scroller_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         element.callbackRef = [skin luaUnref:refTable ref:element.callbackRef] ;
@@ -253,7 +253,7 @@ static int scroller_passthroughCallback(lua_State *L) {
 static int scroller_documentTracksWidthSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.documentTracksWidth) ;
@@ -267,7 +267,7 @@ static int scroller_documentTracksWidthSize(lua_State *L) {
 static int scroller_allowsMagnification(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.allowsMagnification) ;
@@ -281,7 +281,7 @@ static int scroller_allowsMagnification(lua_State *L) {
 static int scroller_autohidesScrollers(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.autohidesScrollers) ;
@@ -295,7 +295,7 @@ static int scroller_autohidesScrollers(lua_State *L) {
 static int scroller_automaticallyAdjustsContentInsets(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.automaticallyAdjustsContentInsets) ;
@@ -309,7 +309,7 @@ static int scroller_automaticallyAdjustsContentInsets(lua_State *L) {
 static int scroller_drawsBackground(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.drawsBackground) ;
@@ -323,7 +323,7 @@ static int scroller_drawsBackground(lua_State *L) {
 static int scroller_hasHorizontalRuler(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.hasHorizontalRuler) ;
@@ -337,7 +337,7 @@ static int scroller_hasHorizontalRuler(lua_State *L) {
 static int scroller_hasHorizontalScroller(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.hasHorizontalScroller) ;
@@ -351,7 +351,7 @@ static int scroller_hasHorizontalScroller(lua_State *L) {
 static int scroller_hasVerticalRuler(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.hasVerticalRuler) ;
@@ -365,7 +365,7 @@ static int scroller_hasVerticalRuler(lua_State *L) {
 static int scroller_hasVerticalScroller(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.hasVerticalScroller) ;
@@ -379,7 +379,7 @@ static int scroller_hasVerticalScroller(lua_State *L) {
 static int scroller_rulersVisible(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.rulersVisible) ;
@@ -393,7 +393,7 @@ static int scroller_rulersVisible(lua_State *L) {
 static int scroller_scrollsDynamically(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.scrollsDynamically) ;
@@ -407,7 +407,7 @@ static int scroller_scrollsDynamically(lua_State *L) {
 static int scroller_usesPredominantAxisScrolling(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, element.usesPredominantAxisScrolling) ;
@@ -421,7 +421,7 @@ static int scroller_usesPredominantAxisScrolling(lua_State *L) {
 static int scroller_horizontalLineScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.horizontalLineScroll) ;
@@ -435,7 +435,7 @@ static int scroller_horizontalLineScroll(lua_State *L) {
 static int scroller_horizontalPageScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.horizontalPageScroll) ;
@@ -449,7 +449,7 @@ static int scroller_horizontalPageScroll(lua_State *L) {
 static int scroller_lineScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.lineScroll) ;
@@ -463,7 +463,7 @@ static int scroller_lineScroll(lua_State *L) {
 static int scroller_magnification(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.magnification) ;
@@ -477,7 +477,7 @@ static int scroller_magnification(lua_State *L) {
 static int scroller_maxMagnification(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.maxMagnification) ;
@@ -491,7 +491,7 @@ static int scroller_maxMagnification(lua_State *L) {
 static int scroller_minMagnification(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.minMagnification) ;
@@ -505,7 +505,7 @@ static int scroller_minMagnification(lua_State *L) {
 static int scroller_pageScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.pageScroll) ;
@@ -519,7 +519,7 @@ static int scroller_pageScroll(lua_State *L) {
 static int scroller_verticalLineScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.verticalLineScroll) ;
@@ -533,7 +533,7 @@ static int scroller_verticalLineScroll(lua_State *L) {
 static int scroller_verticalPageScroll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, element.verticalPageScroll) ;
@@ -547,7 +547,7 @@ static int scroller_verticalPageScroll(lua_State *L) {
 static int scroller_backgroundColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:element.backgroundColor] ;
@@ -561,7 +561,7 @@ static int scroller_backgroundColor(lua_State *L) {
 static int scroller_borderType(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.borderType) ;
@@ -589,7 +589,7 @@ static int scroller_borderType(lua_State *L) {
 static int scroller_horizontalScrollElasticity(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.horizontalScrollElasticity) ;
@@ -617,7 +617,7 @@ static int scroller_horizontalScrollElasticity(lua_State *L) {
 static int scroller_verticalScrollElasticity(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.verticalScrollElasticity) ;
@@ -645,7 +645,7 @@ static int scroller_verticalScrollElasticity(lua_State *L) {
 static int scroller_scrollerKnobStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.scrollerKnobStyle) ;
@@ -673,7 +673,7 @@ static int scroller_scrollerKnobStyle(lua_State *L) {
 static int scroller_scrollerStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.scrollerStyle) ;
@@ -701,7 +701,7 @@ static int scroller_scrollerStyle(lua_State *L) {
 static int scroller_findBarPosition(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         NSNumber *value  = @(element.findBarPosition) ;
@@ -734,7 +734,7 @@ static int scroller_contentInsets(lua_State *L) {
                     LS_TNUMBER | LS_TNIL | LS_TOPTIONAL,
                     LS_TNUMBER | LS_TNIL | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_newtable(L) ;
@@ -794,7 +794,7 @@ static int scroller_scrollerInsets(lua_State *L) {
                     LS_TNUMBER | LS_TNIL | LS_TOPTIONAL,
                     LS_TNUMBER | LS_TNIL | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_newtable(L) ;
@@ -849,7 +849,7 @@ static int scroller_scrollerInsets(lua_State *L) {
 static int scroller_documentView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:element.documentView withOptions:LS_NSDescribeUnknownTypes] ;
@@ -882,7 +882,7 @@ static int scroller_documentView(lua_State *L) {
 static int scroller_contentSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     [skin pushNSSize:element.contentSize] ;
     return 1 ;
@@ -891,7 +891,7 @@ static int scroller_contentSize(lua_State *L) {
 static int scroller_documentVisibleRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     [skin pushNSRect:element.documentVisibleRect] ;
     return 1 ;
@@ -900,7 +900,7 @@ static int scroller_documentVisibleRect(lua_State *L) {
 static int scroller_flashScrollers(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
 
     [element flashScrollers] ;
     lua_pushvalue(L, 1) ;
@@ -910,7 +910,7 @@ static int scroller_flashScrollers(lua_State *L) {
 static int scroller_magnifyToFitRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
     NSRect                   rect     = [skin tableToRectAtIndex:2] ;
 
     [element magnifyToFitRect:rect] ;
@@ -921,7 +921,7 @@ static int scroller_magnifyToFitRect(lua_State *L) {
 static int scroller_setMagnificationCenteredAtPoint(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER, LS_TTABLE, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
     CGFloat                  zoom     = lua_tonumber(L, 2) ;
     NSPoint                  point    = [skin tableToPointAtIndex:3] ;
 
@@ -933,7 +933,7 @@ static int scroller_setMagnificationCenteredAtPoint(lua_State *L) {
 static int scroller_scrollPoint(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
     NSPoint                  point    = [skin tableToPointAtIndex:2] ;
 
     if (element.documentView) {
@@ -946,7 +946,7 @@ static int scroller_scrollPoint(lua_State *L) {
 static int scroller_scrollRectToVisible(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
-    HSUITKElementScrollView *element = [skin toNSObjectAtIndex:1] ;
+    HSUITKElementContainerScrollView *element = [skin toNSObjectAtIndex:1] ;
     NSRect                   rect     = [skin tableToRectAtIndex:2] ;
 
     if (element.documentView) {
@@ -964,21 +964,21 @@ static int scroller_scrollRectToVisible(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSUITKElementScrollView(lua_State *L, id obj) {
-    HSUITKElementScrollView *value = obj;
+static int pushHSUITKElementContainerScrollView(lua_State *L, id obj) {
+    HSUITKElementContainerScrollView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementScrollView *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerScrollView *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSUITKElementScrollViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerScrollViewFromLua(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementScrollView *value ;
+    HSUITKElementContainerScrollView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSUITKElementScrollView, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKElementContainerScrollView, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -989,7 +989,7 @@ static id toHSUITKElementScrollViewFromLua(lua_State *L, int idx) {
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_gc(lua_State* L) {
-    HSUITKElementScrollView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementScrollView, L, 1, USERDATA_TAG) ;
+    HSUITKElementContainerScrollView *obj = get_objectFromUserdata(__bridge_transfer HSUITKElementContainerScrollView, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -1067,8 +1067,8 @@ int luaopen_hs__asm_uitk_element_libcontainer_scroller(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementScrollView         forClass:"HSUITKElementScrollView"];
-    [skin registerLuaObjectHelper:toHSUITKElementScrollViewFromLua forClass:"HSUITKElementScrollView"
+    [skin registerPushNSHelper:pushHSUITKElementContainerScrollView         forClass:"HSUITKElementContainerScrollView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerScrollViewFromLua forClass:"HSUITKElementContainerScrollView"
                                                         withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
