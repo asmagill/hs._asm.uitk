@@ -1,26 +1,64 @@
 General
 
-    Combine these damn notes files
+  Document
+
+  Test
+
+  Update timer to use more inclusive run loop modes
+
+  mouse tracking for other/all elements? (not just container element)
+
+  Menu stuff:
+      For menu:
+          Checkout services...
+              can we provide them or use them easily? Early research was less then promising re
+              providing them (too much required Info.plist set before application run) but as to
+              using them, never really checked.
+          Can popup menu be in background thread to prevent blocking? (or are runloop changes sufficient?)
+
+      For menuitem:
+          some special keys don't seem to be caught; need to see if we can fix that or make list of them and remove from table
+
+      For statusitem:
++         hs.menubar wrapper
++         drag and drop for button itself?
+              for items? may have to add "springLoaded" to allow drag and drop to menu items
+
+       For legacy:
++         stateImageSize implemented in legacy; onus on user for new approach
+          image position wrong when both title and icon are set
+
+p     menubar rewrite so it can use views for status icon and menu items
+          status item userdata takes two userdatas: view (element) and menu
++         menu userdata comprises actual menu and can be used in other locations (e.g. avplayer) that allow for menu assignment
++         menu should be a list of menubaritem userdata objects
+?         allows for dynamic updates even if menu being displayed
+
+    uitk.window
+        tabs
+        add modal sheet support
 
  +  __view needs wrap method that checks container for way to wrap element
  +  add wrap method to container, container.scroller, container.grid
 
-  rename textView to just text?
 
 + move drawing.color into util
 +     add proper color list support (NSColorList)
 
-+ move in canvas
-+     and wrapper
-      add support for cX, rX, cY, bY
-+ move in turtleDraw
-  move in webView
-      and wrapper
-  webview.toolbar should go into util?
++ rewrite canvas so it's parent window is no longer necessary -- it can use `hs._asm.uitk` with appropriate constructor wrapper
+      add support for cX, cY, rX, and bY
++     add fittingSize to canvas -- tracks set size
+      change proper constructor to new and move "new" into _legacy.new like with menubar?
+          should other "legacy" aware methods be moved/duplicated in _legacy as well?
 
-  document
++ move in turtleDraw
+
+  rewrite webview so it's parent window is no longer necessary -- it can use `hs._asm.uitk` with appropriate constructor wrapper
+      check fittingSize and see if WKWebView already does this correctly
+      move toolbar to uitk.util
 
   examples
+      add sample type to documentation/docset generators
       individual
       combinations
 
@@ -54,10 +92,15 @@ General
       NSSearchField?
       NSTokenField?
 
++ scrolling textview element
++     ruler?
++     style change toolbar?
+
   textView
-        remove ruler, etc. stuff that requires scrollbar to work anyways?
-        what should callback?
-            -- add same editing/callbacks as textField?
+      rename textView to just text?
+      remove ruler, etc. stuff that requires scrollbar to work anyways?
+      what should callback?
+          -- add same editing/callbacks as textField?
 
     - (NSUInteger)characterIndexForInsertionAtPoint:(NSPoint)point;
     - (NSArray<NSString *> *)completionsForPartialWordRange:(NSRange)charRange indexOfSelectedItem:(NSInteger *)index;
@@ -73,3 +116,140 @@ General
         - (NSData *)RTFDFromRange:(NSRange)range;
         - (NSData *)RTFFromRange:(NSRange)range;
 
+  pi in the sky
+      replace console with one built from these modules? Would allow for easy addition of tabs,
+          direct output to specific window/tab, etc.
+
+-- probable or in progress
+
++   hs.canvas
++   hs.canvas.turtle
+
++   NSSavePanel
++   NSOpenPanel
+    NSFontPanel  relies on NSFontManager a lot... do we need to redo styledtext as well?
++   NSColorPanel
+    NSAlert      doesn't have non-modal option... should we write our own using these modules?
+
+*   @interface NSButton               : NSControl
++       @interface NSPopUpButton          : NSButton
+*   @interface NSColorWell            : NSControl
+*?  @interface NSComboButton          : NSControl  -- not sure how to handle backport
++   @interface NSDatePicker           : NSControl
++   @interface NSImageView            : NSControl
++   @interface NSLevelIndicator       : NSControl
++   @interface NSSlider               : NSControl
++   @interface NSStepper              : NSControl
+*   @interface NSSwitch               : NSControl
++   @interface NSTextField            : NSControl
++       @interface NSComboBox             : NSTextField
++       @interface NSSecureTextField      : NSTextField
+        @interface NSSearchField          : NSTextField
+        @interface NSTokenField           : NSTextField
++   @interface NSSegmentedControl     : NSControl
++   @interface NSPathControl          : NSControl
+
+    @interface NSRuleEditor           : NSControl
++   @interface NSTableView            : NSControl
+  na    @interface NSTableCellView        : NSView
+  ?     @interface NSTableHeaderView      : NSView
+  +     @interface NSTableRowView         : NSView
+        @interface NSOutlineView          : NSTableView
+
+    @interface AVPlayerView           : NSView
+    @interface NSTabView              : NSView
+    @interface NSVisualEffectView     : NSView
+
++   @interface NSBox                  : NSView
+*   @interface NSProgressIndicator    : NSView
++   @interface NSGridView             : NSView
++   @interface NSScrollView           : NSView
+        @interface NSClipView             : NSView    -- paired with NSScrollView
+        @interface NSRulerView            : NSView    -- for custom in NSText/NSScrollView
+        @interface NSScroller             : NSControl -- for custom in NSScrollView
++   @interface NSTextView             : NSText
+        @interface OSAScriptView          : NSTextView
+
+
+-- not sure but not ruled out yet
+
+    @interface NSBrowser                  : NSControl
+
+    @interface SCNView                    : NSView -- SceneKit framework
+    @interface SKView                     : NSView -- SpriteKit framework
+        @interface SKNode                 : NSResponder
+    @interface PDFView                    : NSView -- PDFKit framework
+
+    @interface NSPopover                  : NSResponder
+
+    @interface ABPeoplePickerView         : NSView -- AddressBook framework
+    @interface ABPersonView               : NSView -- AddressBook framework
+    @interface AMWorkflowView             : NSView -- Automator framework
+    @interface AUGenericView              : NSView -- AudioKit framework
+    @interface AUPannerView               : NSView -- AudioKit framework
+    @interface AVCaptureView              : NSView -- AVKit framework
+    @interface AVRoutePickerView          : NSView -- AVKit framework
+    @interface IKCameraDeviceView         : NSView -- ImageKit framework
+    @interface IKDeviceBrowserView        : NSView -- ImageKit framework
+    @interface IKFilterBrowserView        : NSView -- ImageKit framework
+    @interface IKFilterUIView             : NSView -- ImageKit framework
+    @interface IKImageBrowserView         : NSView -- ImageKit framework
+    @interface IKImageView                : NSView -- ImageKit framework
+    @interface IKScannerDeviceView        : NSView -- ImageKit framework
+    @interface MKAnnotationView           : NSView -- MapKit framework
+    @interface MKCompassButton            : NSView -- MapKit framework
+    @interface MKMapView                  : NSView -- MapKit framework
+    @interface MKPitchControl             : NSView -- MapKit framework
+    @interface MKZoomControl              : NSView -- MapKit framework
+    @interface MTKView                    : NSView -- MapKit framework
+
+-- in hs._asm.undocumented.touchbar?
+
+    @interface NSScrubber                 : NSView -- touchbar
+    @interface NSScrubberArrangedView     : NSView -- touchbar
+
+-- Below here NA or not possible for this type of App
+
+    @interface NSText                     : NSView -- low level; use NSTextView
+    @interface WKWebView                  : hs.webview
+    @interface NSDrawer                   : NSResponder -- deprecated
+    @interface GKDialogController         : NSResponder
+    @interface IMKCandidates              : NSResponder
+
+    @interface NSMatrix                   : NSControl  -- deprecated way to group buttons
+    @interface NSOpenGLView               : NSView -- deprecated
+    @interface QCCompositionParameterView : NSView -- deprecated
+    @interface QCCompositionPickerView    : NSView -- deprecated
+    @interface QCView                     : NSView -- deprecated
+    @interface WebView                    : NSView -- deprecated
+    @interface WebFrameView               : NSView -- deprecated
+
+    @interface NSCollectionView           : NSView
+    @interface NSSplitView                : NSView -- Interface Builder req
+    @interface NSStackView                : NSView -- Interface Builder req
+    @interface IOBluetoothPasskeyDisplay  : NSView
+    @interface LAAuthenticationView       : NSView
+    @interface LPLinkView                 : NSView
+    @interface PHLivePhotoView            : NSView -- PhotoKit framework
+    @interface QLPreviewView              : NSView -- QuickLook
+    @interface QuartzFilterView           : NSView
+    @interface SWAttributionView          : NSView -- SharedWithYou
+    @interface ScreenSaverView            : NSView
+    @interface SFAuthorizationView        : NSView
+    @interface SFCertificateView          : NSView
+    @interface SWCollaborationView        : NSView
+    @interface VZVirtualMachineView       : NSView
+
+Common properties:
+
+NSView
+    @property BOOL acceptsTouchEvents
+    @property BOOL wantsRestingTouches
+    @property CGFloat boundsRotation
+    @property CGFloat frameRotation
+    @property NSRect bounds
+    @property NSRect frame
+    @property NSRect preparedContentRect
+    @property(copy) NSArray <__kindof NSGestureRecognizer *> *gestureRecognizers
+    @property(getter=isInFullScreenMode, readonly) BOOL inFullScreenMode
+    @property(strong) NSPressureConfiguration *pressureConfiguration

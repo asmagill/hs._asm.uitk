@@ -101,7 +101,7 @@ parseMenuTable = function(self, menuTable, targetMenu)
 
                 if type(v.onStateImage) ~= "nil" then
                     if type(v.onStateImage) == "userdata" and getmetatable(v.onStateImage).__name == "hs.image" then
-                        item:onStateImage(v.onStateImage)
+                        item:onStateImage(v.onStateImage:size(obj._stateImageSize))
                     else
                         log.f("expected hs.image object for onStateImage key of entry %d", i)
                     end
@@ -109,7 +109,7 @@ parseMenuTable = function(self, menuTable, targetMenu)
 
                 if type(v.offStateImage) ~= "nil" then
                     if type(v.offStateImage) == "userdata" and getmetatable(v.offStateImage).__name == "hs.image" then
-                        item:offStateImage(v.offStateImage)
+                        item:offStateImage(v.offStateImage:size(obj._stateImageSize))
                     else
                         log.f("expected hs.image object for offStateImage key of entry %d", i)
                     end
@@ -117,7 +117,7 @@ parseMenuTable = function(self, menuTable, targetMenu)
 
                 if type(v.mixedStateImage) ~= "nil" then
                     if type(v.mixedStateImage) == "userdata" and getmetatable(v.mixedStateImage).__name == "hs.image" then
-                        item:mixedStateImage(v.mixedStateImage)
+                        item:mixedStateImage(v.mixedStateImage:size(obj._stateImageSize))
                     else
                         log.f("expected hs.image object for mixedStateImage key of entry %d", i)
                     end
@@ -227,11 +227,11 @@ legacyMT.stateImageSize = function(self, ...)
 
     if args.n == 0 then
         return obj._stateImageSize
-    elseif args.n == 1 and type(args[1]) == "number" then
+    elseif args.n == 1 and type(args[1]) == "table" and type(args[1].h) == "number" and type(args[1].w) == "number" then
         obj._stateImageSize = args[1]
         return self
     else
-        error("expected optional number", 2)
+        error("expected optional size table", 2)
     end
 end
 
@@ -348,7 +348,7 @@ module.new = function(inMenuBar)
         end),
         _menuCallback   = nil,
         _clickCallback  = nil,
-        _stateImageSize = styledtext.defaultFonts.menu.size,
+        _stateImageSize = { h = styledtext.defaultFonts.menu.size, w = styledtext.defaultFonts.menu.size }
     }
     newMenu = setmetatable(newMenu, legacyMT)
 
