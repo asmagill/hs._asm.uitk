@@ -1,12 +1,13 @@
 -- probable or in progress
 
-    hs.canvas
-    hs.canvas.turtle
++   hs.canvas
++   hs.canvas.turtle
 
-    NSSavePanel  ?
-    NSOpenPanel  ?
-    NSFontPanel  ?
-    NSColorPanel ?
++   NSSavePanel
++   NSOpenPanel
+    NSFontPanel  relies on NSFontManager a lot... do we need to redo styledtext as well?
++   NSColorPanel
+    NSAlert      doesn't have non-modal option... should we write our own using these modules?
 
 *   @interface NSButton               : NSControl
 +       @interface NSPopUpButton          : NSButton
@@ -28,19 +29,16 @@
 
     @interface NSRuleEditor           : NSControl
 +   @interface NSTableView            : NSControl
-  ?     @interface NSTableCellView        : NSView
+  na    @interface NSTableCellView        : NSView
   ?     @interface NSTableHeaderView      : NSView
-  ?     @interface NSTableRowView         : NSView
-
-    @interface NSOutlineView          : NSTableView
-
-    @interface NSBrowser              : NSControl
+  +     @interface NSTableRowView         : NSView
+        @interface NSOutlineView          : NSTableView
 
     @interface AVPlayerView           : NSView
-    @interface NSBox                  : NSView
-    @interface NSVisualEffectView     : NSView
     @interface NSTabView              : NSView
+    @interface NSVisualEffectView     : NSView
 
++   @interface NSBox                  : NSView
 *   @interface NSProgressIndicator    : NSView
 +   @interface NSGridView             : NSView
 +   @interface NSScrollView           : NSView
@@ -52,6 +50,8 @@
 
 
 -- not sure but not ruled out yet
+
+    @interface NSBrowser                  : NSControl
 
     @interface SCNView                    : NSView -- SceneKit framework
     @interface SKView                     : NSView -- SpriteKit framework

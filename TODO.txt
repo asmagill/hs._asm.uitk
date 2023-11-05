@@ -1,14 +1,22 @@
 General
+
+    Combine these damn notes files
+
  +  __view needs wrap method that checks container for way to wrap element
  +  add wrap method to container, container.scroller, container.grid
 
   rename textView to just text?
 
-  move in canvas
-      and wrapper
-  move in turtleDraw
++ move drawing.color into util
++     add proper color list support (NSColorList)
+
++ move in canvas
++     and wrapper
+      add support for cX, rX, cY, bY
++ move in turtleDraw
   move in webView
       and wrapper
+  webview.toolbar should go into util?
 
   document
 
@@ -17,11 +25,12 @@ General
       combinations
 
   panel
-      NSSavePanel
-      NSOpenPanel
-      NSFontPanel   -- may be some methods in text*... move out?
+  +   NSSavePanel
+  +   NSOpenPanel
+      NSFontPanel   -- may be some methods in text*... move out? relies on NSFontManager a lot... do we need to redo styledtext as well?
   +   NSColorPanel  -- move out of colorwell? is it in others?
-          add NSColorList support?
+  +       add NSColorList support?
+  +           create lua portion for panel so uitk.util.color can be loaded
           should accessory be auto-removed whenever panel hidden?
 
 + table
