@@ -33,8 +33,9 @@ local uitk         = require("hs._asm.uitk")
 local module       = {}
 
 local subModules = {
-    matrix = true,
-    color  = true,
+    _properties = true,
+    matrix      = true,
+    color       = true,
 }
 
 local preload = function(m, isLua)
@@ -59,6 +60,36 @@ end
 -- private variables and methods -----------------------------------------
 
 -- Public interface ------------------------------------------------------
+
+module.masksToInt = function(stringTable, masksTable)
+    local result = 0
+
+    for _, v in ipairs(stringTable) do
+        if type(v) == "string" and masksTable[v] then
+            result = result | masksTable[v]
+        else
+            return nil, string.format("unrecognized mask key %s", v)
+        end
+    end
+    return result
+end
+
+module.intToMasks = function(intValue, masksTable)
+    local result = { _value = intValue }
+
+    for k,v in pairs(masksTable) do
+        if v == 0 and result._value == 0 then
+            table.insert(result, k)
+            break
+        elseif (intValue & v) == v then
+            table.insert(result, k)
+            intValue = intValue - v
+        end
+    end
+
+    if intValue ~= 0 then result["_remainder"] = intValue end
+    return result
+end
 
 -- Return Module Object --------------------------------------------------
 
