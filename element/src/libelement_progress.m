@@ -295,7 +295,7 @@ static int progress_circular(lua_State *L) {
     HSUITKElementProgress *progress = [skin toNSObjectAtIndex:1] ;
     if (lua_gettop(L) == 2) {
         progress.style = (BOOL)(lua_toboolean(L, 2)) ? NSProgressIndicatorStyleSpinning : NSProgressIndicatorStyleBar ;
-//         [progress sizeToFit] ;
+        [progress sizeToFit] ;
         lua_pushvalue(L, 1) ;
     } else {
         lua_pushboolean(L, (progress.style == NSProgressIndicatorStyleSpinning)) ;
@@ -429,7 +429,7 @@ static int progress_controlSize(lua_State *L) {
         NSNumber *controlSize = PROGRESS_SIZE[key] ;
         if (controlSize) {
             progress.controlSize = [controlSize unsignedIntegerValue] ;
-//             [progress sizeToFit] ;
+            [progress sizeToFit] ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[PROGRESS_SIZE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
         }

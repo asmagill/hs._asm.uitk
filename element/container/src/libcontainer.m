@@ -734,10 +734,10 @@ static int container_insertElement(lua_State *L) {
 
     if (!ignoreZeros) {
         if ((item.fittingSize.height < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"h"]) {
-            [skin logWarn:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
+            [skin logDebug:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
         }
         if ((item.fittingSize.width < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"w"]) {
-            [skin logWarn:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
+            [skin logDebug:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
         }
     }
 

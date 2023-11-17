@@ -32,9 +32,9 @@ local USERDATA_TAG = "hs._asm.uitk.panel.save"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libpanel_"))
 local fnutils      = require("hs.fnutils")
-local settings     = require("hs.settings")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
+local openMT       = hs.getObjectMetatable(USERDATA_TAG:match("^(.+)%.%w+$") .. ".open")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -45,107 +45,6 @@ local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTING
 
 local _open = module._open
 module._open = nil
-
--- a wrapped userdata is an userdata "converted" into an object that can be modified like
--- a lua key-value table
-local wrappedUserdataMT = { __e = setmetatable({}, { __mode = "k" }) }
-
-local wrapped_userdataWithMT = function(userdata)
-    local newItem = {}
-    wrappedUserdataMT.__e[newItem] = {
-        userdata   = userdata,
-        userdataMT = getmetatable(userdata)
-    }
-    return setmetatable(newItem, wrappedUserdataMT)
-end
-
-wrappedUserdataMT.__index = function(self, key)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- property methods
-    if fnutils.contains(obj.userdataMT._propertyList, key) then
-        return userdata[key](userdata)
-
--- unrecognized
-    else
-        return nil
-    end
-end
-
-wrappedUserdataMT.__newindex = function(self, key, value)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- property methods
-    if fnutils.contains(obj.userdataMT._propertyList, key) then
-        userdata[key](userdata, value)
-
--- unrecognized
-    else
-        error(tostring(key) .. " unrecognized property", 3)
-    end
-end
-
-wrappedUserdataMT.__tostring = function(self)
-    return "(wrapped) " .. tostring(wrappedUserdataMT.__e[self].userdata)
-end
-
-wrappedUserdataMT.__len = function(self) return 0 end
-
-wrappedUserdataMT.__pairs = function(self)
-    local obj = wrappedUserdataMT.__e[self]
-
-    local keys = {}
-    for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
-
--- Public interface ------------------------------------------------------
-
-local mt_prevIndex = moduleMT.__index
-moduleMT.__index = function(self, key)
-    local result = nil
-
--- check index as it was prior to this function
-    if type(mt_prevIndex) == "function" then
-        result =  mt_prevIndex(self, key)
-    else
-        result = mt_prevIndex[key]
-    end
-
-    if type(result) ~= "nil" then return result end
-
-    -- check to see if it's the properties table shortcut
-    if key == "properties" then
-        return wrapped_userdataWithMT(self)
-    end
-
--- unrecognized
-    return nil
-end
-
-moduleMT.__newindex = function(self, key, value)
-    -- check to see if it's the properties table shortcut
-    if key == "properties" and type(value) == "table" then
-        local properties = moduleMT._propertyList or {}
-        for k, v in pairs(value) do
-            if fnutils.contains(properties, k) then
-                self[k](self, v)
-            else
-                log.wf("__newindex: unrecognized key %s for %s", k, moduleMT.__type)
-            end
-        end
-    else
-        error("attempt to index a " .. USERDATA_TAG, 3)
-    end
-end
 
 module.refreshFileTypeBindings = function()
     local UTIBinding, MIMEBinding, ExtensionBinding = {}, {}, {}
@@ -217,10 +116,14 @@ moduleMT.contentTypes = function(self, ...)
     end
 end
 
+openMT.contentTypes = moduleMT.contentTypes
+
 -- Return Module Object --------------------------------------------------
 
 -- do initial assignment of type tables
 module.refreshFileTypeBindings()
+
+uitk.util._properties.addPropertiesWrapper(moduleMT)
 
 return setmetatable(module, {
     __call = function(self, ...) return self.new(...) end,

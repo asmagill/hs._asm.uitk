@@ -31,14 +31,10 @@
 local USERDATA_TAG = "hs._asm.uitk.element.container.table"
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libcontainer_"))
 local uitk         = require("hs._asm.uitk")
-local element      = uitk.element
 
-local tableMT       = hs.getObjectMetatable(USERDATA_TAG)
+local moduleMT      = hs.getObjectMetatable(USERDATA_TAG)
 local tableRowMT    = hs.getObjectMetatable(USERDATA_TAG .. ".row")
 local tableColumnMT = hs.getObjectMetatable(USERDATA_TAG .. ".column")
-
--- row is a View type element, but column isn't
-element._elementControlViewWrapper(tableRowMT)
 
 -- -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- -- in general it's a good idea not to include periods
@@ -46,173 +42,12 @@ element._elementControlViewWrapper(tableRowMT)
 -- local settings     = require("hs.settings")
 -- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
-local fnutils = require("hs.fnutils")
-
 -- private variables and methods -----------------------------------------
-
--- a wrapped userdata is an userdata "converted" into an object that can be modified like
--- a lua key-value table
-local wrappedTableRowMT  = { __e = setmetatable({}, { __mode = "k" }) }
-local wrappedTableColMT  = { __e = setmetatable({}, { __mode = "k" }) }
-
-local wrapped_tableRowWithMT = function(userdata)
-    if userdata then
-        local newItem = {}
-        wrappedTableRowMT.__e[newItem] = {
-            userdata   = userdata,
-            userdataMT = getmetatable(userdata)
-        }
-        return setmetatable(newItem, wrappedTableRowMT)
-    else
-        return nil
-    end
-end
-
-local wrapped_tableColWithMT = function(userdata)
-    if userdata then
-        local newItem = {}
-        wrappedTableColMT.__e[newItem] = {
-            userdata   = userdata,
-            userdataMT = getmetatable(userdata)
-        }
-        return setmetatable(newItem, wrappedTableColMT)
-    else
-        return nil
-    end
-end
-
-wrappedTableRowMT.__index = function(self, key)
-    local obj = wrappedTableRowMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience values
-    if key == "_row" then
-        return userdata
-    elseif key == "_type" then
-        return (obj.userdataMT or {}).__type
-
--- property methods
-    elseif fnutils.contains(((obj.userdataMT or {})._propertyList or {}), key) then
-        print(key)
-        return userdata[key](userdata)
-
--- cell index
-    elseif math.type(key) == "integer" or type(key) == "string" then
-        local result = userdata:viewAtColumn(key)
-        return result and result:wrap() or nil
-
--- unrecognized
-    else
-        return nil
-    end
-end
-
-wrappedTableColMT.__index = function(self, key)
-    local obj = wrappedTableColMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience values
-    if key == "_column" then
-        return userdata
-    elseif key == "_type" then
-        return (obj.userdataMT or {}).__type
-
--- property methods
-    elseif fnutils.contains(((obj.userdataMT or {})._propertyList or {}), key) then
-        return userdata[key](userdata)
-
--- cell index
-    elseif math.type(key) == "integer" then
-        local result = userdata:element(key, userdata:identifier())
-        return result and result:wrap() or nil
-
--- unrecognized
-    else
-        return nil
-    end
-end
-
-wrappedTableRowMT.__newindex = function(self, key, value)
-    local obj = wrappedTableRowMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience read-only values
-    if key == "_row" or key == "_type" then
-        error(key .. " cannot be modified", 3)
-
--- property methods
-    elseif fnutils.contains(((obj.userdataMT or {})._propertyList or {}), key) then
-        userdata[key](userdata, value)
-
--- unrecognized
-    else
-        error(tostring(key) .. " unrecognized property", 3)
-    end
-end
-
-wrappedTableColMT.__newindex = function(self, key, value)
-    local obj = wrappedTableColMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience read-only values
-    if key == "_column" or key == "_type" then
-        error(key .. " cannot be modified", 3)
-
--- property methods
-    elseif fnutils.contains(((obj.userdataMT or {})._propertyList or {}), key) then
-        userdata[key](userdata, value)
-
--- unrecognized
-    else
-        error(tostring(key) .. " unrecognized property", 3)
-    end
-end
-
-wrappedTableRowMT.__tostring = function(self)
-    return "(wrapped) " .. tostring(wrappedTableRowMT.__e[self].userdata)
-end
-
-wrappedTableColMT.__tostring = function(self)
-    return "(wrapped) " .. tostring(wrappedTableColMT.__e[self].userdata)
-end
-
-wrappedTableRowMT.__len = function(self) return 0 end
-wrappedTableColMT.__len = function(self) return 0 end
-
-wrappedTableRowMT.__pairs = function(self)
-    local obj = wrappedTableRowMT.__e[self]
-    local userdata = obj.userdata
-
-    local keys = {  "_row", "_type" }
-    for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
-
-wrappedTableColMT.__pairs = function(self)
-    local obj = wrappedTableColMT.__e[self]
-    local userdata = obj.userdata
-
-    local keys = {  "_column", "_type" }
-    for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
 
 -- Public interface ------------------------------------------------------
 
-local prev_tableIndex = tableMT.__index
-tableMT.__index = function(self, key)
+local prev_tableIndex = moduleMT.__index
+moduleMT.__index = function(self, key)
     local result = nil
 
 -- check index as it was prior to this function
@@ -230,16 +65,14 @@ tableMT.__index = function(self, key)
             return setmetatable({}, {
                 __index = function(_, colKey)
                     if math.type(colKey) == "integer" or type(colKey) == "string" then
-                        local result = self:column(colKey)
-                        return result and result:wrap() or nil
+                        return self:column(colKey)
                     else
                         return nil
                     end
                 end,
             })
         else
-            local result = self:row(key)
-            return result and result:wrap() or nil
+            return self:row(key)
         end
     end
 
@@ -247,13 +80,72 @@ tableMT.__index = function(self, key)
     return nil
 end
 
-tableRowMT.wrap = function(self) return wrapped_tableRowWithMT(self) end
+moduleMT.__len = function(self)
+    return self:rows()
+end
 
-tableColumnMT.wrap = function(self) return wrapped_tableColWithMT(self) end
+local prev_rowIndex = tableRowMT.__index
+tableRowMT.__index = function(self, key)
+    local result = nil
+
+-- check index as it was prior to this function
+    if type(prev_rowIndex) == "function" then
+        result =  prev_rowIndex(self, key)
+    else
+        result = prev_rowIndex[key]
+    end
+
+    if type(result) ~= "nil" then return result end
+
+-- check to see if it's a column index or identifier
+    if math.type(key) == "integer" or type(key) == "string" then
+        local parent = self:_nextResponder()
+        return parent and self:cell(key) or nil
+    else
+        return nil
+    end
+end
+
+tableRowMT.__len = function(self)
+    local parent = self:_nextResponder()
+    return parent and parent:columns() or 0
+end
+
+local prev_colIndex = tableColumnMT.__index
+tableColumnMT.__index = function(self, key)
+    local result = nil
+
+-- check index as it was prior to this function
+    if type(prev_colIndex) == "function" then
+        result =  prev_colIndex(self, key)
+    else
+        result = prev_colIndex[key]
+    end
+
+    if type(result) ~= "nil" then return result end
+
+-- check to see if it's a row index
+    if math.type(key) == "integer" then
+        local parent = self:table()
+        return parent and parent:cell(key, self:identifier()) or nil
+    else
+        return nil
+    end
+end
+
+tableColumnMT.__len = function(self)
+    local parent = self:table()
+    return parent and parent:rows() or 0
+end
 
 -- Return Module Object --------------------------------------------------
 
 -- since we can be a nextResponder, we can provide additional methods to our children
 -- moduleMT._inheritableMethods = { }
+-- moduleMT._inheritableProperties = { ... }
+
+-- row is a View type element, but column isn't
+uitk.element._elementControlViewWrapper(tableRowMT)
+uitk.util._properties.addPropertiesWrapper(tableColumnMT)
 
 return module

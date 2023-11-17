@@ -48,6 +48,8 @@ module._legacy     = require(USERDATA_TAG .. "_legacy")
 
 -- Return Module Object --------------------------------------------------
 
+uitk.util._properties.addPropertiesWrapper(hs.getObjectMetatable(USERDATA_TAG))
+
 return setmetatable(module, {
     __call = function(self, ...) return self.new(...) end,
 })

@@ -1980,7 +1980,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"removeColumn",               table_removeTableColumn},
     {"column",                     table_columnWithIdentifier},
     {"tableColumns",               table_tableColumns},
-    {"element",                    table_viewAtRowColumn},
+    {"cell",                       table_viewAtRowColumn},
     {"reloadData",                 table_reloadData},
     {"hiddenRows",                 table_hiddenRows},
     {"hideRow",                    table_hideRow},
@@ -2009,7 +2009,7 @@ static const luaL_Reg ud_row_metaLib[] = {
     {"previousRowSelected",     tableRow_previousRowSelected},
     {"selected",                tableRow_selected},
 
-    {"viewAtColumn",            tableRow_viewAtColumn},
+    {"cell",                    tableRow_viewAtColumn},
 
     {"__tostring",              table_object_tostring},
     {"__eq",                    table_object_eq},

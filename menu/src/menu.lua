@@ -31,18 +31,10 @@
 local USERDATA_TAG = "hs._asm.uitk.menu"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
+local fnutils = require("hs.fnutils")
+local host         = require("hs.host")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-
--- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
--- in general it's a good idea not to include periods
-local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
-local settings     = require("hs.settings")
-local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
-
-local fnutils = require("hs.fnutils")
-
--- private variables and methods -----------------------------------------
 
 local subModules = {
 --  name   lua or library?
@@ -65,143 +57,75 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-module.item = require(USERDATA_TAG .. ".item")
+module.item = setmetatable(require(USERDATA_TAG .. ".item"), {
+    __call = function(self, ...) return self.new(...) end,
+})
 local menuItemMT = hs.getObjectMetatable(USERDATA_TAG .. ".item")
 
-local wrappedItemMT = { __i = setmetatable({}, { __mode = "k" }) }
+-- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
+-- in general it's a good idea not to include periods
+-- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+-- local settings     = require("hs.settings")
+-- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
-local wrappedItemWithMT = function(menu, item)
-    local newItem = {}
-    wrappedItemMT.__i[newItem] = { menu = menu, item = item }
-    return setmetatable(newItem, wrappedItemMT)
-end
+-- private variables and methods -----------------------------------------
 
-wrappedItemMT.__index = function(self, key)
-    local obj = wrappedItemMT.__i[self]
-    local menu, item = obj.menu, obj.item
+-- Public interface ------------------------------------------------------
 
--- this key doesn't correspond to a method
-    if key == "_item" then
-        return item
-
--- convenience lookup
-    elseif key == "_type" then
-        return getmetatable(item).__type
-
--- try property methods
-    elseif fnutils.contains(menuItemMT._propertyList, key) then
-        return item[key](item)
-    else
-        return nil
-    end
-end
-
-wrappedItemMT.__newindex = function(self, key, value)
-    local obj = wrappedItemMT.__i[self]
-    local menu, item = obj.menu, obj.item
-
-    if key == "_item" or key == "_type" then
-        error(key .. " cannot be modified", 2)
-
--- try property methods
-    elseif fnutils.contains(menuItemMT._propertyList, key) then
-        item[key](item, value)
-    else
-        error(tostring(key) .. ": unrecognized property", 2)
-    end
-end
-
-wrappedItemMT.__pairs = function(self)
-    local obj = wrappedItemMT.__i[self]
-    local menu, item = obj.menu, obj.item
-    local keys = {}
-    for i,v in ipairs(menuItemMT._propertyList or {}) do table.insert(keys, v) end
-    local builtin = { "_item", "_type" }
-    table.move(builtin, 1, #builtin, #keys + 1, keys)
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
-
-wrappedItemMT.__tostring = function(self)
-    local obj = wrappedItemMT.__i[self]
-    local menu, item = obj.menu, obj.item
-    return "(wrapped) " .. tostring(obj.item)
-end
-
-wrappedItemMT.__len = function(self) return 0 end
-
+local mt_prevIndex = moduleMT.__index
 moduleMT.__index = function(self, key)
-    if moduleMT[key] then
-        return moduleMT[key]
+    local result = nil
+
+-- check index as it was prior to this function
+    if type(mt_prevIndex) == "function" then
+        result =  mt_prevIndex(self, key)
     else
-        local item = self(key)
-        if item then
-            return wrappedItemWithMT(self, item)
-        end
+        result = mt_prevIndex[key]
     end
+
+    if type(result) ~= "nil" then return result end
+
+-- check to see if its an index or key to an element of this container
+    local item = self(key)
+    if item then return item end
+
+-- unrecognized
     return nil
 end
 
 moduleMT.__newindex = function(self, key, value)
-    local idx = nil
-    if math.type(key) == "integer" then
-        if key < 1 or key > (#self + 1) then
-            error("index out of bounds", 3)
-        else
-            idx = key
-        end
-    else
-        local item = self(key)
-        if item then
-            idx = self:indexOfItem(item)
-        end
-    end
+    local idx = (math.type(key) == "integer") and key or nil
+    if type(key) == "string" then idx = self:indexWithID(key) end
 
     if idx then
-        local newItem = nil
-        if type(value) ~= "nil"  then
-            if type(value) == "userdata" then value = { _item = value } end
-            if type(value) == "table" and type(value._item) == "nil" then
-                local newValue = {}
-                -- shallow copy so we don't modify a table the user might re-use
-                for k,v in pairs(value) do newValue[k] = v end
-                newValue._item = module.item.new(USERDATA_TAG .. ".item")
-                value = newValue
+       if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
+
+        if getmetatable(value) == menuItemMT then value = { _element = value } end
+
+        if type(value) == "table" then
+            local item = value._element or module.item(value.title or host.globallyUniqueString())
+        -- add/insert new menu item
+            if getmetatable(item) == menuItemMT then
+                -- insert could fail for some reason, so do it first
+                self:insert(item, idx)
+                if self:itemAtIndex(idx + 1) then self:remove(idx + 1) end
+                item._properties = value
+                return
             end
-            if type(value) == "table" and value._item.__type == USERDATA_TAG .. ".item" then
-                newItem = value._item
-                for k, v in pairs(value) do
-                    if k ~= "_item" and k ~= "_type" then
-                        if fnutils.contains(menuItemMT._propertyList, k) then
-                            newItem[k](newItem, v)
-                        else
-                            log.wf("__newindex, unrecognized key %s for %s", k, newItem.__type)
-                        end
-                    end
-                end
-            else
-                error("value does not specify an item for assignment", 2)
-            end
+        -- remove menu item
+        elseif type(value) == "nil" then
+            if idx == #self + 1 then error("index out of bounds", 3) end
+            self:remove(idx)
+            return
         end
 
-        -- insert could fail because menuitem already belongs to a menu, so do it first
-        if newItem then
-            self:insert(newItem, idx)
-            if self:itemAtIndex(idx + 1) then self:remove(idx + 1) end
-        else
-            if self:itemAtIndex(idx) then self:remove(idx) end
-        end
-    else
-        error("invalid identifier for item assignment", 2)
+        error("value does not specify a menu item", 3)
     end
+
+    error("attempt to index a " .. USERDATA_TAG, 3)
 end
 
--- moduleMT.__len = function(self) return self:itemCount() end
+moduleMT.__len = function(self) return self:itemCount() end
 
 moduleMT.__pairs = function(self)
     local keys = {}
@@ -215,18 +139,10 @@ moduleMT.__pairs = function(self)
     end, self, nil
 end
 
--- FIXME: what about the other searches in __index, __newindex, and __call?
---     {"indexOfItem",         menu_indexOfItem},
---     {"indexWithAttachment", menu_indexOfItemWithRepresentedObject}, -- require to be string and use as id?
---     {"indexWithSubmenu",    menu_indexOfItemWithSubmenu}, -- probably not
---     {"indexWithTag",        menu_indexOfItemWithTag}, -- probably not since integer and idx confusion
---     {"indexWithTitle",      menu_indexOfItemWithTitle}, -- then confused with id string
 moduleMT.__call = function(self, key)
-    local idx = (math.type(key) == "integer") and key or self:indexWithAttachment(key)
+    local idx = (math.type(key) == "integer") and key or self:indexWithID(key)
     return idx and self:itemAtIndex(idx) or nil
 end
-
--- Public interface ------------------------------------------------------
 
 module.item._characterMap = ls.makeConstantsTable(module.item._characterMap)
 
@@ -244,31 +160,14 @@ menuItemMT.keyEquivalent = function(self, ...)
         return answer
     elseif args.n == 1 and type(args[1]) == "string" then
         local choice = args[1]
-        for k, v in pairs(module.item._characterMap) do
-            if choice:lower() == k then
-                choice = v
-                break
-            end
-        end
-        return _originalMenuItemMTkeyEquivalent(self, choice)
+        return _originalMenuItemMTkeyEquivalent(self, module.item._characterMap[choice] or choice)
     else
         return _originalMenuItemMTkeyEquivalent(self, ...) -- allow normal error to occur
     end
 end
 
-moduleMT.itemPropertyList = function(self, item, ...)
-    local args = table.pack(...)
-    if args.n == 0 then
-        local results = {}
-        local propertiesList = menuItemMT._propertyList or {}
-        for i,v in ipairs(propertiesList) do results[v] = item[v](item) end
-        results._item = item
-        results._type = getmetatable(item).__type
-        return results
-    else
-        error("unexpected arguments", 2)
-    end
-end
+uitk.util._properties.addPropertiesWrapper(moduleMT)
+uitk.util._properties.addPropertiesWrapper(menuItemMT)
 
 -- Return Module Object --------------------------------------------------
 

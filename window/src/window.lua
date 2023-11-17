@@ -256,7 +256,10 @@ windowMT.isVisible = function(self, ...) return not self:isOccluded(...) end
 -- Return Module Object --------------------------------------------------
 
 -- since we can be a nextResponder, we can provide additional methods to our children
--- windowMT._inheritableMethods = { }
+-- moduleMT._inheritableMethods = { }
+-- moduleMT._inheritableProperties = { ... }
+
+uitk.util._properties.addPropertiesWrapper(windowMT)
 
 return setmetatable(module, {
     __call = function(self, ...) return self.new(...) end,

@@ -603,8 +603,8 @@ static int menubar_callback(lua_State *L) {
         if (lua_type(L, 2) != LUA_TNIL) {
             lua_pushvalue(L, 2) ;
             wrapper.callbackRef = [skin luaRef:refTable] ;
-            lua_pushvalue(L, 1) ;
         }
+        lua_pushvalue(L, 1) ;
     } else {
         if (wrapper.callbackRef != LUA_NOREF) {
             [skin pushLuaRef:refTable ref:wrapper.callbackRef] ;
@@ -804,6 +804,31 @@ int luaopen_hs__asm_uitk_libmenubar(lua_State* L) {
     [skin registerPushNSHelper:pushHSStatusItemWrapper         forClass:"HSStatusItemWrapper"];
     [skin registerLuaObjectHelper:toHSStatusItemWrapperFromLua forClass:"HSStatusItemWrapper"
                                              withUserdataMapping:USERDATA_TAG];
+
+
+    luaL_getmetatable(L, USERDATA_TAG) ;
+    [skin pushNSObject:@[
+        @"allowsRemoval",
+        @"menu",
+        @"visible",
+        @"length",
+        @"autosaveName",
+        @"title",
+        @"alternateTitle",
+        @"image",
+        @"alternateImage",
+        @"imagePosition",
+        @"imageScaling",
+        @"sound",
+        @"enabled",
+        @"tooltip",
+        @"appearsDisabled",
+        @"remove",
+        @"callback",
+        @"draggingCallback",
+    ]] ;
+    lua_setfield(L, -2, "_propertyList") ;
+    lua_pop(L, 1) ;
 
     return 1;
 }

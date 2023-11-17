@@ -622,7 +622,7 @@ static int menuitem_tag(lua_State *L) {
 
 static int menuitem_representedObject(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSMenuItem *item = [skin toNSObjectAtIndex:1] ;
 
     if (item.separatorItem) {
@@ -640,7 +640,6 @@ static int menuitem_representedObject(lua_State *L) {
         if (lua_type(L, 2) == LUA_TNIL) {
             item.representedObject = nil ;
         } else {
-// if object is table or userdata, need to save reference (and release on nil/_gc)
             item.representedObject = [skin toNSObjectAtIndex:2] ;
         }
         lua_pushvalue(L, 1) ;
@@ -1019,7 +1018,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"submenu",          menuitem_submenu},
     {"callback",         menuitem_callback},
     {"tag",              menuitem_tag},
-    {"attachment",       menuitem_representedObject},
+    {"id",               menuitem_representedObject},
     {"keyWhenHidden",    menuitem_allowsKeyEquivalentWhenHidden},
     {"alternate",        menuitem_alternate},
     {"keyEquivalent",    menuitem_keyEquivalent},
@@ -1079,7 +1078,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
         @"submenu",
         @"callback",
         @"tag",
-        @"attachment",
+        @"id",
         @"alternate",
         @"keyEquivalent",
         @"keyModifiers",

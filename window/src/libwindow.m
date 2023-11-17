@@ -349,9 +349,15 @@ static int window_orderHelper(lua_State *L, NSWindowOrderingMode mode) {
     NSInteger relativeTo = 0 ;
 
     if (lua_gettop(L) > 1) {
-        [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-        HSUITKWindow *otherWindow = [skin toNSObjectAtIndex:2] ;
-        if (otherWindow) relativeTo = [otherWindow windowNumber] ;
+        if (lua_type(L, 2) == LUA_TNIL) {
+            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNIL, LS_TBREAK] ;
+        } else {
+            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                            LS_TUSERDATA, USERDATA_TAG,
+                            LS_TBREAK] ;
+            HSUITKWindow *otherWindow = [skin toNSObjectAtIndex:2] ;
+            if (otherWindow) relativeTo = [otherWindow windowNumber] ;
+        }
     }
     if (window) [window orderWindow:mode relativeTo:relativeTo] ;
     return 1 ;
@@ -1758,6 +1764,37 @@ int luaopen_hs__asm_uitk_libwindow(lua_State* L) {
     window_windowLevels(L) ;        lua_setfield(L, -2, "levels") ;
     window_windowMasksTable(L) ;    lua_setfield(L, -2, "masks") ;
     window_notifications(L) ;       lua_setfield(L, -2, "notifications") ;
+
+    // properties for this item that can be modified through metamethods
+    luaL_getmetatable(L, USERDATA_TAG) ;
+    [skin pushNSObject:@[
+        @"appearance",
+        @"allowTextEntry",
+        @"closeOnEscape",
+        @"animationDuration",
+        @"alpha",
+        @"animationBehavior",
+        @"backgroundColor",
+        @"collectionBehavior",
+        @"frame",
+        @"hasShadow",
+        @"ignoresMouseEvents",
+        @"level",
+        @"opaque",
+        @"size",
+        @"styleMask",
+        @"title",
+        @"titlebarAppearsTransparent",
+        @"titleVisibility",
+        @"topLeft",
+        @"notificationCallback",
+        @"notificationMessages",
+        @"passthroughCallback",
+        @"content",
+        @"activeElement",
+    ]] ;
+    lua_setfield(L, -2, "_propertyList") ;
+    lua_pop(L, 1) ;
 
     return 1;
 }

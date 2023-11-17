@@ -67,95 +67,23 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-uitk.element._elementControlViewWrapper(moduleMT)
-
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
-local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
-local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
+-- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+-- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 
 -- private variables and methods -----------------------------------------
 
--- a wrapped userdata is an userdata "converted" into an object that can be modified like
--- a lua key-value table
-local wrappedUserdataMT = { __e = setmetatable({}, { __mode = "k" }) }
+-- Public interface ------------------------------------------------------
 
-local wrapped_userdataWithMT = function(userdata)
-    local newItem = {}
-    wrappedUserdataMT.__e[newItem] = {
-        userdata   = userdata,
-        userdataMT = getmetatable(userdata)
-    }
-    return setmetatable(newItem, wrappedUserdataMT)
-end
+-- shortcut so ...:container(id | idx) returns element or nil
+moduleMT.__call  = function(self, ...) return self:element(...) end
 
-wrappedUserdataMT.__index = function(self, key)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience values
-    if key == "_element" then
-        return userdata
-    elseif key == "_type" then
-        return obj.userdataMT.__type
-    elseif key == "_fittingSize" then
-        return userdata:fittingSize()
-
--- because we can't add them to the property list of each element
-    elseif key == "containerFrame" then
-        local result = userdata:containerFrame()
-        result.id = nil
-        return result
-    elseif key == "id" then
-        return userdata:id()
-
--- property methods
-    elseif fnutils.contains(obj.userdataMT._propertyList, key) then
-        return userdata[key](userdata)
-
--- unrecognized
-    else
-        return nil
-    end
-end
-
-wrappedUserdataMT.__newindex = function(self, key, value)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience read-only values
-    if key == "_element" or key == "_type" or key == "_fittingSize" then
-        error(key .. " cannot be modified", 3)
-
--- because we can't add them to the property list of each element
-    elseif key == "containerFrame" then
-        userdata:containerFrame(value)
-    elseif key == "id" then
-        userdata:id(value)
-
--- property methods
-    elseif fnutils.contains(obj.userdataMT._propertyList, key) then
-        userdata[key](userdata, value)
-
--- unrecognized
-    else
-        error(tostring(key) .. " unrecognized property", 3)
-    end
-end
-
-wrappedUserdataMT.__tostring = function(self)
-    return "(wrapped) " .. tostring(wrappedUserdataMT.__e[self].userdata)
-end
-
-wrappedUserdataMT.__len = function(self) return 0 end
-
-wrappedUserdataMT.__pairs = function(self)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
-    local keys = {  "_element", "_fittingSize", "_type", "containerFrame", "id" }
-    for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
+moduleMT.__pairs = function(self)
+    local keys = {}
+    -- id is optional and it would just be a second way to access the same object, so stick with indicies
+    for i = #self, 1, -1 do table.insert(keys, i) end
 
     return function(_, k)
         local v = nil
@@ -164,17 +92,6 @@ wrappedUserdataMT.__pairs = function(self)
         return k, v
     end, self, nil
 end
-
--- Public interface ------------------------------------------------------
-
-moduleMT.wrap = function(self)
-    return wrapped_userdataWithMT(self)
-end
-
--- shortcut so ...:container(id | idx) returns element or nil
-moduleMT.__call  = function(self, ...) return self:element(...) end
-
--- moduleMT.__len   = function(self) return #self:elements() end
 
 local mt_prevIndex = moduleMT.__index
 moduleMT.__index = function(self, key)
@@ -191,131 +108,79 @@ moduleMT.__index = function(self, key)
 
 -- check to see if its an index or key to an element of this container
     local element = self(key)
-    if element then
-        return wrapped_userdataWithMT(element)
-    end
+    if element then return element end
 
 -- unrecognized
     return nil
 end
 
-local newindex_applyProperties = function(element, propTable)
-    local elementMT  = getmetatable(element) or {}
-    local properties = elementMT._propertyList or {}
-
-    for k, v in pairs(propTable) do
-        if k ~= "_element" and k ~= "containerFrame" then
-            if fnutils.contains(properties, k) then
-                element[k](element, v)
-            else
-                log.wf("__newindex: unrecognized key %s for %s", k, element.__type)
-            end
-        end
-    end
-end
-
 moduleMT.__newindex = function(self, key, value)
-    if type(value) == "nil" and (type(key) == "string" or math.type(key) == "integer") then
-        return self:remove(key)
-    end
+    local idx = (math.type(key) == "integer") and key or nil
+    if type(key) == "string" then idx = self:indexOf(key) end
 
-    if type(key) == "string" then
-        local idx = 0
-        for i = 1, #self, 1 do
-            if key == self:element(i):id() then
-                idx = i
-                break
-            end
-        end
-        if idx ~= 0 then key = idx end
-    end
+    if idx then
+        if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
 
-    if math.type(key) == "integer" then
-        if key < 1 or key > (#self + 1) then
-            error("index out of bounds", 3)
-        end
+        if uitk.element.isElementType(value) then value = { _element = value } end
 
-        if type(value) == "userdata" then value = { _element = value } end
-
+        if type(value) == "table" then
+            local element = value._element
         -- add/insert new element
-        if type(value) == "table" and value._element then
-            if uitk.element.isElementType(value._element) then
-                local details = value.containerFrame or {}
-                if value.id then
-                    details.id = value.id
-                    value.id   = nil
-                end
-
-                local element   = value._element
-                newindex_applyProperties(element, value)
-                if self:element(key) then self:remove(key) end
-                self:insert(element, details, key)
-                return
-            end
-        -- update existing element
-        elseif type(value) == "table" then
-            local element = self:element(key)
-            if element and uitk.element.isElementType(element) then
-                newindex_applyProperties(element, value)
+            if uitk.element.isElementType(element) then
+                -- insert could fail for some reason, so do it first
+                self:insert(element, value.containerFrame or {}, idx)
+                if self:element(idx + 1) then self:remove(idx + 1) end
+                element._properties = value
                 return
             end
         -- remove element
         elseif type(value) == "nil" then
-            if self:element(key) then self:remove(key) end
+            if idx == #self + 1 then error("index out of bounds", 3) end
+            self:remove(idx)
             return
         end
 
-        error("replacement value does not specify an element", 3)
-    else
-        error("attempt to index a " .. USERDATA_TAG, 3)
+        error("value does not specify an element", 3)
     end
+
+    error("attempt to index a " .. USERDATA_TAG, 3)
 end
 
-moduleMT.__pairs = function(self)
-    local keys = {}
-    -- id is optional and it would just be a second way to access the same object, so stick with indicies
-    for i = #self, 1, -1 do table.insert(keys, i) end
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
-
---- hs._asm.uitk.element.container:elementPropertyList(element) -> containerObject
+--- hs._asm.uitk.element.container:indexOf(item) -> integer | nil
 --- Method
---- Return a table of key-value pairs containing the properties for the specified element
+--- Returns the index of the specified element in the container
 ---
 --- Parameters:
----  * `element` - the element userdata to create the property list for
+---  * `item` - a string specifying the `id` of the element or the userdata of the element itself
 ---
 --- Returns:
----  * a table containing key-value pairs describing the properties of the element.
----
---- Notes:
----  * The table returned by this method does not support modifying the property values as can be done through the `hs._asm.uitk.element.container` metamethods (see the top-level documentation for `hs._asm.uitk.element.container`).
----
----  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:propertyList()`
-moduleMT.elementPropertyList = function(self, element, ...)
+---  * the index of the specified element, or nil if the element id or userdata is not a member of this container.
+moduleMT.indexOf = function(self, ...)
     local args = table.pack(...)
-    if args.n == 0 then
-        local results = {}
-        local propertiesList = getmetatable(element)["_propertyList"] or {}
-        for i,v in ipairs(propertiesList) do results[v] = element[v](element) end
-        results._element          = element
-        results.containerFrame    = self:elementFrame(element)
-        results.id                = results.containerFrame.id
-        results.containerFrame.id = nil
-        results._fittingSize      = self:elementFittingSize(element)
-        results._type             = getmetatable(element).__type
-        return results
-    else
-        error("unexpected arguments", 3)
-    end
-end
+    local id   = args[1]
 
+    if args.n == 1 then
+        local idx = nil
+        if type(id) == "string" then
+            for i, v in ipairs(self:elements()) do
+                if id == v:id() then
+                    idx = i
+                    break
+                end
+            end
+            return idx
+        elseif uitk.element.isElementType(id) then
+            for i, v in ipairs(self:elements()) do
+                if id == v then
+                    idx = i
+                    break
+                end
+            end
+            return idx
+        end
+    end
+    error("expected a single string or element userdata argument", 3)
+end
 
 --- hs._asm.uitk.element.container:remove([item]) -> containerObject
 --- Method
@@ -332,21 +197,9 @@ end
 local originalRemove = moduleMT.remove
 moduleMT.remove = function(self, ...)
     local args = { ... }
-    if type(args[1]) == "string" then
-        for i, v in ipairs(self:elements()) do
-            if args[1] == v:id() then
-                args[1] = i
-                break
-            end
-        end
-    elseif type(args[1]) == "userdata" then
-        for i, v in ipairs(self:elements()) do
-            if args[1] == v then
-                args[1] = i
-                break
-            end
-        end
-    end
+    local idx = args[1]
+    if type(idx) == "userdata" or type(idx) == "string" then idx = self:indexOf(idx) end
+    args[1] = idx
 
     return originalRemove(self, table.unpack(args))
 end
@@ -405,8 +258,16 @@ moduleMT._inheritableMethods = {
     position        = moduleMT.positionElement,
     id              = moduleMT.elementID,
     removeFromGroup = moduleMT.remove,
-    propertyList    = moduleMT.elementPropertyList,
 }
+
+moduleMT._inheritableProperties = { "containerFrame", "id" }
+
+-- normally handled by _elementControlViewWrapper, but we want to add fittingSize, so we invoke separately
+uitk.util._properties.addPropertiesWrapper(moduleMT, { _fittingSize = moduleMT.fittingSize })
+
+-- because we're loaded directly rather than through an element preload function, we need to invoke the
+-- wrapper manually, but it needs to happen after our local __index and __newindex (if any) methods are defined
+uitk.element._elementControlViewWrapper(moduleMT)
 
 return setmetatable(module, {
     __call  = function(self, ...) return self.new(...) end,

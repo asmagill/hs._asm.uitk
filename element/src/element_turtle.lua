@@ -884,7 +884,7 @@ for i, v in ipairs(_wrappedCommands) do
                     if type(args[1]) ~= "table" then args[1] = { args[1], args[1] } end
                     local result = self:_appendCommand(cmdNumber, table.unpack(args))
                     if type(result) == "string" then
-                        error(result, 2) ;
+                        error(result, 3) ;
                     end
                     return result
                 end
@@ -892,7 +892,7 @@ for i, v in ipairs(_wrappedCommands) do
                 moduleMT[cmdLabel] = function(self, ...)
                     local result = self:_appendCommand(cmdNumber, ...)
                     if type(result) == "string" then
-                        error(result, 2) ;
+                        error(result, 3) ;
                     end
                     return result
                 end

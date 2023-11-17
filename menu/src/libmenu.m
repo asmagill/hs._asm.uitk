@@ -404,9 +404,7 @@ static int menu_supermenu(lua_State *L) {
 
 static int menu_numberOfItems(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
-                    LS_TANY | LS_TOPTIONAL, // 2nd arg required so method can be used as __len
-                    LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, menu.numberOfItems) ;
@@ -508,9 +506,9 @@ static int menu_indexOfItem(lua_State *L) {
 
 static int menu_indexOfItemWithRepresentedObject(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
-    id     obj   = (lua_type(L, 2) != LUA_TNIL) ? [skin toNSObjectAtIndex:2] : nil ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL, LS_TBREAK] ;
+    HSMenu   *menu = [skin toNSObjectAtIndex:1] ;
+    NSString *obj  = (lua_type(L, 2) != LUA_TNIL) ? [skin toNSObjectAtIndex:2] : nil ;
 
     NSInteger idx = [menu indexOfItemWithRepresentedObject:obj] + 1 ;
     if (idx > 0) {
@@ -665,7 +663,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"remove",              menu_removeItemAtIndex},
     {"removeAll",           menu_removeAll},
     {"indexOfItem",         menu_indexOfItem},
-    {"indexWithAttachment", menu_indexOfItemWithRepresentedObject},
+    {"indexWithID",         menu_indexOfItemWithRepresentedObject},
     {"indexWithSubmenu",    menu_indexOfItemWithSubmenu},
     {"indexWithTag",        menu_indexOfItemWithTag},
     {"indexWithTitle",      menu_indexOfItemWithTitle},
@@ -673,7 +671,6 @@ static const luaL_Reg userdata_metaLib[] = {
     {"passthroughCallback", menu_passthroughCallback},
     {"update",              menu_update},
 
-    {"__len",               menu_numberOfItems},
     {"__tostring",          userdata_tostring},
     {"__eq",                userdata_eq},
     {"__gc",                userdata_gc},
@@ -702,6 +699,19 @@ int luaopen_hs__asm_uitk_libmenu(lua_State* L) {
     [skin registerPushNSHelper:pushHSMenu         forClass:"HSMenu"];
     [skin registerLuaObjectHelper:toHSMenuFromLua forClass:"HSMenu"
                                        withUserdataMapping:USERDATA_TAG];
+
+    luaL_getmetatable(L, USERDATA_TAG) ;
+    [skin pushNSObject:@[
+        @"callback",
+        @"showsState",
+        @"minimumWidth",
+        @"title",
+        @"font",
+//         @"callbackFlags",
+        @"passthroughCallback",
+    ]] ;
+    lua_setfield(L, -2, "_propertyList") ;
+    lua_pop(L, 1) ;
 
     return 1;
 }

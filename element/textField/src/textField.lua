@@ -31,7 +31,6 @@
 local USERDATA_TAG = "hs._asm.uitk.element.textField"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
-local element      = uitk.element
 local fnutils      = require("hs.fnutils")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
@@ -62,7 +61,7 @@ local preload = function(m, isLua)
                 end
             end
 
-            element._elementControlViewWrapper(elMT)
+            uitk.element._elementControlViewWrapper(elMT)
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then
@@ -77,8 +76,6 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-element._elementControlViewWrapper(moduleMT)
-
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
 -- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
@@ -90,6 +87,10 @@ element._elementControlViewWrapper(moduleMT)
 -- Public interface ------------------------------------------------------
 
 -- Return Module Object --------------------------------------------------
+
+-- because we're loaded directly rather than through an element preload function, we need to invoke the
+-- wrapper manually, but it needs to happen after our local __index and __newindex (if any) methods are defined
+uitk.element._elementControlViewWrapper(moduleMT)
 
 return setmetatable(module, {
     __call  = function(self, ...) return self.new(...) end,

@@ -912,6 +912,15 @@ static int gridRow_mergeCells(lua_State *L) {
     return 1 ;
 }
 
+static int gridRow_gridView(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_ROW_TAG, LS_TBREAK] ;
+    NSGridRow  *row  = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:row.gridView] ;
+    return 1 ;
+}
+
 #pragma mark - NSGridColumn Methods -
 
 static int gridCol_index(lua_State *L) {
@@ -1137,6 +1146,15 @@ static int gridCol_mergeCells(lua_State *L) {
 
     [col mergeCellsInRange:NSMakeRange((NSUInteger)i, (NSUInteger)(j - i + 1))] ;
     lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+static int gridCol_gridView(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, UD_COL_TAG, LS_TBREAK] ;
+    NSGridColumn *col  = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:col.gridView] ;
     return 1 ;
 }
 
@@ -1513,8 +1531,8 @@ static const luaL_Reg ud_row_metaLib[] = {
     {"count",         gridRow_count},
     {"cell",          gridRow_cellAtIndex},
     {"mergeCells",    gridRow_mergeCells},
+    {"grid",          gridRow_gridView},
 
-    {"__len",         gridRow_count},
     {"__tostring",    grid_object_tostring},
     {"__eq",          grid_object_eq},
     {"__gc",          grid_object_gc},
@@ -1532,8 +1550,8 @@ static const luaL_Reg ud_col_metaLib[] = {
     {"count",           gridCol_count},
     {"cell",            gridCol_cellAtIndex},
     {"mergeCells",      gridCol_mergeCells},
+    {"grid",            gridCol_gridView},
 
-    {"__len",           gridCol_count},
     {"__tostring",      grid_object_tostring},
     {"__eq",            grid_object_eq},
     {"__gc",            grid_object_gc},

@@ -34,9 +34,9 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
--- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
--- local settings     = require("hs.settings")
--- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
+local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+local settings     = require("hs.settings")
+local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 -- make sure support functions registered
 require("hs.drawing.color")
@@ -51,22 +51,23 @@ local _viewMT      = require(USERDATA_TAG:match("^(.+)%.") ..".libelement__view"
 
 local subModules = {
 --  name         lua or library?
-    container       = "hs._asm.uitk.element.container",
-    switch          = false,
-    colorwell       = false,
-    progress        = false,
-    datepicker      = true,
-    slider          = false,
+    avplayer        = false,
     button          = true,
-    popUpButton     = false,
+    canvas          = USERDATA_TAG .. ".canvas",
+    colorwell       = false,
     comboButton     = false,
-    levelIndicator  = false,
-    stepper         = false,
+    container       = USERDATA_TAG .. ".container",
+    datepicker      = true,
     image           = true,
-    textField       = "hs._asm.uitk.element.textField",
+    levelIndicator  = false,
+    popUpButton     = false,
+    progress        = false,
     segmentBar      = true,
+    slider          = false,
+    stepper         = false,
+    switch          = false,
+    textField       = USERDATA_TAG .. ".textField",
     textView        = true,
-    canvas          = true,
     turtle          = true,
 }
 
@@ -97,82 +98,6 @@ end
 
 -- private variables and methods -----------------------------------------
 
--- a wrapped userdata is an userdata "converted" into an object that can be modified like
--- a lua key-value table
-local wrappedUserdataMT = { __e = setmetatable({}, { __mode = "k" }) }
-
-local wrapped_userdataWithMT = function(userdata)
-    local newItem = {}
-    wrappedUserdataMT.__e[newItem] = {
-        userdata   = userdata,
-        userdataMT = getmetatable(userdata)
-    }
-    return setmetatable(newItem, wrappedUserdataMT)
-end
-
-wrappedUserdataMT.__index = function(self, key)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience values
-    if key == "_element" then
-        return userdata
-    elseif key == "_type" then
-        return obj.userdataMT.__type
-
--- property methods
-    elseif fnutils.contains(obj.userdataMT._propertyList, key) then
-        return userdata[key](userdata)
-
--- if key is an integer and the userdata has a length > 0, treat it as an index
-    elseif math.type(key) == "integer" and userdata.__len and #userdata > 0 then
-        return userdata[key]
-
--- unrecognized
-    else
-        return nil
-    end
-end
-
-wrappedUserdataMT.__newindex = function(self, key, value)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
--- builtin convenience read-only values
-    if key == "_element" or key == "_type" then
-        error(key .. " cannot be modified", 3)
-
--- property methods
-    elseif fnutils.contains(obj.userdataMT._propertyList, key) then
-        userdata[key](userdata, value)
-
--- unrecognized
-    else
-        error(tostring(key) .. " unrecognized property", 3)
-    end
-end
-
-wrappedUserdataMT.__tostring = function(self)
-    return "(wrapped) " .. tostring(wrappedUserdataMT.__e[self].userdata)
-end
-
-wrappedUserdataMT.__len = function(self) return 0 end
-
-wrappedUserdataMT.__pairs = function(self)
-    local obj = wrappedUserdataMT.__e[self]
-    local userdata = obj.userdata
-
-    local keys = {  "_element", "_type", }
-    for i,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
-
-    return function(_, k)
-        local v = nil
-        k = table.remove(keys)
-        if k then v = self[k] end
-        return k, v
-    end, self, nil
-end
-
 -- Public interface ------------------------------------------------------
 
 module.windowFor = _viewMT._window
@@ -182,57 +107,24 @@ module.nextResponder = _viewMT._nextResponder
 module._elementControlViewWrapper = function(elMT)
     if elMT._inheritControl then
         for k, v in pairs(_controlMT) do
-            if type(v) == "function" and not elMT[k] then elMT[k] = v end
-        end
-        for _, v in ipairs(_controlMT._propertyList) do
-            if not fnutils.contains(elMT._propertyList, v) then
-                table.insert(elMT._propertyList, v)
+            if type(v) == "function" and not elMT[k] then
+                elMT[k] = v
+                if fnutils.contains(_controlMT._propertyList, k) and not fnutils.contains(elMT._propertyList, k) then
+                    table.insert(elMT._propertyList, k)
+                end
             end
         end
     end
     for k, v in pairs(_viewMT) do
-        if type(v) == "function" and not elMT[k] then elMT[k] = v end
-    end
-    for _, v in ipairs(_viewMT._propertyList) do
-        if not fnutils.contains(elMT._propertyList, v) then
-            table.insert(elMT._propertyList, v)
-        end
-    end
-
-    if not elMT.wrap then
-        elMT.wrap = function(self) return wrapped_userdataWithMT(self) end
-    end
-
-    -- allow container to provide inheritable methods
-    local old_index = elMT.__index
-    elMT.__index = function(self, key)
-        local value = nil
-
-        if elMT[key] then
-            value = elMT[key]
-        elseif type(old_index) == "function" then
-            value = old_index(self, key)
-        elseif type(old_index) == "table" then
-            value = old_index[key]
-        end
-
-        if type(value) == "nil" then
-            local parent         = self:_nextResponder()
-            local parentMT       = getmetatable(parent) or {}
-            local inheritedValue = (parentMT._inheritableMethods or {})[key]
-
-            if type(inheritedValue) == "function" then
-                value = function(self, ...)
-                    local result = inheritedValue(parent, self, ...)
-                    return result == parent and self or result
-                end
-            else
-                value = inheritedValue
+        if type(v) == "function" and not elMT[k] then
+            elMT[k] = v
+            if fnutils.contains(_viewMT._propertyList, k) and not fnutils.contains(elMT._propertyList, k) then
+                table.insert(elMT._propertyList, k)
             end
         end
-
-        return value
     end
+
+    uitk.util._properties.addPropertiesWrapper(elMT)
 end
 
 -- Return Module Object --------------------------------------------------
