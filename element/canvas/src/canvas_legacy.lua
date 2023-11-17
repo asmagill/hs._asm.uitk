@@ -257,6 +257,21 @@ elementMT.__tostring = function(_)
     end
 end
 
+local legacyWrappedCallback = function(self, fn)
+    local obj = moduleMT.__e[self]
+    local win, view = obj.window, obj.view
+
+    return function(...)
+        local args = table.pack(...)
+        for i, v in ipairs(args) do
+            if v == view or v == win then
+                args[i] = self
+            end
+        end
+        return fn(table.unpack(args))
+    end
+end
+
 -- Public interface ------------------------------------------------------
 
 module.matrix           = uitk.util.matrix
@@ -391,6 +406,8 @@ moduleMT.__index = function(self, key)
             return setmetatable(newTable, elementMT)
         elseif key == "_view" then
             return moduleMT.__e[self].view
+        elseif key == "_window" then
+            return moduleMT.__e[self].window
         else
             if moduleMT[key] then
                 return moduleMT[key]
@@ -518,11 +535,27 @@ end
 ---
 ---  * Clipping regions which remove content from the visible area of a rendered object are ignored for the purposes of element hit-detection.
 moduleMT.mouseCallback = function(self, ...)
+    local args = table.pack(...)
     local obj = moduleMT.__e[self]
     local win, view = obj.window, obj.view
-    local result    = view:mouseCallback(...)
-    win:ignoresMouseEvents(not view:mouseCallback() and true or false)
-    return (result == obj.view) and self or result
+
+    if args.n == 0 then
+        return view:mouseCallback()
+    elseif args.n == 1 then
+        local fn = args[1]
+        if type(fn) == "nil" then
+            view:mouseCallback(fn)
+            win:ignoresMouseEvents(true)
+        elseif type(fn) == "function" then
+            view:mouseCallback(legacyWrappedCallback(self, fn))
+            win:ignoresMouseEvents(false)
+        else
+            error(string.format("incorrect type '%s' for argument 1 (expected function or nil)", type(fn)), 3)
+        end
+        return self
+    else
+        error(string.format("incorrect number of arguments. Expected 0 or 1, got %d", args.n), 3)
+    end
 end
 
 --- hs._asm.uitk.element.canvas:show([fadeInTime]) -> canvasObject
@@ -1037,9 +1070,25 @@ moduleMT.canvasMouseEvents = function(self, ...)
 end
 
 moduleMT.draggingCallback = function(self, ...)
+    local args = table.pack(...)
     local obj = moduleMT.__e[self]
-    local result = obj.view:draggingCallback(...)
-    return result == obj.view and self or result
+    local win, view = obj.window, obj.view
+
+    if args.n == 0 then
+        return view:draggingCallback()
+    elseif args.n == 1 then
+        local fn = args[1]
+        if type(fn) == "nil" then
+            view:draggingCallback(fn)
+        elseif type(fn) == "function" then
+            view:draggingCallback(legacyWrappedCallback(self, fn))
+        else
+            error(string.format("incorrect type '%s' for argument 1 (expected function or nil)", type(fn)), 3)
+        end
+        return self
+    else
+        error(string.format("incorrect number of arguments. Expected 0 or 1, got %d", args.n), 3)
+    end
 end
 
 --- hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | current value
