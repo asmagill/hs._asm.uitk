@@ -1,28 +1,3 @@
--- REMOVE IF ADDED TO CORE APPLICATION
-    repeat
-        -- add proper user dylib path if it doesn't already exist
-        if not package.cpath:match(hs.configdir .. "/%?.dylib") then
-            package.cpath = hs.configdir .. "/?.dylib;" .. package.cpath
-        end
-
-        -- load docs file if provided
-        local basePath, moduleName = debug.getinfo(1, "S").source:match("^@(.*)/([%w_]+).lua$")
-        if basePath and moduleName then
-            if moduleName == "init" then
-                moduleName = moduleName:match("/([%w_]+)$")
-            end
-
-            local docsFileName = basePath .. "/" .. moduleName .. ".docs.json"
-            if require"hs.fs".attributes(docsFileName) then
-                require"hs.doc".registerJSONFile(docsFileName)
-            end
-        end
-
-        -- setup loaders for submodules (if any)
-        --     copy into Hammerspoon/setup.lua before removing
-
-    until true -- executes once and hides any local variables we create
--- END REMOVE IF ADDED TO CORE APPLICATION
 
 --- === hs._asm.uitk.element.canvas ===
 ---
@@ -138,19 +113,13 @@
 ---   * `windingRule`         - Default "nonZero".  A string specifying the winding rule in effect for the canvas element. May be "nonZero" or "evenOdd".  The winding rule determines which portions of an element to fill. This setting will only have a visible effect on compound elements (built with the `build` action) or elements of type `segments` when the object is made from lines which cross.
 ---   * `withShadow`          - Default `false`. Specifies whether a shadow effect should be applied to the canvas element.  Ignored for the `text` type.
 
-local USERDATA_TAG = "hs._asm.uitk.element.canvas"
+local USERDATA_TAG = require("hs.settings").get("uitk_wrapCanvas") and "hs._asm.uitk.element.canvas._legacy" or "hs.canvas"
 local uitk         = require("hs._asm.uitk")
-local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libelement_"))
 
-module.matrix      = uitk.util.matrix
+local fnutils      = require("hs.fnutils")
 
--- include these so that their support functions are available to us
-require("hs.image")
-require("hs.styledtext")
-
-local accessibilityWarningIssued = false
-
-local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
+local module   = {}
+local moduleMT = { __e = setmetatable({}, { __mode = "k" }) }
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -160,30 +129,7 @@ local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 
 -- private variables and methods -----------------------------------------
 
--- support function for hs._asm.uitk.canvas.help
-local help_table
-help_table = function(depth, value)
-    local result = "{\n"
-    for k,v in require("hs.fnutils").sortByKeys(value) do
-        if not ({class = 1, objCType = 1, memberClass = 1})[k] then
-            local displayValue = v
-            if type(v) == "table" then
-                displayValue = help_table(depth + 2, v)
-            elseif type(v) == "string" then
-                displayValue = "\"" .. v .. "\""
-            end
-            local displayKey = k
-            if type(k) == "number" then
-                displayKey = "[" .. tostring(k) .. "]"
-            end
-            result = result .. string.rep(" ", depth + 2) .. string.format("%s = %s,\n", tostring(displayKey), tostring(displayValue))
-        end
-    end
-    result = result .. string.rep(" ", depth) .. "}"
-    return result
-end
-
--- Public interface ------------------------------------------------------
+local accessibilityWarningIssued = false
 
 local elementMT = {
     __e = setmetatable({}, { __mode="k" }),
@@ -311,6 +257,96 @@ elementMT.__tostring = function(_)
     end
 end
 
+-- Public interface ------------------------------------------------------
+
+module.matrix           = uitk.util.matrix
+
+--- hs._asm.uitk.element.canvas.compositeTypes[]
+--- Constant
+--- A table containing the possible compositing rules for elements within the canvas.
+---
+--- Compositing rules specify how an element assigned to the canvas is combined with the earlier elements of the canvas. The default compositing rule for the canvas is `sourceOver`, but each element of the canvas can be assigned a composite type which overrides this default for the specific element.
+---
+--- The available types are as follows:
+---  * `clear`           - Transparent. (R = 0)
+---  * `copy`            - Source image. (R = S)
+---  * `sourceOver`      - Source image wherever source image is opaque, and destination image elsewhere. (R = S + D*(1 - Sa))
+---  * `sourceIn`        - Source image wherever both images are opaque, and transparent elsewhere. (R = S*Da)
+---  * `sourceOut`       - Source image wherever source image is opaque but destination image is transparent, and transparent elsewhere. (R = S*(1 - Da))
+---  * `sourceAtop`      - Source image wherever both images are opaque, destination image wherever destination image is opaque but source image is transparent, and transparent elsewhere. (R = S*Da + D*(1 - Sa))
+---  * `destinationOver` - Destination image wherever destination image is opaque, and source image elsewhere. (R = S*(1 - Da) + D)
+---  * `destinationIn`   - Destination image wherever both images are opaque, and transparent elsewhere. (R = D*Sa)
+---  * `destinationOut`  - Destination image wherever destination image is opaque but source image is transparent, and transparent elsewhere. (R = D*(1 - Sa))
+---  * `destinationAtop` - Destination image wherever both images are opaque, source image wherever source image is opaque but destination image is transparent, and transparent elsewhere. (R = S*(1 - Da) + D*Sa)
+---  * `XOR`             - Exclusive OR of source and destination images. (R = S*(1 - Da) + D*(1 - Sa)). Works best with black and white images and is not recommended for color contexts.
+---  * `plusDarker`      - Sum of source and destination images, with color values approaching 0 as a limit. (R = MAX(0, (1 - D) + (1 - S)))
+---  * `plusLighter`     - Sum of source and destination images, with color values approaching 1 as a limit. (R = MIN(1, S + D))
+---
+--- In each equation, R is the resulting (premultiplied) color, S is the source color, D is the destination color, Sa is the alpha value of the source color, and Da is the alpha value of the destination color.
+---
+--- The `source` object is the individual element as it is rendered in order within the canvas, and the `destination` object is the combined state of the previous elements as they have been composited within the canvas.
+
+--- hs._asm.uitk.element.canvas.help([attribute]) -> string
+--- Function
+--- Provides specification information for the recognized attributes, or the specific attribute specified.
+---
+--- Parameters:
+---  * `attribute` - an optional string specifying an element attribute. If this argument is not provided, all attributes are listed.
+---
+--- Returns:
+---  * a string containing some of the information provided by the [hs._asm.uitk.element.canvas.elementSpec](#elementSpec) in a manner that is easy to reference from the Hammerspoon console.
+
+--- hs._asm.uitk.element.canvas.new(rect) -> canvasWindowObject
+--- Constructor
+--- Create a new window with a canvas as it's content at the specified coordinates
+---
+--- Parameters:
+---  * `rect` - A rect-table containing the co-ordinates and size for the canvas object
+---
+--- Returns:
+---  * a new, empty, canvas with window object, or nil if the canvas cannot be created with the specified coordinates
+---
+--- Notes:
+---  * The size of the canvas defines the visible area of the canvas -- any portion of a canvas element which extends past the canvas's edges will be clipped.
+---  * a rect-table is a table with key-value pairs specifying the top-left coordinate on the screen for the canvas (keys `x`  and `y`) and the size (keys `h` and `w`) of the canvas. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+module.new = function(...)
+    local styleMask = uitk.window.masks.borderless
+    local canvasWin = uitk.window.new(..., styleMask)
+
+    if canvasWin then
+        canvasWin:backgroundColor{ alpha = 0, white = 0 }
+                 :opaque(false)
+                 :hasShadow(false)
+                 :ignoresMouseEvents(true)
+                 :animationBehavior("none")
+                 :level("screenSaver")
+--                  :accessibilitySubrole(:"+.Hammerspoon")
+        local bounds = canvasWin:frame()
+        bounds.x, bounds.y = 0, 0
+        local canvasView = uitk.element.canvas(bounds)
+        if canvasView then
+            canvasWin:content(canvasView)
+            local object = {}
+            moduleMT.__e[object] = {
+                window = canvasWin,
+                view   = canvasView,
+            }
+            return setmetatable(object, moduleMT)
+        end
+    end
+    return nil
+end
+
+module.useCustomAccessibilitySubrole = function(...)
+    if not accessibilityWarningIssued then
+        accessibilityWarningIssued = true
+        print("*** useCustomAccessibilitySubrole is now a no-op -- all accessibility subroles are now left untouched as per Apple guidelines.")
+    end
+end
+
+moduleMT.__name = USERDATA_TAG
+moduleMT.__type = USERDATA_TAG
+
 --- hs.canvas.object[index]
 --- Field
 --- An array-like method for accessing the attributes for the canvas element at the specified index
@@ -353,6 +389,8 @@ moduleMT.__index = function(self, key)
             local newTable = {}
             elementMT.__e[newTable] = { self = self, index = "_default" }
             return setmetatable(newTable, elementMT)
+        elseif key == "_view" then
+            return moduleMT.__e[self].view
         else
             if moduleMT[key] then
                 return moduleMT[key]
@@ -367,7 +405,7 @@ moduleMT.__index = function(self, key)
                 return answer
             end
         end
-    elseif type(key) == "number" and key > 0 and key <= self:elementCount() and math.tointeger(key) then
+    elseif math.type(key) == "integer" and key > 0 and key <= self:elementCount() then
         local newTable = {}
         elementMT.__e[newTable] = { self = self, index = math.tointeger(key) }
         return setmetatable(newTable, elementMT)
@@ -377,7 +415,7 @@ moduleMT.__index = function(self, key)
 end
 
 moduleMT.__newindex = function(self, key, value)
-    if type(key) == "number" and key > 0 and key <= (self:elementCount() + 1) and math.tointeger(key) then
+    if math.type(key) == "integer" and key > 0 and key <= (self:elementCount() + 1) then
         if type(value) == "table" or type(value) == "nil" then
             return self:assignElement(value, math.tointeger(key))
         else
@@ -386,10 +424,6 @@ moduleMT.__newindex = function(self, key, value)
     else
         error("index invalid or out of bounds", 2)
     end
-end
-
-moduleMT.__len = function(self)
-    return self:elementCount()
 end
 
 moduleMT.__pairs = function(self)
@@ -402,9 +436,29 @@ moduleMT.__pairs = function(self)
         end, self, nil
 end
 
-module.compositeTypes  = ls.makeConstantsTable(module.compositeTypes)
-module.windowBehaviors = uitk.window.behaviors
-module.windowLevels    = uitk.window.levels
+moduleMT.__eq = function(self, other)
+    local objSelf = moduleMT.__e[self] or {}
+    local objOther = moduleMT.__e[other] or {}
+    return objSelf.window == objOther.window and objSelf.view == objOther.view
+end
+
+moduleMT.__gc = function(self)
+    local obj = moduleMT.__e[self]
+    obj.window:hide()
+    obj.window = nil
+    obj.view = nil
+    setmetatable(self, nil)
+end
+
+moduleMT.__len = function(self)
+    local obj = moduleMT.__e[self]
+    return obj.view:elementCount()
+end
+
+moduleMT.__tostring = function(self)
+    local obj = moduleMT.__e[self]
+    return USERDATA_TAG .. tostring(obj.window):match("(:.+)$")
+end
 
 --- hs._asm.uitk.element.canvas:alpha([alpha]) -> canvasObject | currentValue
 --- Method
@@ -416,13 +470,9 @@ module.windowLevels    = uitk.window.levels
 --- Returns:
 ---  * If an argument is provided, the canvas object; otherwise the current value.
 moduleMT.alpha = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
-    if canvasWin then
-        local result = canvasWin:alpha(...)
-        return type(result) == "userdata" and self or result
-    else
-        return self:_alpha(...)
-    end
+    local obj = moduleMT.__e[self]
+    local result = obj.window:alpha(...)
+    return (result == obj.window) and self or result
 end
 
 --- hs._asm.uitk.element.canvas:hide([fadeOutTime]) -> canvasObject
@@ -435,12 +485,8 @@ end
 --- Returns:
 ---  * The canvas object
 moduleMT.hide = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
-    if canvasWin then
-        canvasWin:hide(...)
-    else
-        self:_hide(...)
-    end
+    local obj = moduleMT.__e[self]
+    obj.window:hide(...)
     return self
 end
 
@@ -455,8 +501,6 @@ end
 ---  * if an argument is provided, returns the canvasObject, otherwise returns the current value
 ---
 --- Notes:
----  * For proper mouse tracking, the containing `hs._asm.uitk.window` object must also have the `ignoresMouseEvents` property set to false. If you use the legacy canvas constructor, [hs._asm.uitk.element.canvas.new](#new), this is taken care of automatically for you; if you create the canvas with [hs._asm.uitk.element.canvas.newCanvas](#newCanvas) or with the `hs._asm.uitk.element.canvas(...)` shorthand, you will need to manage this yourself.
----
 ---  * The callback function should expect 5 arguments: the canvas object itself, a message specifying the type of mouse event, the canvas element `id` (or index position in the canvas if the `id` attribute is not set for the element), the x position of the mouse when the event was triggered within the rendered portion of the canvas element, and the y position of the mouse when the event was triggered within the rendered portion of the canvas element.
 ---  * See also [hs._asm.uitk.element.canvas:canvasMouseEvents](#canvasMouseEvents) for tracking mouse events in regions of the canvas not covered by an element with mouse tracking enabled.
 ---
@@ -474,12 +518,11 @@ end
 ---
 ---  * Clipping regions which remove content from the visible area of a rendered object are ignored for the purposes of element hit-detection.
 moduleMT.mouseCallback = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
-    local result    = self:_mouseCallback(...)
-    if canvasWin and result == self then
-        canvasWin:ignoresMouseEvents(not self:_mouseCallback() and true or false)
-    end
-    return result
+    local obj = moduleMT.__e[self]
+    local win, view = obj.window, obj.view
+    local result    = view:mouseCallback(...)
+    win:ignoresMouseEvents(not view:mouseCallback() and true or false)
+    return (result == obj.view) and self or result
 end
 
 --- hs._asm.uitk.element.canvas:show([fadeInTime]) -> canvasObject
@@ -492,12 +535,8 @@ end
 --- Returns:
 ---  * The canvas object
 moduleMT.show = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
-    if canvasWin then
-        canvasWin:show(...)
-    else
-        self:_show(...)
-    end
+    local obj = moduleMT.__e[self]
+    obj.window:show(...)
     return self
 end
 
@@ -512,89 +551,8 @@ end
 ---  * None
 ---
 --- Notes:
----  * This method is automatically called during garbage collection, notably during a Hammerspoon termination or reload, with a fade time of 0.
-moduleMT.delete = function(self, ...)
-    self:hide(...)
-    return nil
-end
-
---- hs._asm.uitk.element.canvas:appendElements(element...) -> canvasObject
---- Method
---- Appends the elements specified to the canvas.
----
---- Parameters:
----  * `element` - a table containing key-value pairs that define the element to be appended to the canvas.  You can specify one or more elements and they will be appended in the order they are listed.
----
---- Returns:
----  * the canvas object
----
---- Notes:
----  * You can also specify multiple elements in a table as an array, where each index in the table contains an element table, and use the array as a single argument to this method if this style works better in your code.
-moduleMT.appendElements = function(self, ...)
-    local elementsArray = table.pack(...)
-    if elementsArray.n == 1 and #elementsArray[1] ~= 0 then elementsArray = elementsArray[1] end
-    for _,v in ipairs(elementsArray) do self:insertElement(v) end
-    return self
-end
-
---- hs._asm.uitk.element.canvas:replaceElements(element...) -> canvasObject
---- Method
---- Replaces all of the elements in the canvas with the elements specified.  Shortens or lengthens the canvas element count if necessary to accomodate the new canvas elements.
----
---- Parameters:
----  * `element` - a table containing key-value pairs that define the element to be assigned to the canvas.  You can specify one or more elements and they will be appended in the order they are listed.
----
---- Returns:
----  * the canvas object
----
---- Notes:
----  * You can also specify multiple elements in a table as an array, where each index in the table contains an element table, and use the array as a single argument to this method if this style works better in your code.
-moduleMT.replaceElements = function(self,  ...)
-    local elementsArray = table.pack(...)
-    if elementsArray.n == 1 and #elementsArray[1] ~= 0 then elementsArray = elementsArray[1] end
-    for i,v in ipairs(elementsArray) do self:assignElement(v, i) end
-    while (#self > #elementsArray) do self:removeElement() end
-    return self
-end
-
---- hs._asm.uitk.element.canvas:rotateElement(index, angle, [point], [append]) -> canvasObject
---- Method
---- Rotates an element about the point specified, or the elements center if no point is specified.
----
---- Parameters:
----  * `index`  - the index of the element to rotate
----  * `angle`  - the angle to rotate the object in a clockwise direction
----  * `point`  - an optional point table, defaulting to the element's center, specifying the point around which the object should be rotated
----  * `append` - an optional boolean, default false, specifying whether or not the rotation transformation matrix should be appended to the existing transformation assigned to the element (true) or replace it (false).
----
---- Returns:
----  * the canvas object
----
---- Notes:
----  * a point-table is a table with key-value pairs specifying a coordinate in the canvas (keys `x`  and `y`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
----  * The center of the object is determined by getting the element's bounds with [hs._asm.uitk.element.canvas:elementBounds](#elementBounds).
----  * If the third argument is a boolean value, the `point` argument is assumed to be the element's center and the boolean value is used as the `append` argument.
----
----  * This method uses `hs._asm.uitk.util.matrix` to generate the rotation transformation and provides a wrapper for `hs._asm.uitk.matrix.translate(x, y):rotate(angle):translate(-x, -y)` which is then assigned or appended to the element's existing `transformation` attribute.
-moduleMT.rotateElement = function(self, index, angle, point, append)
-    if type(point) == "boolean" then
-        append, point = point, nil
-    end
-
-    if not point then
-        local bounds = self:elementBounds(index)
-        point = {
-            x = bounds.x + bounds.w / 2,
-            y = bounds.y + bounds.h / 2,
-        }
-    end
-
-    local initialTransform = append and self[index].transformation or module.matrix.identity()
-    self[index].transformation = initialTransform:translate(point.x, point.y)
-                                                 :rotate(angle)
-                                                 :translate(-point.x, -point.y)
-    return self
-end
+---  * This method is no longer required, but is still included for backwards compatibility. When invoked, it will hide the canvas and then remove the stored references to the object; this will also happen if you allow the last reference to the canvas object to be garbage collected (i.e. not stored in a variable).
+moduleMT.delete = moduleMT.__gc
 
 --- hs._asm.uitk.element.canvas:isShowing() -> boolean
 --- Method
@@ -610,14 +568,8 @@ end
 ---  * This method only determines whether or not the canvas is being shown or is hidden -- it does not indicate whether or not the canvas is currently off screen or is occluded by other objects.
 ---  * See also [hs._asm.uitk.element.canvas:isOccluded](#isOccluded).
 moduleMT.isShowing = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_window()
-
-    if canvasWin then
-        return canvasWin:isShowing(...) and not self:_hidden(...)
-    else
-        return false
-    end
+    local obj = moduleMT.__e[self]
+    return obj.window:isShowing(...)
 end
 
 --- hs._asm.uitk.element.canvas:isOccluded() -> boolean
@@ -636,14 +588,8 @@ end
 ---  * a canvas that is currently hidden or with a height of 0 or a width of 0 is considered occluded.
 ---  * See also [hs._asm.uitk.element.canvas:isShowing](#isShowing).
 moduleMT.isOccluded = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_window()
-
-    if canvasWin then
-        return canvas:isOccluded(...) or self:_hidden(...)
-    else
-        return true
-    end
+    local obj = moduleMT.__e[self]
+    return obj.window:isOccluded(...)
 end
 
 --- hs._asm.uitk.element.canvas:isVisible() -> boolean
@@ -678,56 +624,34 @@ moduleMT.isVisible = function(self, ...) return not self:isOccluded(...) end
 ---  * The new canvas is an independent entity -- any subsequent changes to either canvas will not be reflected in the other canvas.
 ---
 ---  * This method allows you to display a canvas in multiple places or use it as a canvas element multiple times.
----
----  * If the original canvas object was a legacy canvas window, the copy will also be a legacy canvas window.
 moduleMT.copy = function(self, ...)
     local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
-
-    if args.n == 0 then
-        local newCanvas = canvasWin and module.new(self:frame()) or module.newCanvas(self:frameSize())
-        newCanvas:alpha(obj:alpha())
-                           :behavior(obj:behavior())
-                           :canvasMouseEvents(obj:canvasMouseEvents())
-                           :clickActivating(obj:clickActivating())
-                           :level(obj:level())
-                           :transformation(obj:transformation())
-                           :wantsLayer(obj:wantsLayer())
-
-        for _, v in ipairs(self:canvasDefaultKeys()) do
-          newCanvas:canvasDefaultFor(v, self:canvasDefaultFor(v))
-        end
-
-        for i = 1, #self, 1 do
-          for _, v2 in ipairs(self:elementKeys(i)) do
-              local value = self:elementAttribute(i, v2)
-              newCanvas:elementAttribute(i, v2, value)
-          end
-        end
-    else
+    if args.n > 0 then
         error(string.format("incorrect number of arguments. Expected 0, got %d", args.n), 3)
+    end
+
+    local newCanvas = module.new(self:frame()):alpha(self:alpha())
+                                              :behavior(self:behavior())
+                                              :canvasMouseEvents(self:canvasMouseEvents())
+                                              :clickActivating(self:clickActivating())
+                                              :level(self:level())
+                                              :transformation(self:transformation())
+                                              :wantsLayer(self:wantsLayer())
+
+    for _, v in ipairs(self:canvasDefaultKeys()) do
+        newCanvas:canvasDefaultFor(v, self:canvasDefaultFor(v))
+    end
+
+    for i = 1, #self, 1 do
+        for _, v2 in ipairs(self:elementKeys(i)) do
+            local value = self:elementAttribute(i, v2)
+            newCanvas:elementAttribute(i, v2, value)
+        end
     end
 
     return newCanvas
 end
 
---- hs._asm.uitk.element.canvas.help([attribute]) -> string
---- Function
---- Provides specification information for the recognized attributes, or the specific attribute specified.
----
---- Parameters:
----  * `attribute` - an optional string specifying an element attribute. If this argument is not provided, all attributes are listed.
----
---- Returns:
----  * a string containing some of the information provided by the [hs._asm.uitk.element.canvas.elementSpec](#elementSpec) in a manner that is easy to reference from the Hammerspoon console.
-module.help = function(what)
-    local help = module.elementSpec()
-    if what and help[what] then what, help = nil, help[what] end
-    if type(what) ~= "nil" then
-        error("unrecognized argument `" .. tostring(what) .. "`", 2)
-    end
-    print(help_table(0, help))
-end
 
 --- hs._asm.uitk.element.canvas.percentages
 --- Field
@@ -743,54 +667,6 @@ end
 --- Percentages are assigned to these fields as a string.  If the number in the string ends with a percent sign (%), then the percentage is the whole number which precedes the percent sign.  If no percent sign is present, the percentage is expected in decimal format (e.g. "1.0" is the same as "100%").
 ---
 --- Because a shadow applied to a canvas element is not considered as part of the element's bounds, you can also set the `padding` attribute to a positive number of points to inset the calculated values by from each edge of the canvas's frame so that the shadow will be fully visible within the canvas, even when an element is set to a width and height of "100%".
-
--- Legacy Methods and Functions ------------------------------------------
-
---- hs._asm.uitk.element.canvas.new(rect) -> canvasWindowObject
---- Constructor
---- Create a new window with a canvas as it's content at the specified coordinates
----
---- Parameters:
----  * `rect` - A rect-table containing the co-ordinates and size for the canvas object
----
---- Returns:
----  * a new, empty, canvas with window object, or nil if the canvas cannot be created with the specified coordinates
----
---- Notes:
----  * This is the legacy canvas constructor, provided for backwards compatibility. When including a canvas with other `hs._asm.uitk.element` objects, use [hs._asm.uitk.element.canvas.newCanvas](#newCanvas) and include it in a container element along with the others.
----
----  * The size of the canvas defines the visible area of the canvas -- any portion of a canvas element which extends past the canvas's edges will be clipped.
----  * a rect-table is a table with key-value pairs specifying the top-left coordinate on the screen for the canvas (keys `x`  and `y`) and the size (keys `h` and `w`) of the canvas. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
-module.new = function(...)
-    local styleMask = uitk.window.masks.borderless
-    local canvasWin = uitk.window.new(..., styleMask)
-
-    if canvasWin then
-        canvasWin:backgroundColor{ alpha = 0, white = 0 }
-                 :opaque(false)
-                 :hasShadow(false)
-                 :ignoresMouseEvents(true)
-                 :animationBehavior("none")
-                 :level("screenSaver")
---                  :accessibilitySubrole(:"+.Hammerspoon")
-        local bounds = canvasWin:frame()
-        bounds.x, bounds.y = 0, 0
-        local canvasView = module.newCanvas(bounds)
-        if canvasView then
-            canvasWin:content(canvasView)
-            -- keep window as uservalue so it's not collected until canvas is
-            return canvasView:_wrappedWindow(canvasWin)
-        end
-    end
-    return nil
-end
-
-module.useCustomAccessibilitySubrole = function(...)
-    if not accessibilityWarningIssued then
-        accessibilityWarningIssued = true
-        print("*** useCustomAccessibilitySubrole is now a no-op -- all accessibility subroles are now left untouched as per Apple guidelines.")
-    end
-end
 
 moduleMT._accessibilitySubrole = function(...)
     if not accessibilityWarningIssued then
@@ -810,23 +686,13 @@ end
 ---  * If an argument is provided, the canvas object; otherwise the current value.
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method only sets or returns the canvas's size -- you should use the container's methods for determining or setting the canvas's location.
----
 ---  * a rect-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the canvas (keys `x`  and `y`) and the new size (keys `h` and `w`).  The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 ---
 ---  * elements in the canvas that have the `absolutePosition` attribute set to false will be moved so that their relative position within the canvas remains the same with respect to the new size.
 ---  * elements in the canvas that have the `absoluteSize` attribute set to false will be resized so that their relative size with respect to the canvas remains the same with respect to the new size.
 moduleMT.frame = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
-
-    if canvasWin then
-        local result = canvasWin:frame(...)
-        return type(result) == "userdata" and self or result
-    else
-        local result = self:size(...)
-        return type(result) == "userdata" and self or { x = 0, y = 0, h = result.h, w = result.w }
-    end
+    self:topLeft(...)
+    return self:size(...)
 end
 
 --- hs._asm.uitk.element.canvas:topLeft([point]) -> canvasWindowObject | currentValue | nil
@@ -840,19 +706,31 @@ end
 ---  * If an argument is provided, the canvas object; otherwise the current value.
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use the container's methods for determining or setting the canvas's location.
----
 ---  * a point-table is a table with key-value pairs specifying the new top-left coordinate on the screen of the canvas (keys `x`  and `y`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
 moduleMT.topLeft = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
+    local obj = moduleMT.__e[self]
+    local result = obj.window:topLeft(...)
+    return (result == obj.window) and self or result
+end
 
-    if canvasWin then
-        local result = canvasWin:topLeft(...)
-        return type(result) == "userdata" and self or result
-    else
-        return args.n > 0 and self or { x = 0, y = 0 }
-    end
+--- hs._asm.uitk.element.canvas:size([size]) -> canvasObject | currentValue
+--- Method
+--- Get or set the size of a canvas object
+---
+--- Parameters:
+---  * `size` - An optional size-table specifying the width and height the canvas object should be resized to
+---
+--- Returns:
+---  * If an argument is provided, the canvas object; otherwise the current value.
+---
+--- Notes:
+---  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the canvas should be resized to. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+moduleMT.size = function(self, ...)
+    local obj = moduleMT.__e[self]
+    -- this allows the canvas to reposition items per absoluteSize and absolutePosition attributes
+    if table.pack(...).n > 0 then obj.view:size(...) end
+    local result = obj.window:size(...)
+    return (result == obj.window) and self or result
 end
 
 --- hs._asm.uitk.element.canvas:orderAbove([window2) -> canvasWindowObject
@@ -866,13 +744,24 @@ end
 ---  * The canvas object
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods to adjust window levels.
----
 ---  * If the canvas object and window2 are not at the same presentation level, this method will move the canvas object as close to the desired relationship as possible without changing the canvas object's presentation level. See [hs._asm.uitk.element.canvas.level](#level).
-moduleMT.orderAbove = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
+moduleMT.orderAbove = function(self, otherWin, ...)
+    local obj = moduleMT.__e[self]
+    local args = table.pack(...)
 
-    if canvasWin then canvasWin:orderAbove(...) end
+    if args.n > 0 then
+        error(string.format("incorrect number of arguments. Expected 0 or 1, got %d", args.n + 1), 3)
+    end
+    if otherWin then
+        if getmetatable(otherWin) == moduleMT then
+            otherWin = moduleMT.__e[otherWin].window
+            obj.window:orderAbove(otherWin)
+        else
+            error(string.format("expected %s for argument 1", USERDATA_TAG), 3)
+        end
+    else
+        obj.window:orderAbove()
+    end
     return self
 end
 
@@ -887,13 +776,24 @@ end
 ---  * The canvas object
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods to adjust window levels.
----
 ---  * If the canvas object and window2 are not at the same presentation level, this method will move the canvas object as close to the desired relationship as possible without changing the canvas object's presentation level. See [hs._asm.uitk.element.canvas.level](#level).
-moduleMT.orderBelow = function(self, ...)
-    local canvasWin = self:_wrappedWindow()
+moduleMT.orderBelow = function(self, otherWin, ...)
+    local obj = moduleMT.__e[self]
+    local args = table.pack(...)
 
-    if canvasWin then canvasWin:orderBelow(...) end
+    if args.n > 0 then
+        error(string.format("incorrect number of arguments. Expected 0 or 1, got %d", args.n + 1), 3)
+    end
+    if otherWin then
+        if getmetatable(otherWin) == moduleMT then
+            otherWin = moduleMT.__e[otherWin].window
+            obj.window:orderBelow(otherWin)
+        else
+            error(string.format("expected %s for argument 1", USERDATA_TAG), 3)
+        end
+    else
+        obj.window:orderBelow()
+    end
     return self
 end
 
@@ -910,23 +810,19 @@ end
 ---  * The canvas object
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods to adjust window levels.
----
 ---  * As of macOS Sierra and later, if you want a `hs._asm.uitk.element.canvas` window object to appear above full-screen windows you must hide the Hammerspoon Dock icon first using: `hs.dockicon.hide()`
 moduleMT.bringToFront = function(self, ...)
+    local obj = moduleMT.__e[self]
     local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
 
-    if canvasWin then
-        if args.n == 0 then
-            canvasWin:level("floating")
-        elseif args.n == 1 and type(args[1]) == "boolean" then
-            canvasWin:level(args[1] and "screenSaver" or "floating")
-        elseif args.n == 1 then
-            error(string.format("incorrect type '%s' for argument 1 (expected boolean)", type(args[1])), 3)
-        else
-            error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
-        end
+    if args.n == 0 then
+        obj.window:level("floating")
+    elseif args.n == 1 and type(args[1]) == "boolean" then
+        obj.window:level(args[1] and "screenSaver" or "floating")
+    elseif args.n == 1 then
+        error(string.format("incorrect type '%s' for argument 1 (expected boolean)", type(args[1])), 3)
+    else
+        error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
     end
     return self
 end
@@ -940,26 +836,21 @@ end
 ---
 --- Returns:
 ---  * The canvas object
----
---- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods to adjust window levels.
 moduleMT.sendToBack = function(self, ...)
+    local obj = moduleMT.__e[self]
     local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
 
-    if canvasWin then
-        if args.n == 0 then
-            canvasWin:level(module.windowLevels.desktopIcon - 1)
-        else
-            error(string.format("incorrect number of arguments. Expected 0, got %d", args.n), 3)
-        end
+    if args.n == 0 then
+        obj.window:level(module.windowLevels.desktopIcon - 1)
+    else
+        error(string.format("incorrect number of arguments. Expected 0, got %d", args.n), 3)
     end
     return self
 end
 
 --- hs._asm.uitk.element.canvas:clickActivating([flag]) -> canvasWindowObject | currentValue
 --- Method
---- Get or set whether or not clicking on a legacy canvas window with a click callback defined should bring all of Hammerspoon's open windows to the front.
+--- Get or set whether or not clicking on a canvas window with a click callback defined should bring all of Hammerspoon's open windows to the front.
 ---
 --- Parameters:
 ---  * `flag` - an optional boolean indicating whether or not clicking on a canvas with a click callback function defined should activate Hammerspoon and bring its windows forward. Defaults to true.
@@ -968,32 +859,27 @@ end
 ---  * If an argument is provided, returns the canvas object; otherwise returns the current setting.
 ---
 --- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods.
----
 ---  * Setting this to false changes a canvas object's AXsubrole value and may affect the results of filters used with `hs.window.filter`, depending upon how they are defined.
 moduleMT.clickActivating = function(self, ...)
+    local obj = moduleMT.__e[self]
     local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
+    local win = obj.window
 
-    if canvasWin then
-        local masks = canvasWin:styleMask()
-        if args.n == 0 then
-            return (masks & uitk.window.masks.nonactivating) == uitk.window.masks.nonactivating
-        elseif args.n == 1 and type(args[1]) == "boolean" then
-            if args[1] then
-                canvasWin:styleMask(masks & ~uitk.window.masks.nonactivating)
-            else
-                canvasWin:styleMask(masks | uitk.window.masks.nonactivating)
-            end
-        elseif args.n == 1 then
-            error(string.format("incorrect type '%s' for argument 1 (expected boolean)", type(args[1])), 3)
+    local masks = win:styleMask()
+    if args.n == 0 then
+        return (masks & uitk.window.masks.nonactivating) == uitk.window.masks.nonactivating
+    elseif args.n == 1 and type(args[1]) == "boolean" then
+        if args[1] then
+            qin:styleMask(masks & ~uitk.window.masks.nonactivating)
         else
-            error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
+            win:styleMask(masks | uitk.window.masks.nonactivating)
         end
-        return self
+    elseif args.n == 1 then
+        error(string.format("incorrect type '%s' for argument 1 (expected boolean)", type(args[1])), 3)
     else
-        return args.n > 0 and self or nil
+        error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
     end
+    return self
 end
 
 --- hs._asm.uitk.element.canvas:level([level]) -> canvasWindowObject | currentValue
@@ -1005,19 +891,10 @@ end
 ---
 --- Returns:
 ---  * If an argument is provided, the canvas object; otherwise the current value.
----
---- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods.
 moduleMT.level = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
-
-    if canvasWin then
-        local result = canvasWin:level(...)
-        return type(result) == "userdata" and self or result
-    else
-        return args.n > 0 and self or nil
-    end
+    local obj = moduleMT.__e[self]
+    local result = obj.window:level(...)
+    return (result == obj.window) and self or result
 end
 
 --- hs._asm.uitk.element.canvas:behavior([behavior]) -> canvasWindowObject | currentValue
@@ -1032,19 +909,10 @@ end
 ---
 --- Returns:
 ---  * if an argument is provided, then the canvasObject is returned; otherwise the current behavior value is returned.
----
---- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods.
 moduleMT.behavior = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
-
-    if canvasWin then
-        local result = canvasWin:collectionBehavior(...)
-        return type(result) == "userdata" and self or result
-    else
-        return args.n > 0 and self or nil
-    end
+    local obj = moduleMT.__e[self]
+    local result = obj.window:collectionBehavior(...)
+    return (result == obj.window) and self or result
 end
 
 --- hs._asm.uitk.element.canvas:behaviorAsLabels(behaviorTable) -> canvasWindowObject | currentValue
@@ -1056,45 +924,365 @@ end
 ---
 --- Returns:
 ---  * If an argument is provided, the canvas object; otherwise the current value as a table of strings.
----
---- Notes:
----  * This method is provided for use with the legacy canvas constructor and is provided for backwards compatibility. When used with a canvas object embedded in an `hs._asm.uitk` element container, this method is a no-op -- you should use `hs._asm.uitk.window` methods.
 moduleMT.behaviorAsLabels = function(self, ...)
-    local args = table.pack(...)
-    local canvasWin = self:_wrappedWindow()
+    local results = self:behavior(...)
 
-    if canvasWin then
-        local results = self:behavior(...)
-
-        if args.n == 0 then
-            local behaviorNumber = results
-            results = {}
-
-            if behaviorNumber ~= 0 then
-                for i, v in pairs(module.windowBehaviors) do
-                    if type(i) == "string" then
-                        if (behaviorNumber & v) > 0 then table.insert(results, i) end
-                    end
-                end
-            else
-                table.insert(results, module.windowBehaviors[0])
-            end
-
-            return setmetatable(results, { __tostring = function(_)
-                table.sort(_)
-                return "{ "..table.concat(_, ", ").." }"
-            end})
-        else
-            return self
-        end
+    if type(results) == "table" then
+        results = uitk.util.intToMasks(results, module.windowBehaviors)
+        return setmetatable(results, { __tostring = function(_)
+            table.sort(_)
+            return "{ "..table.concat(_, ", ").." }"
+        end})
     else
-        return args.n > 0 and self or nil
+        return results
     end
 end
 
+--- hs._asm.uitk.element.canvas:assignElement(elementTable, [index]) -> canvasObject
+--- Method
+--- Assigns a new element to the canvas at the specified index.
+---
+--- Parameters:
+---  * `elementTable` - a table containing key-value pairs that define the element to be added to the canvas.
+---  * `index`        - an optional integer between 1 and the canvas element count + 1 specifying the index position to put the new element.  Any element currently at that index will be replaced.  Defaults to the canvas element count + 1 (i.e. after the end of the currently defined elements).
+---
+--- Returns:
+---  * the canvasObject
+---
+--- Notes:
+---  * When the index specified is the canvas element count + 1, the behavior of this method is the same as [hs._asm.uitk.element.canvas:insertElement](#insertElement); i.e. it adds the new element to the end of the currently defined element list.
+moduleMT.assignElement = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:assignElement(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:canvasDefaultFor(keyName, [newValue]) -> canvasObject | currentValue
+--- Method
+--- Get or set the element default specified by keyName.
+---
+--- Parameters:
+---  * `keyName` - the element default to examine or modify
+---  * `value`   - an optional new value to set as the default fot his canvas when not specified explicitly in an element declaration.
+---
+--- Returns:
+---  * If an argument is provided, the canvas object; otherwise the current value.
+---
+--- Notes:
+---  * Not all keys will apply to all element types.
+---  * Currently set and built-in defaults may be retrieved in a table with [hs._asm.uitk.element.canvas:canvasDefaults](#canvasDefaults).
+moduleMT.canvasDefaultFor = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:canvasDefaultFor(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:canvasDefaultKeys([module]) -> table
+--- Method
+--- Returns a list of the key names for the attributes set for the canvas defaults.
+---
+--- Parameters:
+---  * `module` - an optional boolean flag, default false, indicating whether the key names for the module defaults (true) should be included in the list.  If false, only those defaults which have been explicitly set for the canvas are included.
+---
+--- Returns:
+---  * a table containing the key names for the defaults which are set for this canvas. May also optionally include key names for all attributes which have a default value defined by the module.
+moduleMT.canvasDefaultKeys = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:canvasDefaultKeys(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:canvasDefaults([module]) -> table
+--- Method
+--- Get a table of the default key-value pairs which apply to the canvas.
+---
+--- Parameters:
+---  * `module` - an optional boolean flag, default false, indicating whether module defaults (true) should be included in the table.  If false, only those defaults which have been explicitly set for the canvas are returned.
+---
+--- Returns:
+---  * a table containing key-value pairs for the defaults which apply to the canvas.
+---
+--- Notes:
+---  * Not all keys will apply to all element types.
+---  * To change the defaults for the canvas, use [hs._asm.uitk.element.canvas:canvasDefaultFor](#canvasDefaultFor).
+moduleMT.canvasDefaults = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:canvasDefaults(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:canvasElements() -> table
+--- Method
+--- Returns an array containing the elements defined for this canvas.  Each array entry will be a table containing the key-value pairs which have been set for that canvas element.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * an array of element tables which are defined for the canvas.
+moduleMT.canvasElements = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:canvasElements(...)
+    return result
+end
+
+moduleMT.canvasMouseEvents = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:canvasMouseEvents(...)
+    if result == obj.view then
+        return self
+    else
+        return table.unpack(result)
+    end
+end
+
+moduleMT.draggingCallback = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:draggingCallback(...)
+    return result == obj.view and self or result
+end
+
+--- hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | current value
+--- Method
+--- Get or set the attribute `key` for the canvas element at the specified index.
+---
+--- Parameters:
+---  * `index` - the index of the canvas element whose attribute is to be retrieved or set.
+---  * `key`   - the key name of the attribute to get or set.
+---  * `value` - an optional value to assign to the canvas element's attribute.
+---
+--- Returns:
+---  * if a value for the attribute is specified, returns the canvas object; otherwise returns the current value for the specified attribute.
+moduleMT.elementAttribute = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:elementAttribute(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:elementBounds(index) -> rectTable
+--- Method
+--- Returns the smallest rectangle which can fully contain the canvas element at the specified index.
+---
+--- Parameters:
+---  * `index` - the index of the canvas element to get the bounds for
+---
+--- Returns:
+---  * a rect table containing the smallest rectangle which can fully contain the canvas element.
+---
+--- Notes:
+---  * For many elements, this will be the same as the element frame.  For items without a frame (e.g. `segments`, `circle`, etc.) this will be the smallest rectangle which can fully contain the canvas element as specified by it's attributes.
+moduleMT.elementBounds = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:elementBounds(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:elementCount() -> integer
+--- Method
+--- Returns the number of elements currently defined for the canvas object.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * the number of elements currently defined for the canvas object.
+moduleMT.elementCount = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:elementCount(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:elementKeys(index, [optional]) -> table
+--- Method
+--- Returns a list of the key names for the attributes set for the canvas element at the specified index.
+---
+--- Parameters:
+---  * `index`    - the index of the element to get the assigned key list from.
+---  * `optional` - an optional boolean, default false, indicating whether optional, but unset, keys relevant to this canvas object should also be included in the list returned.
+---
+--- Returns:
+---  * a table containing the keys that are set for this canvas element.  May also optionally include keys which are not specifically set for this element but use inherited values from the canvas or module defaults.
+---
+--- Notes:
+---  * Any attribute which has been explicitly set for the element will be included in the key list (even if it is ignored for the element type).  If the `optional` flag is set to true, the *additional* attribute names added to the list will only include those which are relevant to the element type.
+moduleMT.elementKeys = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:elementKeys(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:imageFromCanvas() -> hs.image object
+--- Method
+--- Returns an image of the canvas contents as an `hs.image` object.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * an `hs.image` object
+---
+--- Notes:
+---  * The canvas does not have to be visible in order for an image to be generated from it.
+moduleMT.imageFromCanvas = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:imageFromCanvas(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:insertElement(elementTable, [index]) -> canvasObject
+--- Method
+--- Insert a new element into the canvas at the specified index.
+---
+--- Parameters:
+---  * `elementTable` - a table containing key-value pairs that define the element to be added to the canvas.
+---  * `index`        - an optional integer between 1 and the canvas element count + 1 specifying the index position to put the new element.  Any element currently at that index, and those that follow, will be moved one position up in the element array.  Defaults to the canvas element count + 1 (i.e. after the end of the currently defined elements).
+---
+--- Returns:
+---  * the canvasObject
+---
+--- Notes:
+---  * see also [hs._asm.uitk.element.canvas:assignElement](#assignElement).
+moduleMT.insertElement = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:insertElement(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:minimumTextSize([index], text) -> table
+--- Method
+--- Returns a table specifying the size of the rectangle which can fully render the text with the specified style so that is will be completely visible.
+---
+--- Parameters:
+---  * `index` - an optional index specifying the element in the canvas which contains the text attributes which should be used when determining the size of the text. If not provided, the canvas defaults will be used instead. Ignored if `text` is an hs.styledtext object.
+---  * `text`  - a string or hs.styledtext object specifying the text.
+---
+--- Returns:
+---  * a size table specifying the height and width of a rectangle which could fully contain the text when displayed in the canvas
+---
+--- Notes:
+---  * Multi-line text (separated by a newline or return) is supported.  The height will be for the multiple lines and the width returned will be for the longest line.
+moduleMT.minimumTextSize = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:minimumTextSize(...)
+    return result
+end
+
+--- hs._asm.uitk.element.canvas:removeElement([index]) -> canvasObject
+--- Method
+--- Insert a new element into the canvas at the specified index.
+---
+--- Parameters:
+---  * `index`        - an optional integer between 1 and the canvas element count specifying the index of the canvas element to remove. Any elements that follow, will be moved one position down in the element array.  Defaults to the canvas element count (i.e. the last element of the currently defined elements).
+---
+--- Returns:
+---  * the canvasObject
+moduleMT.removeElement = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:removeElement(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:transformation([matrix]) -> canvasObject | current value
+--- Method
+--- Get or set the matrix transformation which is applied to every element in the canvas before being individually processed and added to the canvas.
+---
+--- Parameters:
+---  * `matrix` - an optional table specifying the matrix table, as defined by the `hs._asm.uitk.util.matrix` module, to be applied to every element of the canvas, or an explicit `nil` to reset the transformation to the identity matrix.
+---
+--- Returns:
+---  * if an argument is provided, returns the canvasObject, otherwise returns the current value
+---
+--- Notes:
+---  * An example use for this method would be to change the canvas's origin point { x = 0, y = 0 } from the lower left corner of the canvas to somewhere else, like the middle of the canvas.
+moduleMT.transformation = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:transformation(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:wantsLayer([flag]) -> canvasObject | currentValue
+--- Method
+--- Get or set whether or not the canvas object should be rendered by the view or by Core Animation.
+---
+--- Parameters:
+---  * `flag` - optional boolean (default false) which indicates whether the canvas object should be rendered by the containing view (false) or by Core Animation (true).
+---
+--- Returns:
+---  * If an argument is provided, the canvas object; otherwise the current value.
+---
+--- Notes:
+---  * This method can help smooth the display of small text objects on non-Retina monitors.
+moduleMT.wantsLayer = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:wantsLayer(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:appendElements(element...) -> canvasObject
+--- Method
+--- Appends the elements specified to the canvas.
+---
+--- Parameters:
+---  * `element` - a table containing key-value pairs that define the element to be appended to the canvas.  You can specify one or more elements and they will be appended in the order they are listed.
+---
+--- Returns:
+---  * the canvas object
+---
+--- Notes:
+---  * You can also specify multiple elements in a table as an array, where each index in the table contains an element table, and use the array as a single argument to this method if this style works better in your code.
+moduleMT.appendElements = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:appendElements(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:replaceElements(element...) -> canvasObject
+--- Method
+--- Replaces all of the elements in the canvas with the elements specified.  Shortens or lengthens the canvas element count if necessary to accomodate the new canvas elements.
+---
+--- Parameters:
+---  * `element` - a table containing key-value pairs that define the element to be assigned to the canvas.  You can specify one or more elements and they will be appended in the order they are listed.
+---
+--- Returns:
+---  * the canvas object
+---
+--- Notes:
+---  * You can also specify multiple elements in a table as an array, where each index in the table contains an element table, and use the array as a single argument to this method if this style works better in your code.
+moduleMT.replaceElements = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:replaceElements(...)
+    return (result == obj.view) and self or result
+end
+
+--- hs._asm.uitk.element.canvas:rotateElement(index, angle, [point], [append]) -> canvasObject
+--- Method
+--- Rotates an element about the point specified, or the elements center if no point is specified.
+---
+--- Parameters:
+---  * `index`  - the index of the element to rotate
+---  * `angle`  - the angle to rotate the object in a clockwise direction
+---  * `point`  - an optional point table, defaulting to the element's center, specifying the point around which the object should be rotated
+---  * `append` - an optional boolean, default false, specifying whether or not the rotation transformation matrix should be appended to the existing transformation assigned to the element (true) or replace it (false).
+---
+--- Returns:
+---  * the canvas object
+---
+--- Notes:
+---  * a point-table is a table with key-value pairs specifying a coordinate in the canvas (keys `x`  and `y`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+---  * The center of the object is determined by getting the element's bounds with [hs._asm.uitk.element.canvas:elementBounds](#elementBounds).
+---  * If the third argument is a boolean value, the `point` argument is assumed to be the element's center and the boolean value is used as the `append` argument.
+---
+---  * This method uses `hs._asm.uitk.util.matrix` to generate the rotation transformation and provides a wrapper for `hs._asm.uitk.matrix.translate(x, y):rotate(angle):translate(-x, -y)` which is then assigned or appended to the element's existing `transformation` attribute.
+moduleMT.rotateElement = function(self, ...)
+    local obj = moduleMT.__e[self]
+    local result = obj.view:rotateElement(...)
+    return (result == obj.view) and self or result
+end
+
+-- store this in the registry so we can easily set it both from Lua and from C functions
+debug.getregistry()[USERDATA_TAG] = moduleMT
+
 -- Return Module Object --------------------------------------------------
 
-return setmetatable(module, {
-    __call = function(self, ...) return self.newCanvas(...) end,
-})
+return module
 

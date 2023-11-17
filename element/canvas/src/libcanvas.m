@@ -35,7 +35,6 @@ static NSDictionary *languageDictionary ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ;
 
-@property int                   wrapperWindowRef ;
 @property int                   mouseCallbackRef ;
 @property int                   draggingCallbackRef ;
 @property BOOL                  mouseTracking ;
@@ -1013,12 +1012,12 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     return imageSize;
 }
 
-static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
-    return NSMakeRect(theRect.origin.x,
-                      [[NSScreen screens][0] frame].size.height - theRect.origin.y - theRect.size.height,
-                      theRect.size.width,
-                      theRect.size.height) ;
-}
+// static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
+//     return NSMakeRect(theRect.origin.x,
+//                       [[NSScreen screens][0] frame].size.height - theRect.origin.y - theRect.size.height,
+//                       theRect.size.width,
+//                       theRect.size.height) ;
+// }
 
 #pragma mark - Class Implementations -
 
@@ -1042,7 +1041,6 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
         _selfRefCount   = 0 ;
 
         _assignedSize          = frameRect.size ;
-        _wrapperWindowRef      = LUA_NOREF ;
         _mouseCallbackRef      = LUA_NOREF ;
         _draggingCallbackRef   = LUA_NOREF ;
         _canvasDefaults        = [[NSMutableDictionary alloc] init] ;
@@ -1094,20 +1092,6 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
     NSView *targetView = notification.object ;
     if (targetView && [targetView isEqualTo:self]) {
         _assignedSize = self.frame.size ;
-    }
-}
-
-// if a legacy canvas is assigned to another window, release the hold
-- (void)viewDidMoveToWindow {
-    if (_wrapperWindowRef != LUA_NOREF) {
-        LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
-        [skin pushLuaRef:refTable ref:_wrapperWindowRef] ;
-        NSWindow *wrapperWindow = [skin toNSObjectAtIndex:-1] ;
-        lua_pop(skin.L, 1) ;
-
-        if (self.window && ![wrapperWindow isEqualTo:self.window]) {
-            _wrapperWindowRef = [skin luaUnref:refTable ref:_wrapperWindowRef] ;
-        }
     }
 }
 
@@ -2759,44 +2743,33 @@ static int canvas_canvasTransformation(lua_State *L) {
     return 1 ;
 }
 
-// documented in element_canvas.lua
-static int canvas_show(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
-                    LS_TNUMBER | LS_TOPTIONAL,
-                    LS_TBREAK] ;
-
-    HSUITKElementCanvas   *canvasView   = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-
-    if (lua_gettop(L) == 1) {
-        canvasView.hidden = NO ;
-    } else {
-        [canvasView fadeIn:lua_tonumber(L, 2)];
-    }
-    lua_pushvalue(L, 1);
-    return 1;
-}
-
-// documented in element_canvas.lua
-static int canvas_hide(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
-                    LS_TNUMBER | LS_TOPTIONAL,
-                    LS_TBREAK] ;
-
-    HSUITKElementCanvas   *canvasView   = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-
-    if (lua_gettop(L) == 1) {
-        canvasView.hidden = YES ;
-    } else {
-        [canvasView fadeOut:lua_tonumber(L, 2)];
-    }
-
-    lua_pushvalue(L, 1);
-    return 1;
-}
-
-// documented in element_canvas.lua
+/// hs._asm.uitk.element.canvas:mouseCallback([mouseCallbackFn]) -> canvasObject | current value
+/// Method
+/// Sets a callback for mouse events with respect to the canvas
+///
+/// Parameters:
+///  * `mouseCallbackFn`   - An optional function or explicit nil, that will be called when a mouse event occurs within the canvas, and an element beneath the mouse's current position has one of the `trackMouse...` attributes set to true.
+///
+/// Returns:
+///  * if an argument is provided, returns the canvasObject, otherwise returns the current value
+///
+/// Notes:
+///  * The callback function should expect 5 arguments: the canvas object itself, a message specifying the type of mouse event, the canvas element `id` (or index position in the canvas if the `id` attribute is not set for the element), the x position of the mouse when the event was triggered within the rendered portion of the canvas element, and the y position of the mouse when the event was triggered within the rendered portion of the canvas element.
+///  * See also [hs._asm.uitk.element.canvas:canvasMouseEvents](#canvasMouseEvents) for tracking mouse events in regions of the canvas not covered by an element with mouse tracking enabled.
+///
+///  * The following mouse attributes may be set to true for a canvas element and will invoke the callback with the specified message:
+///    * `trackMouseDown`      - indicates that a callback should be invoked when a mouse button is clicked down on the canvas element.  The message will be "mouseDown".
+///    * `trackMouseUp`        - indicates that a callback should be invoked when a mouse button has been released over the canvas element.  The message will be "mouseUp".
+///    * `trackMouseEnterExit` - indicates that a callback should be invoked when the mouse pointer enters or exits the  canvas element.  The message will be "mouseEnter" or "mouseExit".
+///    * `trackMouseMove`      - indicates that a callback should be invoked when the mouse pointer moves within the canvas element.  The message will be "mouseMove".
+///
+///  * The callback mechanism uses reverse z-indexing to determine which element will receive the callback -- the topmost element of the canvas which has enabled callbacks for the specified message will be invoked.
+///
+///  * No distinction is made between the left, right, or other mouse buttons. If you need to determine which specific button was pressed, use `hs.eventtap.checkMouseButtons()` within your callback to check.
+///
+///  * The hit point detection occurs by comparing the mouse pointer location to the rendered content of each individual canvas object... if an object which obscures a lower object does not have mouse tracking enabled, the lower object will still receive the event if it does have tracking enabled.
+///
+///  * Clipping regions which remove content from the visible area of a rendered object are ignored for the purposes of element hit-detection.
 static int canvas_mouseCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
@@ -2837,7 +2810,7 @@ static int canvas_mouseCallback(lua_State *L) {
 ///  * `move`      - an optional boolean, or nil placeholder, specifying whether or not the mouse pointer moving within the canvas bounds should generate a callback for the canvas areas not otherwise covered by an element with mouse tracking enabled.
 ///
 /// Returns:
-///  * If any arguments are provided, returns the canvas Object, otherwise returns the current values as four separate boolean values (i.e. not in a table).
+///  * If any arguments are provided, returns the canvas Object, otherwise returns the current values in a table.
 ///
 /// Notes:
 ///  * Each value that you wish to set must be provided in the order given above, but you may specify a position as `nil` to indicate that whatever it's current state, no change should be applied.  For example, to activate a callback for entering and exiting the canvas without changing the current callback status for up or down button clicks, you could use: `hs._asm.uitk.element.canvas:canvasMouseTracking(nil, nil, true)`.
@@ -2845,22 +2818,32 @@ static int canvas_mouseCallback(lua_State *L) {
 ///  * Use [hs._asm.uitk.element.canvas:mouseCallback](#mouseCallback) to set the callback function.  The identifier field in the callback's argument list will be "_canvas_", but otherwise identical to those specified in [hs._asm.uitk.element.canvas:mouseCallback](#mouseCallback).
 static int canvas_canvasMouseEvents(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
-                    LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
-                    LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
-                    LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
-                    LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
-                    LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK | LS_TVARARG] ;
 
     HSUITKElementCanvas   *canvasView   = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushboolean(L, canvasView.canvasMouseDown) ;
-        lua_pushboolean(L, canvasView.canvasMouseUp) ;
-        lua_pushboolean(L, canvasView.canvasMouseEnterExit) ;
-        lua_pushboolean(L, canvasView.canvasMouseMove) ;
-        return 4 ;
+        lua_newtable(L) ;
+        lua_pushboolean(L, canvasView.canvasMouseDown) ;      lua_rawseti(L, -2, luaL_len(L, -2) + 1) ;
+        lua_pushboolean(L, canvasView.canvasMouseUp) ;        lua_rawseti(L, -2, luaL_len(L, -2) + 1) ;
+        lua_pushboolean(L, canvasView.canvasMouseEnterExit) ; lua_rawseti(L, -2, luaL_len(L, -2) + 1) ;
+        lua_pushboolean(L, canvasView.canvasMouseMove) ;      lua_rawseti(L, -2, luaL_len(L, -2) + 1) ;
     } else {
+        if (lua_type(L, 2) == LUA_TTABLE) {
+            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
+            lua_rawgeti(L, 2, 1) ;
+            lua_rawgeti(L, 2, 2) ;
+            lua_rawgeti(L, 2, 3) ;
+            lua_rawgeti(L, 2, 4) ;
+            lua_remove(L, 2) ;
+        } else {
+            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                            LS_TBOOLEAN | LS_TNIL,
+                            LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
+                            LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
+                            LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
+                            LS_TBREAK] ;
+        }
         if (lua_type(L, 2) == LUA_TBOOLEAN) {
             canvasView.canvasMouseDown = (BOOL)(lua_toboolean(L, 2)) ;
         }
@@ -2873,10 +2856,9 @@ static int canvas_canvasMouseEvents(lua_State *L) {
         if (lua_type(L, 5) == LUA_TBOOLEAN) {
             canvasView.canvasMouseMove = (BOOL)(lua_toboolean(L, 5)) ;
         }
-
         lua_pushvalue(L, 1) ;
-        return 1;
     }
+    return 1;
 }
 
 /// hs._asm.uitk.element.canvas:imageFromCanvas() -> hs.image object
@@ -3413,26 +3395,14 @@ static int canvas_assignElementAtIndex(lua_State *L) {
 ///
 /// Notes:
 ///  * a size-table is a table with key-value pairs specifying the size (keys `h` and `w`) the canvas should be resized to. The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
-///
-///  * this method differs from the inherited method `hs._asm.uitk.element._view:frameSize` in the following ways:
-///     * elements in the canvas that have the `absolutePosition` attribute set to false will be moved so that their relative position within the canvas remains the same with respect to the new size.
-///     * elements in the canvas that have the `absoluteSize` attribute set to false will be resized so that their relative size with respect to the canvas remains the same with respect to the new size.
 static int canvas_size(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
                     LS_TTABLE | LS_TOPTIONAL,
                     LS_TBREAK] ;
 
-    HSUITKElementCanvas *canvasView   = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-    BOOL                legacy        = (canvasView.wrapperWindowRef != LUA_NOREF) ;
-    NSWindow            *canvasWindow = nil ;
-
-    if (legacy) {
-        [skin pushLuaRef:refTable ref:canvasView.wrapperWindowRef] ;
-        canvasWindow = [skin toNSObjectAtIndex:-1] ;
-        lua_pop(L, 1) ;
-    }
-    NSSize oldSize = (legacy ? canvasWindow.frame.size : canvasView.frame.size) ;
+    HSUITKElementCanvas *canvasView = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
+    NSSize              oldSize     = canvasView.frame.size ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSSize:oldSize] ;
@@ -3496,62 +3466,11 @@ static int canvas_size(lua_State *L) {
             }
         }
 
-        if (legacy) {
-            NSRect oldFrame = canvasWindow.frame ;
-            NSRect newFrame = NSMakeRect(
-                oldFrame.origin.x,
-                oldFrame.origin.y + oldFrame.size.height - newSize.height,
-                newSize.width,
-                newSize.height
-            ) ;
-            [canvasWindow setFrame:newFrame display:YES animate:NO] ;
-        } else {
-            [canvasView setFrameSize:newSize] ;
-        }
+        [canvasView setFrameSize:newSize] ;
 
         lua_pushvalue(L, 1) ;
     }
 
-    return 1 ;
-}
-
-// used for legacy canvas support
-static int canvas_wrappedWindow(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementCanvas *canvasView = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-
-    if (lua_gettop(L) == 1) {
-        if (canvasView.wrapperWindowRef != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:canvasView.wrapperWindowRef] ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            canvasView.wrapperWindowRef = [skin luaUnref:refTable ref:canvasView.wrapperWindowRef] ;
-        } else {
-            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs._asm.uitk.window", LS_TBREAK] ;
-            NSWindow *canvasWin = [skin toNSObjectAtIndex:2] ;
-            if ([canvasWin isEqualTo:canvasView.window]) {
-                canvasView.wrapperWindowRef = [skin luaUnref:refTable ref:canvasView.wrapperWindowRef] ;
-                lua_pushvalue(L, 2) ;
-                canvasView.wrapperWindowRef = [skin luaRef:refTable] ;
-            } else {
-                return luaL_argerror(L, 2, "canvas must be assigned to window first") ;
-            }
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int canvas_hidden(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSUITKElementCanvas *canvasView = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-
-    lua_pushboolean(L, canvasView.hidden) ;
     return 1 ;
 }
 
@@ -3615,19 +3534,6 @@ static id toHSUITKElementCanvasFromLua(lua_State *L, int idx) {
 
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
-static int userdata_tostring(lua_State* L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKElementCanvas *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
-    NSString *frame ;
-    if (obj.wrapperWindowRef != LUA_NOREF) {
-        frame = [NSString stringWithFormat:@"%@ (legacy)", NSStringFromRect(RectWithFlippedYCoordinate(obj.window.frame))] ;
-    } else {
-        frame = NSStringFromRect(obj.frame) ;
-    }
-    [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ (%p)", USERDATA_TAG, frame, lua_topointer(L, 1)]] ;
-    return 1 ;
-}
-
 static int userdata_gc(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementCanvas *theView = get_objectFromUserdata(__bridge_transfer HSUITKElementCanvas, L, 1, USERDATA_TAG) ;
@@ -3637,7 +3543,6 @@ static int userdata_gc(lua_State* L) {
             theView.callbackRef         = [skin luaUnref:refTable ref:theView.callbackRef] ;
             theView.mouseCallbackRef    = [skin luaUnref:refTable ref:theView.mouseCallbackRef] ;
             theView.draggingCallbackRef = [skin luaUnref:refTable ref:theView.draggingCallbackRef] ;
-            theView.wrapperWindowRef    = [skin luaUnref:refTable ref:theView.wrapperWindowRef] ;
 
             NSDockTile *tile     = [[NSApplication sharedApplication] dockTile];
             NSView     *tileView = tile.contentView ;
@@ -3671,20 +3576,13 @@ static const luaL_Reg userdata_metaLib[] = {
     {"insertElement",       canvas_insertElementAtIndex},
     {"removeElement",       canvas_removeElementAtIndex},
     {"wantsLayer",          canvas_wantsLayer},
+    {"alpha",               canvas_alpha},
+    {"mouseCallback",       canvas_mouseCallback},
 
     {"size",                canvas_size},
     {"frameSize",           canvas_size}, // override default frameSize from __view
 
-    {"_alpha",              canvas_alpha},
-    {"_hide",               canvas_hide},
-    {"_mouseCallback",      canvas_mouseCallback},
-    {"_show",               canvas_show},
-
-    {"_wrappedWindow",      canvas_wrappedWindow},
-    {"_hidden",             canvas_hidden},
-
 // other metamethods inherited from _control and _view
-    {"__tostring",          userdata_tostring},
     {"__gc",                userdata_gc},
     {NULL,    NULL}
 };
@@ -3693,11 +3591,11 @@ static const luaL_Reg userdata_metaLib[] = {
 static luaL_Reg moduleLib[] = {
     {"defaultTextStyle", canvas_defaultTextAttributes},
     {"elementSpec",      canvas_dumpLanguageDictionary},
-    {"newCanvas",        canvas_new},
+    {"new",              canvas_new},
     {NULL,  NULL}
 };
 
-int luaopen_hs__asm_uitk_libelement_canvas(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libcanvas(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
@@ -3722,6 +3620,7 @@ int luaopen_hs__asm_uitk_libelement_canvas(lua_State* L) {
         @"alpha",
         @"wantsLayer",
         @"frameSize",
+        @"canvasMouseEvents",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     // (all elements inherit from _view)
