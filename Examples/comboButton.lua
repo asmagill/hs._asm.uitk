@@ -16,4 +16,4 @@ for i = 1, 10, 1 do
         title = "Item " .. tostring(i),
     }
 end
-content[1].menu = m
+content[1]._properties.menu = m

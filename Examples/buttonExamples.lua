@@ -28,7 +28,7 @@ for i, v in ipairs(types) do
     grp[#grp + 1] = uitk.element.button.buttonType(v):title(v):alternateTitle("not " .. v):tooltip("button type " .. v)
 end
 
-local lastFrame = grp[#grp].containerFrame._effective
+local lastFrame = grp[#grp]._properties.containerFrame._effective
 
 -- 10.12 constructors; approximations are used if 10.11 or 10.10 detected; included here so I can determine what to mimic
 grp[#grp + 1] = {

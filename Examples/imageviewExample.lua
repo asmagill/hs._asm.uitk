@@ -1,7 +1,7 @@
 local uitk   = require("hs._asm.uitk")
 local image  = require("hs.image")
 local stext  = require("hs.styledtext")
-local canvas = uitk.element.canvas
+local canvas = uitk.element.canvas._legacy
 
 local module = {}
 
@@ -37,6 +37,7 @@ local imageElement = uitk.element.image():image(placeholder)
                                          :imageFrameStyle("bezel")
                                          :imageScaling("proportionallyUpOrDown")
                                          :callback(function(o)
+                                            print(o)
                                              if module.canvas then module.canvas:delete() end
                                              module.canvas = canvas.new{ x = 700, y = 100, h = 100, w = 100 }:show()
                                              module.canvas[1] = {

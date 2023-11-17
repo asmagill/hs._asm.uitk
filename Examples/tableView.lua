@@ -29,9 +29,9 @@ for i = 1, 20, 1 do
         containerFrame = { w = 300 },
     }
     action[2] = uitk.element.button.buttonWithTitle("Select"):bezelStyle("roundRect")
-    action[2]._element:position("after", action[1]._element, 5, "center")
+    action[2]:position("after", action[1], 5, "center")
     action[3] = uitk.element.button.buttonWithTitle("Clear"):bezelStyle("roundRect")
-    action[3]._element:position("after", action[2]._element, 5, "center")
+    action[3]:position("after", action[2], 5, "center")
     local modifier = uitk.element.popUpButton(modsMenu):selectedIndex(1)
     local key      = uitk.element.popUpButton(keysMenu):selectedIndex(1)
 
@@ -67,13 +67,12 @@ local tableView = uitk.element.container.table():dataSourceCallback(dataSourceCa
                                                     print("tablePassthrough", finspect(...))
                                                 end)
 
-local scroller = uitk.element.container.scroller{}
+local scroller = uitk.element.container.scroller{}:document(tableView)
 
-scroller.element = {
-    _element         = tableView,
+tableView._properties = {
     columnAutosizing = "firstColumnOnly",
     callback         = function(...)
-                           print("scrollerCallback", finspect(...))
+                           print("tableCallback", finspect(...))
                        end,
 }
 

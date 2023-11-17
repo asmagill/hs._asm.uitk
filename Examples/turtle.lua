@@ -1,6 +1,7 @@
 local uitk = require("hs._asm.uitk")
 w = uitk.window{x = 100, y = 100, h = 1000, w = 1000 }:show()
 t = uitk.element.turtle{}
+w:content(t)
 
 tgFern = function(turtle, size, sign)
     local tgFern2
@@ -30,6 +31,8 @@ end
 -- t:cs()
 -- tgFern(t, 25, 1)
 
+-- for i = 0, 359, 45 do t:home():rt(i) ; tgFern(t, 25, 2) end
+
 fern = function(turtle, size, sign)
     if (size >= 1) then
         turtle:forward(size):right(70 * sign)
@@ -52,5 +55,5 @@ wheel = function(turtle, _step)
     print("Completed in", os.time() - t)
 end
 
--- t:cs()
--- wheel(t, 90)
+t:cs()
+wheel(t, 90)

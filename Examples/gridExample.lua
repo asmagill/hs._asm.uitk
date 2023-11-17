@@ -32,30 +32,30 @@ local gridView = uitk.element.container.grid({
 })
 
 -- the sides need a little padding
-gridView[0][1].leadingPadding = 5
-gridView[0][2].trailingPadding = 5
+gridView[0][1]._properties.leadingPadding = 5
+gridView[0][2]._properties.trailingPadding = 5
 -- as does the bottom
-gridView[-1].bottomPadding = 5
+gridView[-1]._properties.bottomPadding = 5
 
 --  the first column needs to be right-justified:
-gridView[0][1].placement = "trailing"
+gridView[0][1]._properties.placement = "trailing"
 
 --  all cells use firstBaseline alignment
 gridView:alignment("firstBaseline")
 
 -- We need a little extra vertical space around the popup:
-local adjRow = gridView:cellForElement(brailleTranslationPopup):row():wrap()
+local adjRow = gridView:cellForElement(brailleTranslationPopup):row()._properties
 adjRow.topPadding = 5
 adjRow.bottomPadding = 5
 
 -- and statusCells row...
-adjRow = gridView:cellForElement(statusCellsLabel):row():wrap()
+adjRow = gridView:cellForElement(statusCellsLabel):row()._properties
 adjRow.topPadding = 6
 
 -- Special treatment for centered checkbox:
-adjRow = gridView:cellForElement(showAlertCheckbox):row():wrap()
+adjRow = gridView:cellForElement(showAlertCheckbox):row()._properties
 adjRow.topPadding = 4
-adjRow._row:mergeCells(1,2)
+adjRow._element:mergeCells(1,2)
 adjRow[1].columnPlacement = "center"
 
 local gridFittingSize = gridView:fittingSize()
