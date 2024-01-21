@@ -37,8 +37,9 @@ local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 
 local subModules = {
 --  name       lua or library?
-    secure   = false,
-    comboBox = false,
+    secure      = false,
+    comboBox    = false,
+    searchField = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
