@@ -41,6 +41,7 @@ local subModules = {
     scroller = true,
     grid     = true,
     table    = true,
+    tabs     = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -121,10 +122,10 @@ moduleMT.__newindex = function(self, key, value)
     if idx then
         if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
 
-        if uitk.element.isElementType(value) then value = { _element = value } end
+        if uitk.element.isElementType(value) then value = { _self = value } end
 
         if type(value) == "table" then
-            local element = value._element
+            local element = value._self
         -- add/insert new element
             if uitk.element.isElementType(element) then
                 -- insert could fail for some reason, so do it first
