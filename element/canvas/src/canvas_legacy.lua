@@ -330,6 +330,7 @@ module.new = function(...)
 
     if canvasWin then
         canvasWin:backgroundColor{ alpha = 0, white = 0 }
+                 :allowTextEntry(false)
                  :opaque(false)
                  :hasShadow(false)
                  :ignoresMouseEvents(true)

@@ -1100,16 +1100,16 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     return !self.window.ignoresMouseEvents;
 }
 
-// - (BOOL)canBecomeKeyView {
-//     __block BOOL allowKey = NO ;
+- (BOOL)canBecomeKeyView {
+    __block BOOL allowKey = NO ;
 //     [_elementList enumerateObjectsUsingBlock:^(NSDictionary *element, __unused NSUInteger idx, BOOL *stop) {
 //         if (element[@"canvas"] && [element[@"canvas"] respondsToSelector:@selector(canBecomeKeyView)]) {
 //             allowKey = [element[@"canvas"] canBecomeKeyView] ;
 //             *stop = YES ;
 //         }
 //     }] ;
-//     return allowKey ;
-// }
+    return allowKey ;
+}
 
 - (void)mouseMoved:(NSEvent *)theEvent {
     BOOL canvasMouseEvents = _canvasMouseEnterExit || _canvasMouseMove ;
@@ -3520,7 +3520,7 @@ static int pushHSUITKElementCanvas(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementCanvasFromLua(lua_State *L, int idx) {
+static id toHSUITKElementCanvas(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementCanvas *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -3604,9 +3604,9 @@ int luaopen_hs__asm_uitk_element_libcanvas(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementCanvas         forClass:"HSUITKElementCanvas"];
-    [skin registerLuaObjectHelper:toHSUITKElementCanvasFromLua forClass:"HSUITKElementCanvas"
-                                                    withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementCanvas  forClass:"HSUITKElementCanvas"];
+    [skin registerLuaObjectHelper:toHSUITKElementCanvas forClass:"HSUITKElementCanvas"
+                                             withUserdataMapping:USERDATA_TAG];
 
     canvas_compositeTypes(L) ;      lua_setfield(L, -2, "compositeTypes") ;
 
