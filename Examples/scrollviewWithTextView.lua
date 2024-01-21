@@ -15,7 +15,7 @@ s._properties.document._properties = {
 }
 
 c[1] = {
-    _element         = s,
+    _self            = s,
     containerFrame   = { h = "100%", w = "100%" },
     verticalScroller = true,
     horizontalRuler  = true,

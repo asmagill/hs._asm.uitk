@@ -100,10 +100,10 @@ moduleMT.__newindex = function(self, key, value)
     if idx then
        if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
 
-        if getmetatable(value) == menuItemMT then value = { _element = value } end
+        if getmetatable(value) == menuItemMT then value = { _self = value } end
 
         if type(value) == "table" then
-            local item = value._element or module.item(value.title or host.globallyUniqueString())
+            local item = value._self or module.item(value.title or host.globallyUniqueString())
         -- add/insert new menu item
             if getmetatable(item) == menuItemMT then
                 -- insert could fail for some reason, so do it first

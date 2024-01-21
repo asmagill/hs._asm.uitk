@@ -25,7 +25,7 @@ for i = 1, 20, 1 do
     local label    = uitk.element.textField.newLabel("Action " .. tostring(i))
     local action   = uitk.element.container()
     action[1] = {
-        _element       = uitk.element.textField.newTextField(),
+        _self          = uitk.element.textField.newTextField(),
         containerFrame = { w = 300 },
     }
     action[2] = uitk.element.button.buttonWithTitle("Select"):bezelStyle("roundRect")
@@ -81,7 +81,7 @@ local window = uitk.window{x = 100, y = 100, h = 200, w = 900 }:show():passthrou
 end)
 local content  = window:content()
 content[1] = {
-    _element         = scroller,
+    _self            = scroller,
     containerFrame   = { h = "100%", w = "100%" },
     verticalScroller = true,
 }

@@ -30,9 +30,8 @@ end
 
 local lastFrame = grp[#grp]._properties.containerFrame._effective
 
--- 10.12 constructors; approximations are used if 10.11 or 10.10 detected; included here so I can determine what to mimic
 grp[#grp + 1] = {
-    _element       = uitk.element.button.buttonWithImage(image.imageFromName(image.systemImageNames.ApplicationIcon)),
+    _self          = uitk.element.button.buttonWithImage(image.imageFromName(image.systemImageNames.ApplicationIcon)),
     containerFrame = { y = lastFrame.y + 2 * lastFrame.h }
 }
 grp[#grp + 1] = uitk.element.button.buttonWithTitle("buttonWithTitle")

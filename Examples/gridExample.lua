@@ -55,7 +55,7 @@ adjRow.topPadding = 6
 -- Special treatment for centered checkbox:
 adjRow = gridView:cellForElement(showAlertCheckbox):row()._properties
 adjRow.topPadding = 4
-adjRow._element:mergeCells(1,2)
+adjRow._self:mergeCells(1,2)
 adjRow[1].columnPlacement = "center"
 
 local gridFittingSize = gridView:fittingSize()

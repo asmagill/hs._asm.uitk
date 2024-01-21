@@ -62,7 +62,7 @@ wrappedUserdataMT.__index = function(self, key)
     local userdata = obj.userdata
 
 -- builtin convenience values
-    if key == "_element" then
+    if key == "_self" then
         return userdata
     elseif key == "_type" then
         return obj.userdataMT.__type
@@ -100,7 +100,7 @@ wrappedUserdataMT.__newindex = function(self, key, value)
     local userdata = obj.userdata
 
 -- builtin convenience read-only values
-    if key == "_element" or key == "_type" then
+    if key == "_self" or key == "_type" then
         error(key .. " cannot be modified", 3)
 
 -- readonly additions from element
@@ -134,7 +134,7 @@ wrappedUserdataMT.__pairs = function(self)
     local obj = wrappedUserdataMT.__e[self]
     local userdata = obj.userdata
 
-    local keys = {  "_element", "_type", }
+    local keys = {  "_self", "_type", }
     for k,_ in pairs(obj.readonlyAdditions) do table.insert(keys, k) end
     for _,v in ipairs(obj.userdataMT._propertyList or {}) do table.insert(keys, v) end
 
@@ -182,8 +182,7 @@ module.addPropertiesWrapper = function(objMT, readonlyAdditions)
         -- check for inheritable methods from immediate container
         if type(value) == "nil" and objMT._nextResponder then
             local parent          = self:_nextResponder()
-            local parentMT        = getmetatable(parent) or {}
-            local inheritedMethod = (parentMT._inheritableMethods or {})[key]
+            local inheritedMethod = ((getmetatable(parent) or {})._inheritableMethods or {})[key]
 
             if type(inheritedMethod) == "function" then
                 value = function(self, ...)
@@ -205,10 +204,11 @@ module.addPropertiesWrapper = function(objMT, readonlyAdditions)
     local old_newindex = objMT.__newindex
     objMT.__newindex = function(self, key, value)
         if key == "_properties" and type(value) == "table" then
+            local inheritedProperties = self._nextResponder and (getmetatable(self:_nextResponder()) or {})._inheritableProperties or {}
             for k,v in pairs(value) do
-                if not(k == "_element" or k == "_type" or readonlyAdditions[k]) then
---                     if fnutils.contains(objMT._propertyList, k) then
-                    if type(self[k]) == "function" then
+                if not(k == "_self" or k == "_type" or readonlyAdditions[k]) then
+                    if fnutils.contains(objMT._propertyList, k) or fnutils.contains(inheritedProperties, k) then
+--                     if type(self[k]) == "function" then
                         self[k](self, v)
                     else
                         log.wf("__newindex: unrecognized property %s for %s", k, objType)
