@@ -202,23 +202,6 @@ static BOOL oneOfOurs(NSView *obj) {
 
 // NOTE: Passthrough Callback Support
 
-// allow next responder a chance since we don't have a callback set
-- (void)passCallbackUpWith:(NSArray *)arguments {
-    NSObject *nextInChain = [self nextResponder] ;
-
-    SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
-    while(nextInChain) {
-        if ([nextInChain respondsToSelector:passthroughCallback]) {
-            [nextInChain performSelectorOnMainThread:passthroughCallback
-                                          withObject:arguments
-                                       waitUntilDone:YES] ;
-            break ;
-        } else {
-            nextInChain = [(NSResponder *)nextInChain nextResponder] ;
-        }
-    }
-}
-
 // perform callback for subviews which don't have a callback defined
 - (void)performPassthroughCallback:(NSArray *)arguments {
     if (_passThroughRef != LUA_NOREF) {
@@ -237,7 +220,19 @@ static BOOL oneOfOurs(NSView *obj) {
             [skin logError:[NSString stringWithFormat:@"%s:passthroughCallback error:%@", USERDATA_TAG, errorMessage]] ;
         }
     } else {
-        [self passCallbackUpWith:@[ self, arguments ]] ;
+        NSObject *nextInChain = [self nextResponder] ;
+
+        SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
+        while(nextInChain) {
+            if ([nextInChain respondsToSelector:passthroughCallback]) {
+                [nextInChain performSelectorOnMainThread:passthroughCallback
+                                              withObject:@[ self, arguments ]
+                                           waitUntilDone:YES] ;
+                break ;
+            } else {
+                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+            }
+        }
     }
 }
 
@@ -360,7 +355,7 @@ static BOOL oneOfOurs(NSView *obj) {
 
 #pragma mark - Module Functions -
 
-/// hs._asm.uitk.element.table.new([frame]) -> tableObject
+/// hs._asm.uitk.element.container.table.new([frame]) -> tableObject
 /// Constructor
 /// Creates a new table element for `hs._asm.uitk.window`.
 ///
@@ -407,7 +402,7 @@ static int table_newColumn(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.element.containertable:passthroughCallback([fn | nil]) -> tableObject | fn | nil
+/// hs._asm.uitk.element.container.table:passthroughCallback([fn | nil]) -> tableObject | fn | nil
 /// Method
 /// Get or set the pass through callback for the table
 ///
@@ -1816,7 +1811,7 @@ static int pushHSUITKElementContainerTableView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementContainerTableViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerTableView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementContainerTableView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1837,7 +1832,7 @@ static int pushNSTableColumn(lua_State *L, id obj) {
     return 1;
 }
 
-static id toNSTableColumnFromLua(lua_State *L, int idx) {
+static id toNSTableColumn(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSTableColumn *value ;
     if (luaL_testudata(L, idx, UD_COLUMN_TAG)) {
@@ -1859,7 +1854,7 @@ static int pushNSTableRowView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toNSTableRowViewFromLua(lua_State *L, int idx) {
+static id toNSTableRowView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSTableRowView *value ;
     if (luaL_testudata(L, idx, UD_ROW_TAG)) {
@@ -2060,17 +2055,17 @@ int luaopen_hs__asm_uitk_element_libcontainer_table(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementContainerTableView         forClass:"HSUITKElementContainerTableView"];
-    [skin registerLuaObjectHelper:toHSUITKElementContainerTableViewFromLua forClass:"HSUITKElementContainerTableView"
-                                                     withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerTableView  forClass:"HSUITKElementContainerTableView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerTableView forClass:"HSUITKElementContainerTableView"
+                                                         withUserdataMapping:USERDATA_TAG];
 
-    [skin registerPushNSHelper:pushNSTableRowView         forClass:"NSTableRowView"];
-    [skin registerLuaObjectHelper:toNSTableRowViewFromLua forClass:"NSTableRowView"
-                                               withUserdataMapping:UD_ROW_TAG];
+    [skin registerPushNSHelper:pushNSTableRowView  forClass:"NSTableRowView"];
+    [skin registerLuaObjectHelper:toNSTableRowView forClass:"NSTableRowView"
+                                        withUserdataMapping:UD_ROW_TAG];
 
-    [skin registerPushNSHelper:pushNSTableColumn         forClass:"NSTableColumn"];
-    [skin registerLuaObjectHelper:toNSTableColumnFromLua forClass:"NSTableColumn"
-                                              withUserdataMapping:UD_COLUMN_TAG];
+    [skin registerPushNSHelper:pushNSTableColumn  forClass:"NSTableColumn"];
+    [skin registerLuaObjectHelper:toNSTableColumn forClass:"NSTableColumn"
+                                       withUserdataMapping:UD_COLUMN_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

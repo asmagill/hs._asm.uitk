@@ -689,7 +689,7 @@ static int pushHSUITKElementImageViewControl(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementImageViewControlFromLua(lua_State *L, int idx) {
+static id toHSUITKElementImageViewControl(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementImageViewControl *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -757,9 +757,9 @@ int luaopen_hs__asm_uitk_libelement_image(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementImageViewControl         forClass:"HSUITKElementImageViewControl"];
-    [skin registerLuaObjectHelper:toHSUITKElementImageViewControlFromLua forClass:"HSUITKElementImageViewControl"
-                                                               withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementImageViewControl  forClass:"HSUITKElementImageViewControl"];
+    [skin registerLuaObjectHelper:toHSUITKElementImageViewControl forClass:"HSUITKElementImageViewControl"
+                                                       withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

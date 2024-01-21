@@ -974,7 +974,7 @@ static int pushHSUITKElementContainerScrollView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementContainerScrollViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerScrollView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementContainerScrollView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1067,9 +1067,9 @@ int luaopen_hs__asm_uitk_element_libcontainer_scroller(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementContainerScrollView         forClass:"HSUITKElementContainerScrollView"];
-    [skin registerLuaObjectHelper:toHSUITKElementContainerScrollViewFromLua forClass:"HSUITKElementContainerScrollView"
-                                                        withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerScrollView  forClass:"HSUITKElementContainerScrollView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerScrollView forClass:"HSUITKElementContainerScrollView"
+                                                          withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

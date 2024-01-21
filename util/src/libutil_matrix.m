@@ -275,7 +275,7 @@ static int pushNSAffineTransform(lua_State *L, id obj) {
     return 1 ;
 }
 
-static id toNSAffineTransformFromLua(lua_State *L, int idx) {
+static id toNSAffineTransform(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSAffineTransform  *value = [NSAffineTransform transform] ;
     NSAffineTransformStruct structure = [value transformStruct] ;
@@ -358,9 +358,9 @@ int luaopen_hs__asm_uitk_libutil_matrix(lua_State* L) {
     // since they're identical, don't add conversions if canvas not being wrapped and already loaded
     // Reduces one point for spurious unnecessary warnings at least...
     if (![skin canPushNSObject:[NSAffineTransform transform]]) {
-        [skin registerPushNSHelper:pushNSAffineTransform         forClass:"NSAffineTransform"];
-        [skin registerLuaObjectHelper:toNSAffineTransformFromLua forClass:"NSAffineTransform"
-                                                         withTableMapping:"NSAffineTransform"];
+        [skin registerPushNSHelper:pushNSAffineTransform  forClass:"NSAffineTransform"];
+        [skin registerLuaObjectHelper:toNSAffineTransform forClass:"NSAffineTransform"
+                                                  withTableMapping:"NSAffineTransform"];
     }
 
     return 1;

@@ -485,7 +485,7 @@ static int pushHSUITKElementLevelIndicator(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementLevelIndicatorFromLua(lua_State *L, int idx) {
+static id toHSUITKElementLevelIndicator(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementLevelIndicator *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -540,9 +540,9 @@ int luaopen_hs__asm_uitk_libelement_levelIndicator(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementLevelIndicator         forClass:"HSUITKElementLevelIndicator"];
-    [skin registerLuaObjectHelper:toHSUITKElementLevelIndicatorFromLua forClass:"HSUITKElementLevelIndicator"
-                                                             withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementLevelIndicator  forClass:"HSUITKElementLevelIndicator"];
+    [skin registerLuaObjectHelper:toHSUITKElementLevelIndicator forClass:"HSUITKElementLevelIndicator"
+                                                     withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

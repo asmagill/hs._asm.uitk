@@ -331,7 +331,7 @@ static int pushHSUITKElementComboButton(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementComboButtonFromLua(lua_State *L, int idx) {
+static id toHSUITKElementComboButton(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementComboButton *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -397,9 +397,9 @@ int luaopen_hs__asm_uitk_libelement_comboButton(lua_State* L) {
 
         defineInternalDictionaries() ;
 
-        [skin registerPushNSHelper:pushHSUITKElementComboButton         forClass:"HSUITKElementComboButton"];
-        [skin registerLuaObjectHelper:toHSUITKElementComboButtonFromLua forClass:"HSUITKElementComboButton"
-                                                              withUserdataMapping:USERDATA_TAG];
+        [skin registerPushNSHelper:pushHSUITKElementComboButton  forClass:"HSUITKElementComboButton"];
+        [skin registerLuaObjectHelper:toHSUITKElementComboButton forClass:"HSUITKElementComboButton"
+                                                      withUserdataMapping:USERDATA_TAG];
 
         // properties for this item that can be modified through container metamethods
         luaL_getmetatable(L, USERDATA_TAG) ;

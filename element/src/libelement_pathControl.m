@@ -285,7 +285,7 @@ static int pushHSUITKElementPathControl(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementPathControlFromLua(lua_State *L, int idx) {
+static id toHSUITKElementPathControl(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementPathControl *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -349,9 +349,9 @@ int luaopen_hs__asm_uitk_libelement_pathControl(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementPathControl         forClass:"HSUITKElementPathControl"];
-    [skin registerLuaObjectHelper:toHSUITKElementPathControlFromLua forClass:"HSUITKElementPathControl"
-                                                          withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementPathControl  forClass:"HSUITKElementPathControl"];
+    [skin registerLuaObjectHelper:toHSUITKElementPathControl forClass:"HSUITKElementPathControl"
+                                                  withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

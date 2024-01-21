@@ -1339,7 +1339,7 @@ static int pushHSUITKElementContainerView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementContainerViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementContainerView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1437,9 +1437,9 @@ int luaopen_hs__asm_uitk_element_libcontainer(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKElementContainerView         forClass:"HSUITKElementContainerView"];
-    [skin registerLuaObjectHelper:toHSUITKElementContainerViewFromLua forClass:"HSUITKElementContainerView"
-                                                           withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerView  forClass:"HSUITKElementContainerView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerView forClass:"HSUITKElementContainerView"
+                                                    withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

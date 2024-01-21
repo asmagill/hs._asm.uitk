@@ -677,7 +677,7 @@ static int pushHSStatusItemWrapper(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSStatusItemWrapperFromLua(lua_State *L, int idx) {
+static id toHSStatusItemWrapper(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSStatusItemWrapper *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -801,8 +801,8 @@ int luaopen_hs__asm_uitk_libmenubar(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSStatusItemWrapper         forClass:"HSStatusItemWrapper"];
-    [skin registerLuaObjectHelper:toHSStatusItemWrapperFromLua forClass:"HSStatusItemWrapper"
+    [skin registerPushNSHelper:pushHSStatusItemWrapper  forClass:"HSStatusItemWrapper"];
+    [skin registerLuaObjectHelper:toHSStatusItemWrapper forClass:"HSStatusItemWrapper"
                                              withUserdataMapping:USERDATA_TAG];
 
 

@@ -215,7 +215,7 @@ static int pushHSUITKElementSecureTextField(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementSecureTextFieldFromLua(lua_State *L, int idx) {
+static id toHSUITKElementSecureTextField(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementSecureTextField *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -250,9 +250,9 @@ int luaopen_hs__asm_uitk_element_libtextField_secure(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKElementSecureTextField         forClass:"HSUITKElementSecureTextField"];
-    [skin registerLuaObjectHelper:toHSUITKElementSecureTextFieldFromLua forClass:"HSUITKElementSecureTextField"
-                                                              withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementSecureTextField  forClass:"HSUITKElementSecureTextField"];
+    [skin registerLuaObjectHelper:toHSUITKElementSecureTextField forClass:"HSUITKElementSecureTextField"
+                                                      withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

@@ -327,7 +327,7 @@ static int pushHSUITKElementComboBox(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementComboBoxFromLua(lua_State *L, int idx) {
+static id toHSUITKElementComboBox(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementComboBox *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -369,9 +369,9 @@ int luaopen_hs__asm_uitk_element_libtextField_comboBox(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKElementComboBox         forClass:"HSUITKElementComboBox"];
-    [skin registerLuaObjectHelper:toHSUITKElementComboBoxFromLua forClass:"HSUITKElementComboBox"
-                                                       withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementComboBox  forClass:"HSUITKElementComboBox"];
+    [skin registerLuaObjectHelper:toHSUITKElementComboBox forClass:"HSUITKElementComboBox"
+                                               withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

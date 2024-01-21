@@ -727,7 +727,7 @@ static int pushHSUITKElementDatePicker(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementDatePickerFromLua(lua_State *L, int idx) {
+static id toHSUITKElementDatePicker(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementDatePicker *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -778,9 +778,9 @@ int luaopen_hs__asm_uitk_libelement_datepicker(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementDatePicker         forClass:"HSUITKElementDatePicker"];
-    [skin registerLuaObjectHelper:toHSUITKElementDatePickerFromLua forClass:"HSUITKElementDatePicker"
-                                                         withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementDatePicker  forClass:"HSUITKElementDatePicker"];
+    [skin registerLuaObjectHelper:toHSUITKElementDatePicker forClass:"HSUITKElementDatePicker"
+                                                 withUserdataMapping:USERDATA_TAG];
 
     datepicker_calendarIdentifiers(L) ;   lua_setfield(L, -2, "calendarIdentifiers") ;
     datepicker_timezoneAbbreviations(L) ; lua_setfield(L, -2, "timezoneAbbreviations") ;

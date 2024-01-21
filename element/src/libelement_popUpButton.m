@@ -310,7 +310,7 @@ static int pushHSUITKElementPopUpButton(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementPopUpButtonFromLua(lua_State *L, int idx) {
+static id toHSUITKElementPopUpButton(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementPopUpButton *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -374,9 +374,9 @@ int luaopen_hs__asm_uitk_libelement_popUpButton(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementPopUpButton         forClass:"HSUITKElementPopUpButton"];
-    [skin registerLuaObjectHelper:toHSUITKElementPopUpButtonFromLua forClass:"HSUITKElementPopUpButton"
-                                                          withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementPopUpButton  forClass:"HSUITKElementPopUpButton"];
+    [skin registerLuaObjectHelper:toHSUITKElementPopUpButton forClass:"HSUITKElementPopUpButton"
+                                                  withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

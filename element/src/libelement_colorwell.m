@@ -378,7 +378,7 @@ static int pushHSUITKElementColorWell(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementColorWellFromLua(lua_State *L, int idx) {
+static id toHSUITKElementColorWell(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementColorWell *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -439,9 +439,9 @@ int luaopen_hs__asm_uitk_libelement_colorwell(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementColorWell         forClass:"HSUITKElementColorWell"];
-    [skin registerLuaObjectHelper:toHSUITKElementColorWellFromLua forClass:"HSUITKElementColorWell"
-                                                     withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementColorWell  forClass:"HSUITKElementColorWell"];
+    [skin registerLuaObjectHelper:toHSUITKElementColorWell forClass:"HSUITKElementColorWell"
+                                                withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

@@ -798,7 +798,7 @@ static int pushHSUITKPanelSave(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKPanelSaveFromLua(lua_State *L, int idx) {
+static id toHSUITKPanelSave(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKPanelSave *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -820,7 +820,7 @@ static int pushHSUITKPanelOpen(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKPanelOpenFromLua(lua_State *L, int idx) {
+static id toHSUITKPanelOpen(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKPanelOpen *value ;
     if (luaL_testudata(L, idx, UD_OPEN_TAG)) {
@@ -977,13 +977,13 @@ int luaopen_hs__asm_uitk_libpanel_save(lua_State* L) {
     luaL_newlib(L, openModuleLib) ; lua_setfield(L, -2, "_open") ;
     [skin registerObject:UD_OPEN_TAG  objectFunctions:ud_open_metaLib] ;
 
-    [skin registerPushNSHelper:pushHSUITKPanelSave         forClass:"HSUITKPanelSave"];
-    [skin registerLuaObjectHelper:toHSUITKPanelSaveFromLua forClass:"HSUITKPanelSave"
-                                                withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKPanelSave  forClass:"HSUITKPanelSave"];
+    [skin registerLuaObjectHelper:toHSUITKPanelSave forClass:"HSUITKPanelSave"
+                                         withUserdataMapping:USERDATA_TAG];
 
-    [skin registerPushNSHelper:pushHSUITKPanelOpen         forClass:"HSUITKPanelOpen"];
-    [skin registerLuaObjectHelper:toHSUITKPanelOpenFromLua forClass:"HSUITKPanelOpen"
-                                                withUserdataMapping:UD_OPEN_TAG];
+    [skin registerPushNSHelper:pushHSUITKPanelOpen  forClass:"HSUITKPanelOpen"];
+    [skin registerLuaObjectHelper:toHSUITKPanelOpen forClass:"HSUITKPanelOpen"
+                                         withUserdataMapping:UD_OPEN_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[

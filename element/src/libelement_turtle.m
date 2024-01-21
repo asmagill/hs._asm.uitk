@@ -1531,7 +1531,7 @@ static int pushHSUITKElementTurtle(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementTurtleFromLua(lua_State *L, int idx) {
+static id toHSUITKElementTurtle(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementTurtle *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1613,9 +1613,9 @@ int luaopen_hs__asm_uitk_libelement_turtle(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementTurtle         forClass:"HSUITKElementTurtle"];
-    [skin registerLuaObjectHelper:toHSUITKElementTurtleFromLua forClass:"HSUITKElementTurtle"
-                                                       withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementTurtle  forClass:"HSUITKElementTurtle"];
+    [skin registerLuaObjectHelper:toHSUITKElementTurtle forClass:"HSUITKElementTurtle"
+                                             withUserdataMapping:USERDATA_TAG];
 
     [skin pushNSObject:wrappedCommands] ; lua_setfield(L, -2, "_wrappedCommands") ;
 

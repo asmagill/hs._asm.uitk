@@ -219,15 +219,15 @@ static void defineInternalDictionaries(void) {
 }
 
 - (void)viewDidHide {
-    [LuaSkin logInfo:@"entered viewDidHide"] ;
-    if (_pauseWhenHidden) {
+//     [LuaSkin logInfo:@"entered viewDidHide"] ;
+    if (_pauseWhenHidden && _rateWhenHidden == 0.0f) {
         _rateWhenHidden = self.player.rate ;
         [self.player pause] ;
     }
 }
 
 - (void)viewDidUnhide {
-    [LuaSkin logInfo:@"entered viewDidUnhide"] ;
+//     [LuaSkin logInfo:@"entered viewDidUnhide"] ;
     if (_rateWhenHidden != 0.0f) {
         [self.player play] ; // see api docs for AVPlayer defaultRate
         self.player.rate = _rateWhenHidden ;
@@ -1567,7 +1567,7 @@ static int pushHSUITKElementAVPlayer(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementAVPlayerFromLua(lua_State *L, int idx) {
+static id toHSUITKElementAVPlayer(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementAVPlayer *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1686,9 +1686,9 @@ int luaopen_hs__asm_uitk_libelement_avplayer(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementAVPlayer         forClass:"HSUITKElementAVPlayer"];
-    [skin registerLuaObjectHelper:toHSUITKElementAVPlayerFromLua forClass:"HSUITKElementAVPlayer"
-                                                     withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementAVPlayer  forClass:"HSUITKElementAVPlayer"];
+    [skin registerLuaObjectHelper:toHSUITKElementAVPlayer forClass:"HSUITKElementAVPlayer"
+                                               withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

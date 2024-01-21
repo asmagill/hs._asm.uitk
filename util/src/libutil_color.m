@@ -256,7 +256,7 @@ static int pushNSColorList(lua_State *L, id obj) {
     return 1;
 }
 
-static id toNSColorListFromLua(lua_State *L, int idx) {
+static id toNSColorList(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSColorList *value ;
     if (luaL_testudata(L, idx, UD_LIST_TAG)) {
@@ -490,9 +490,9 @@ int luaopen_hs__asm_uitk_libutil_color(lua_State* L) {
         [skin registerLuaObjectHelper:table_toNSColor forClass:"NSColor"
                                               withTableMapping:"NSColor"] ;
 
-        [skin registerPushNSHelper:pushNSColorList         forClass:"NSColorList"];
-        [skin registerLuaObjectHelper:toNSColorListFromLua forClass:"NSColorList"
-                                                withUserdataMapping:UD_LIST_TAG];
+        [skin registerPushNSHelper:pushNSColorList  forClass:"NSColorList"];
+        [skin registerLuaObjectHelper:toNSColorList forClass:"NSColorList"
+                                         withUserdataMapping:UD_LIST_TAG];
     }
 
     return 1;

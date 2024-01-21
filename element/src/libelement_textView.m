@@ -1695,7 +1695,7 @@ static int pushHSUITKElementTextView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementTextViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementTextView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementTextView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -2049,9 +2049,9 @@ int luaopen_hs__asm_uitk_libelement_textView(lua_State* L) {
     textView_layoutOrientations(L) ; lua_setfield(L, -2, "layoutOrientations") ;
     textView_textCheckingTypes(L) ;  lua_setfield(L, -2, "textCheckingTypes") ;
 
-    [skin registerPushNSHelper:pushHSUITKElementTextView         forClass:"HSUITKElementTextView"];
-    [skin registerLuaObjectHelper:toHSUITKElementTextViewFromLua forClass:"HSUITKElementTextView"
-                                                     withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementTextView  forClass:"HSUITKElementTextView"];
+    [skin registerLuaObjectHelper:toHSUITKElementTextView forClass:"HSUITKElementTextView"
+                                               withUserdataMapping:USERDATA_TAG];
 
     [skin registerLuaObjectHelper:lua_toNSAttributedStringKeyDictionary
                          forClass:"NSAttributedStringKeyDictionary"] ;

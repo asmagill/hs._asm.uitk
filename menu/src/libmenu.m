@@ -582,7 +582,7 @@ static int pushHSMenu(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSMenuFromLua(lua_State *L, int idx) {
+static id toHSMenu(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSMenu *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -696,9 +696,9 @@ int luaopen_hs__asm_uitk_libmenu(lua_State* L) {
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSMenu         forClass:"HSMenu"];
-    [skin registerLuaObjectHelper:toHSMenuFromLua forClass:"HSMenu"
-                                       withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSMenu  forClass:"HSMenu"];
+    [skin registerLuaObjectHelper:toHSMenu forClass:"HSMenu"
+                                withUserdataMapping:USERDATA_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[

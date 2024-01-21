@@ -607,7 +607,7 @@ static int pushHSUITKElementSlider(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementSliderFromLua(lua_State *L, int idx) {
+static id toHSUITKElementSlider(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementSlider *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -657,9 +657,9 @@ int luaopen_hs__asm_uitk_libelement_slider(lua_State* L) {
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKElementSlider         forClass:"HSUITKElementSlider"];
-    [skin registerLuaObjectHelper:toHSUITKElementSliderFromLua forClass:"HSUITKElementSlider"
-                                                     withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementSlider  forClass:"HSUITKElementSlider"];
+    [skin registerLuaObjectHelper:toHSUITKElementSlider forClass:"HSUITKElementSlider"
+                                             withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

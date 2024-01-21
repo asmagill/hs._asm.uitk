@@ -1342,7 +1342,7 @@ static int pushHSUITKElementContainerGridView(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementContainerGridViewFromLua(lua_State *L, int idx) {
+static id toHSUITKElementContainerGridView(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementContainerGridView *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1381,7 +1381,7 @@ static int pushNSGridCell(lua_State *L, id obj) {
     return 1;
 }
 
-static id toNSGridRowFromLua(lua_State *L, int idx) {
+static id toNSGridRow(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSGridRow *value ;
     if (luaL_testudata(L, idx, UD_ROW_TAG)) {
@@ -1393,7 +1393,7 @@ static id toNSGridRowFromLua(lua_State *L, int idx) {
     return value ;
 }
 
-static id toNSGridColumnFromLua(lua_State *L, int idx) {
+static id toNSGridColumn(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSGridColumn *value ;
     if (luaL_testudata(L, idx, UD_COL_TAG)) {
@@ -1405,7 +1405,7 @@ static id toNSGridColumnFromLua(lua_State *L, int idx) {
     return value ;
 }
 
-static id toNSGridCellFromLua(lua_State *L, int idx) {
+static id toNSGridCell(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSGridCell *value ;
     if (luaL_testudata(L, idx, UD_CELL_TAG)) {
@@ -1593,21 +1593,21 @@ int luaopen_hs__asm_uitk_element_libcontainer_grid(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementContainerGridView         forClass:"HSUITKElementContainerGridView"];
-    [skin registerLuaObjectHelper:toHSUITKElementContainerGridViewFromLua forClass:"HSUITKElementContainerGridView"
-                                                               withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementContainerGridView  forClass:"HSUITKElementContainerGridView"];
+    [skin registerLuaObjectHelper:toHSUITKElementContainerGridView forClass:"HSUITKElementContainerGridView"
+                                                        withUserdataMapping:USERDATA_TAG];
 
-    [skin registerPushNSHelper:pushNSGridRow         forClass:"NSGridRow"];
-    [skin registerLuaObjectHelper:toNSGridRowFromLua forClass:"NSGridRow"
-                                          withUserdataMapping:UD_ROW_TAG];
+    [skin registerPushNSHelper:pushNSGridRow  forClass:"NSGridRow"];
+    [skin registerLuaObjectHelper:toNSGridRow forClass:"NSGridRow"
+                                   withUserdataMapping:UD_ROW_TAG];
 
-    [skin registerPushNSHelper:pushNSGridColumn         forClass:"NSGridColumn"];
-    [skin registerLuaObjectHelper:toNSGridColumnFromLua forClass:"NSGridColumn"
-                                             withUserdataMapping:UD_COL_TAG];
+    [skin registerPushNSHelper:pushNSGridColumn  forClass:"NSGridColumn"];
+    [skin registerLuaObjectHelper:toNSGridColumn forClass:"NSGridColumn"
+                                      withUserdataMapping:UD_COL_TAG];
 
-    [skin registerPushNSHelper:pushNSGridCell         forClass:"NSGridCell"];
-    [skin registerLuaObjectHelper:toNSGridCellFromLua forClass:"NSGridCell"
-                                           withUserdataMapping:UD_CELL_TAG];
+    [skin registerPushNSHelper:pushNSGridCell  forClass:"NSGridCell"];
+    [skin registerLuaObjectHelper:toNSGridCell forClass:"NSGridCell"
+                                    withUserdataMapping:UD_CELL_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;

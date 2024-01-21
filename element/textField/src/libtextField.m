@@ -75,8 +75,8 @@ BOOL oneOfOurs(NSTextField *obj) {
     _selfRefCount       = 0 ;
 
     self.delegate       = self ;
-    self.target         = self ;
-    self.action         = @selector(performCallback:) ;
+//     self.target         = self ;
+//     self.action         = @selector(performCallback:) ;
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
@@ -170,9 +170,9 @@ BOOL oneOfOurs(NSTextField *obj) {
     return result ;
 }
 
-- (void)performCallback:(__unused id)sender {
-    [self callbackHamster:@[ self, self.stringValue ]] ;
-}
+// - (void)performCallback:(__unused id)sender {
+//     [self callbackHamster:@[ self, self.stringValue ]] ;
+// }
 
 - (BOOL)performKeyEquivalent:(NSEvent *)event {
     unsigned short       keyCode       = event.keyCode ;
@@ -1096,7 +1096,7 @@ static int pushHSUITKElementTextField(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKElementTextFieldFromLua(lua_State *L, int idx) {
+static id toHSUITKElementTextField(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKElementTextField *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1145,12 +1145,13 @@ static const luaL_Reg userdata_metaLib[] = {
     {"maxLines",                textField_maximumNumberOfLines},
     {"backgroundColor",         textField_backgroundColor},
     {"textColor",               textField_textColor},
-    {"selectAll",               textField_selectText},
     {"editingCallback",         textField_editingCallback},
     {"bezelStyle",              textField_bezelStyle},
     {"lineBreakStrategy",       textField_lineBreakStrategy},
     {"placeholder",             textField_placeholder},
     {"value",                   textField_value},
+
+    {"selectAll",               textField_selectText},
 
 // other metamethods inherited from _control and _view
     {"__gc",                    userdata_gc},
@@ -1175,9 +1176,9 @@ int luaopen_hs__asm_uitk_element_libtextField(lua_State* L) {
 
     defineInternalDictionaries() ;
 
-    [skin registerPushNSHelper:pushHSUITKElementTextField         forClass:"HSUITKElementTextField"];
-    [skin registerLuaObjectHelper:toHSUITKElementTextFieldFromLua forClass:"HSUITKElementTextField"
-                                                        withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementTextField  forClass:"HSUITKElementTextField"];
+    [skin registerLuaObjectHelper:toHSUITKElementTextField forClass:"HSUITKElementTextField"
+                                                withUserdataMapping:USERDATA_TAG];
 
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
