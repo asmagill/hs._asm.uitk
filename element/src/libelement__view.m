@@ -370,6 +370,60 @@ static int view__window(lua_State *L) {
     return 1 ;
 }
 
+static int view_gestureRecognizers(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK] ;
+    NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!view || !oneOfOurs(view)) {
+        return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
+    }
+
+    [skin pushNSObject:view.gestureRecognizers withOptions:LS_NSDescribeUnknownTypes] ;
+    return 1 ;
+}
+
+static int view_addGestureRecognizer(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TANY, LS_TBREAK] ;
+    NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!view || !oneOfOurs(view)) {
+        return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
+    }
+
+    NSGestureRecognizer *gesture = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+    if ([gesture isKindOfClass:[NSGestureRecognizer class]]) {
+        if (![view.gestureRecognizers containsObject:gesture]) {
+            [view addGestureRecognizer:gesture] ;
+            [skin luaRetain:view.refTable forNSObject:gesture] ;
+        }
+    } else {
+        return luaL_argerror(L, 2, "expected userdata representing a gesture") ;
+    }
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+static int view_removeGestureRecognizer(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TANY, LS_TBREAK] ;
+    NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!view || !oneOfOurs(view)) {
+        return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
+    }
+
+    NSGestureRecognizer *gesture = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+    if ([gesture isKindOfClass:[NSGestureRecognizer class]]) {
+        if (![view.gestureRecognizers containsObject:gesture]) {
+            [view removeGestureRecognizer:gesture] ;
+            [skin luaRelease:view.refTable forNSObject:gesture] ;
+        }
+    } else {
+        return luaL_argerror(L, 2, "expected userdata representing a gesture") ;
+    }
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
@@ -408,6 +462,7 @@ static int userdata_gc(lua_State* L) {
         if (obj.selfRefCount == 0) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
+            for(NSGestureRecognizer *gesture in obj.gestureRecognizers) [skin luaRelease:obj.refTable forNSObject:gesture] ;
             obj = nil ;
 
             [obj removeFromSuperview] ;
@@ -423,7 +478,7 @@ static int userdata_gc(lua_State* L) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"tooltip",       view_toolTip},
+    {"tooltip",        view_toolTip},
 
     {"centerRotation", view_frameCenterRotation},
     {"hidden",         view_hidden},
@@ -432,6 +487,10 @@ static const luaL_Reg userdata_metaLib[] = {
     {"fittingSize",    view_fittingSize},
     {"frameSize",      view_frameSize},
     {"needsDisplay",   view_needsDisplay},
+
+    {"gestures",       view_gestureRecognizers},
+    {"addGesture",     view_addGestureRecognizer},
+    {"removeGesture",  view_removeGestureRecognizer},
 
     {"_window",        view__window},
     {"_nextResponder", view__nextResponder},
