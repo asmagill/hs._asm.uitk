@@ -81,6 +81,18 @@ moduleMT.__index = function(self, key)
     return nil
 end
 
+moduleMT.__pairs = function(self)
+    local keys = {}
+    for i = #self, 1, -1 do table.insert(keys, i) end
+
+    return function(_, k)
+        local v = nil
+        k = table.remove(keys)
+        if k then v = self[k] end
+        return k, v
+    end, self, nil
+end
+
 local prev_gridRowIndex = gridRowMT.__index
 gridRowMT.__index = function(self, key)
     local result = nil
