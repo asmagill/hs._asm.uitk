@@ -11,7 +11,7 @@ static NSDictionary *IMAGE_SCALING_TYPES ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
     IMAGE_SCALING_TYPES = @{
@@ -135,7 +135,7 @@ static NSRect statusItemFrame(NSStatusItem *item) {
     }
 }
 
-#pragma mark - NSDraggingDestination protocol methods
+#pragma mark NSDraggingDestination protocol methods
 
 - (BOOL)draggingCallback:(NSString *)message with:(id<NSDraggingInfo>)sender {
     BOOL isAllGood = NO ;
@@ -218,7 +218,7 @@ static NSRect statusItemFrame(NSStatusItem *item) {
 
 @end
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 static int menubar_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -246,14 +246,14 @@ static int menubar_new(lua_State *L) {
 //     [skin checkArgs:LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
 //
 //     if (lua_gettop(L) == 1) {
-//         NSMenu.menuBarVisible = lua_toboolean(L, 1) ;
+//         NSMenu.menuBarVisible = (BOOL)(lua_toboolean(L, 1)) ;
 //     }
 //
 //     lua_pushboolean(L, NSMenu.menuBarVisible) ;
 //     return 1 ;
 // }
 
-#pragma mark - Module Methods
+#pragma mark - Module Methods -
 
 static int menubar_length(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -661,9 +661,9 @@ static int menubar_delete(lua_State *L) {
     return 1;
 }
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -689,7 +689,7 @@ static id toHSStatusItemWrapper(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

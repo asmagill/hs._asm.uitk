@@ -15,7 +15,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 static NSDictionary *RECOGNIZER_STATE ;
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
     RECOGNIZER_STATE = @{
@@ -342,7 +342,7 @@ static BOOL oneOfOurs(NSGestureRecognizer *gesture) {
            [gesture isKindOfClass:[HSUITKUtilGestureRotation class]] ;
 }
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 static int gesture_newClick(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -404,7 +404,7 @@ static int gesture_newRotation(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Common Methods
+#pragma mark - Common Methods -
 
 static int gesture_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -442,7 +442,7 @@ static int gesture_enabled(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, gesture.enabled) ;
     } else {
-        gesture.enabled = lua_toboolean(L, 2) ;
+        gesture.enabled = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -500,7 +500,7 @@ static int gesture_locationInView(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Click Methods
+#pragma mark - Click Methods -
 
 static int gesture_click_buttonMask(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -572,7 +572,7 @@ static int gesture_click_numberOfTouchesRequired(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Magnification Methods
+#pragma mark - Magnification Methods -
 
 static int gesture_magnification_magnification(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -590,7 +590,7 @@ static int gesture_magnification_magnification(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Pan Methods
+#pragma mark - Pan Methods -
 
 static int gesture_pan_translationInView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -670,7 +670,7 @@ static int gesture_pan_buttonMask(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Press Methods
+#pragma mark - Press Methods -
 
 static int gesture_press_allowableMovement(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -758,7 +758,7 @@ static int gesture_press_buttonMask(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Rotation Methods
+#pragma mark - Rotation Methods -
 
 static int gesture_rotation_rotation(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -792,9 +792,9 @@ static int gesture_rotation_rotationInDegrees(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -908,7 +908,7 @@ static id toHSUITKUtilGestureRotation(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

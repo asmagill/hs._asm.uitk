@@ -201,7 +201,7 @@ static int secureTextField_echosBullets(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

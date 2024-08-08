@@ -6,17 +6,17 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 // #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
-#pragma mark - Module Methods
+#pragma mark - Module Methods -
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {

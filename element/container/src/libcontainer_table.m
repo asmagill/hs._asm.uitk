@@ -474,7 +474,7 @@ static int table_allowsColumnReordering(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnReordering) ;
     } else {
-        table.allowsColumnReordering = lua_toboolean(L, 2) ;
+        table.allowsColumnReordering = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -488,7 +488,7 @@ static int table_allowsColumnResizing(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnResizing) ;
     } else {
-        table.allowsColumnResizing = lua_toboolean(L, 2) ;
+        table.allowsColumnResizing = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -502,7 +502,7 @@ static int table_allowsColumnSelection(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsColumnSelection) ;
     } else {
-        table.allowsColumnSelection = lua_toboolean(L, 2) ;
+        table.allowsColumnSelection = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -516,7 +516,7 @@ static int table_allowsEmptySelection(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsEmptySelection) ;
     } else {
-        table.allowsEmptySelection = lua_toboolean(L, 2) ;
+        table.allowsEmptySelection = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -530,7 +530,7 @@ static int table_allowsMultipleSelection(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsMultipleSelection) ;
     } else {
-        table.allowsMultipleSelection = lua_toboolean(L, 2) ;
+        table.allowsMultipleSelection = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -544,7 +544,7 @@ static int table_allowsTypeSelect(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.allowsTypeSelect) ;
     } else {
-        table.allowsTypeSelect = lua_toboolean(L, 2) ;
+        table.allowsTypeSelect = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -558,7 +558,7 @@ static int table_autosaveTableColumns(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.autosaveTableColumns) ;
     } else {
-        table.autosaveTableColumns = lua_toboolean(L, 2) ;
+        table.autosaveTableColumns = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -572,7 +572,7 @@ static int table_usesAlternatingRowBackgroundColors(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.usesAlternatingRowBackgroundColors) ;
     } else {
-        table.usesAlternatingRowBackgroundColors = lua_toboolean(L, 2) ;
+        table.usesAlternatingRowBackgroundColors = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -586,7 +586,7 @@ static int table_usesAutomaticRowHeights(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.usesAutomaticRowHeights) ;
     } else {
-        table.usesAutomaticRowHeights = lua_toboolean(L, 2) ;
+        table.usesAutomaticRowHeights = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -600,7 +600,7 @@ static int table_verticalMotionCanBeginDrag(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, table.verticalMotionCanBeginDrag) ;
     } else {
-        table.verticalMotionCanBeginDrag = lua_toboolean(L, 2) ;
+        table.verticalMotionCanBeginDrag = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1189,7 +1189,7 @@ static int table_sizeToFit(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementContainerTableView *table = [skin toNSObjectAtIndex:1] ;
 
-    BOOL lastColumnOnly = (lua_gettop(L) == 2) ? lua_toboolean(L, 2) : NO ;
+    BOOL lastColumnOnly = (lua_gettop(L) == 2) ? (BOOL)(lua_toboolean(L, 2)) : NO ;
 
     if (lastColumnOnly) {
         [table sizeLastColumnToFit] ;
@@ -1217,7 +1217,7 @@ static int table_selectedColumns(lua_State *L) {
         }];
         [skin pushNSObject:array] ;
     } else {
-        BOOL extend = (lua_gettop(L) == 3) ? lua_toboolean(L, 3) : NO ;
+        BOOL extend = (lua_gettop(L) == 3) ? (BOOL)(lua_toboolean(L, 3)) : NO ;
         NSArray *selection = [skin toNSObjectAtIndex:2] ;
         if ([selection isKindOfClass:[NSNumber class]]) {
             selection = @[
@@ -1273,7 +1273,7 @@ static int table_selectedRows(lua_State *L) {
         }];
         [skin pushNSObject:array] ;
     } else {
-        BOOL extend = (lua_gettop(L) == 3) ? lua_toboolean(L, 3) : NO ;
+        BOOL extend = (lua_gettop(L) == 3) ? (BOOL)(lua_toboolean(L, 3)) : NO ;
         NSArray *selection = [skin toNSObjectAtIndex:2] ;
         if ([selection isKindOfClass:[NSNumber class]]) {
             selection = @[
@@ -1472,7 +1472,7 @@ static int tableRow_emphasized(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.emphasized) ;
     } else {
-        row.emphasized = lua_toboolean(L, 2) ;
+        row.emphasized = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1486,7 +1486,7 @@ static int tableRow_floating(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.floating) ;
     } else {
-        row.floating = lua_toboolean(L, 2) ;
+        row.floating = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1500,7 +1500,7 @@ static int tableRow_groupRowStyle(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.groupRowStyle) ;
     } else {
-        row.groupRowStyle = lua_toboolean(L, 2) ;
+        row.groupRowStyle = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1514,7 +1514,7 @@ static int tableRow_nextRowSelected(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.nextRowSelected) ;
     } else {
-        row.nextRowSelected = lua_toboolean(L, 2) ;
+        row.nextRowSelected = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1528,7 +1528,7 @@ static int tableRow_previousRowSelected(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.previousRowSelected) ;
     } else {
-        row.previousRowSelected = lua_toboolean(L, 2) ;
+        row.previousRowSelected = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1542,7 +1542,7 @@ static int tableRow_selected(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.selected) ;
     } else {
-        row.selected = lua_toboolean(L, 2) ;
+        row.selected = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1616,7 +1616,7 @@ static int tableColumn_hidden(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, column.hidden) ;
     } else {
-        column.hidden = lua_toboolean(L, 2) ;
+        column.hidden = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1630,7 +1630,7 @@ static int tableColumn_editable(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, column.editable) ;
     } else {
-        column.editable = lua_toboolean(L, 2) ;
+        column.editable = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1797,7 +1797,7 @@ static int tableColumn_index(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

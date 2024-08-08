@@ -1313,7 +1313,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     NSBezierPath *elementPath = nil ;
     NSString     *elementType = (NSString *)[self getElementValueFor:@"type" atIndex:idx] ;
 
-#pragma mark - ARC
+#pragma mark ARC
     if ([elementType isEqualToString:@"arc"]) {
         NSDictionary *center = (NSDictionary *)[self getElementValueFor:@"center" atIndex:idx resolvePercentages:YES] ;
         CGFloat cx = [(NSNumber *)center[@"x"] doubleValue] ;
@@ -1334,7 +1334,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         ] ;
         if (arcLegs) [elementPath lineToPoint:myCenterPoint] ;
     } else
-#pragma mark - CIRCLE
+#pragma mark CIRCLE
     if ([elementType isEqualToString:@"circle"]) {
         NSDictionary *center = (NSDictionary *)[self getElementValueFor:@"center" atIndex:idx resolvePercentages:YES] ;
         CGFloat cx = [(NSNumber *)center[@"x"] doubleValue] ;
@@ -1343,7 +1343,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         elementPath = [NSBezierPath bezierPath];
         [elementPath appendBezierPathWithOvalInRect:NSMakeRect(cx - r, cy - r, r * 2, r * 2)] ;
     } else
-#pragma mark - ELLIPTICALARC
+#pragma mark ELLIPTICALARC
     if ([elementType isEqualToString:@"ellipticalArc"]) {
         CGFloat cx     = frameRect.origin.x + frameRect.size.width / 2 ;
         CGFloat cy     = frameRect.origin.y + frameRect.size.height / 2 ;
@@ -1370,12 +1370,12 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         if (arcLegs) [elementPath lineToPoint:NSZeroPoint] ;
         elementPath = [finalTransform transformBezierPath:elementPath] ;
     } else
-#pragma mark - OVAL
+#pragma mark OVAL
     if ([elementType isEqualToString:@"oval"]) {
         elementPath = [NSBezierPath bezierPath];
         [elementPath appendBezierPathWithOvalInRect:frameRect] ;
     } else
-#pragma mark - RECTANGLE
+#pragma mark RECTANGLE
     if ([elementType isEqualToString:@"rectangle"]) {
         elementPath = [NSBezierPath bezierPath];
         NSDictionary *roundedRect = (NSDictionary *)[self getElementValueFor:@"roundedRectRadii" atIndex:idx] ;
@@ -1383,7 +1383,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                                           xRadius:[(NSNumber *)roundedRect[@"xRadius"] doubleValue]
                                           yRadius:[(NSNumber *)roundedRect[@"yRadius"] doubleValue]] ;
     } else
-#pragma mark - POINTS
+#pragma mark POINTS
     if ([elementType isEqualToString:@"points"]) {
         elementPath = [NSBezierPath bezierPath];
         NSArray *coordinates = (NSArray *)[self getElementValueFor:@"coordinates" atIndex:idx resolvePercentages:YES] ;
@@ -1394,7 +1394,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             [elementPath appendBezierPathWithRect:NSMakeRect([xNumber doubleValue], [yNumber doubleValue], 1.0, 1.0)] ;
         }] ;
     } else
-#pragma mark - SEGMENTS
+#pragma mark SEGMENTS
     if ([elementType isEqualToString:@"segments"]) {
         elementPath = [NSBezierPath bezierPath];
         NSArray *coordinates = (NSArray *)[self getElementValueFor:@"coordinates" atIndex:idx resolvePercentages:YES] ;
@@ -1509,7 +1509,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             // First, if it's not a path, make sure it's not an element which doesn't have a path...
 
             if (!elementPath) {
-    #pragma mark - IMAGE
+#pragma mark IMAGE
                 if ([elementType isEqualToString:@"image"]) {
                     NSImage *theImage = self->_elementList[idx][@"image"] ;
                     if (theImage && [theImage isKindOfClass:[NSImage class]]) {
@@ -1525,7 +1525,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                     }
                     elementPath = nil ; // shouldn't be necessary, but lets be explicit
                 } else
-    #pragma mark - TEXT
+#pragma mark TEXT
                 if ([elementType isEqualToString:@"text"]) {
                     NSObject *textEntry = [self getElementValueFor:@"text" atIndex:idx onlyIfSet:YES] ;
                     if (!textEntry) {
@@ -1559,7 +1559,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                     }] ;
                     elementPath = nil ; // shouldn't be necessary, but lets be explicit
                 } else
-    #pragma mark - RESETCLIP
+#pragma mark RESETCLIP
                 if ([elementType isEqualToString:@"resetClip"]) {
                     [gc restoreGraphicsState] ; // from beginning of enumeration
                     wasClippingChanged = YES ;
@@ -1577,7 +1577,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             }
             // Now, if it's still not a path, we don't render it.  But if it is...
 
-    #pragma mark - Render Logic
+#pragma mark Render Logic
             if (elementPath) {
                 NSNumber *miterLimit = (NSNumber *)[self getElementValueFor:@"miterLimit" atIndex:idx onlyIfSet:YES] ;
                 if (miterLimit) elementPath.miterLimit = [miterLimit doubleValue] ;
@@ -2159,7 +2159,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     }
 }
 
-#pragma mark - View Animation Methods
+#pragma mark View Animation Methods
 
 - (void)fadeIn:(NSTimeInterval)fadeTime {
     CGFloat alphaSetting = self.alphaValue ;
@@ -2188,7 +2188,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     [NSAnimationContext endGrouping];
 }
 
-#pragma mark - NSDraggingDestination protocol methods
+#pragma mark NSDraggingDestination protocol methods
 
 - (BOOL)draggingCallback:(NSString *)message with:(id<NSDraggingInfo>)sender {
     BOOL isAllGood = NO ;
@@ -2272,7 +2272,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
 // - (void)draggingEnded:(id<NSDraggingInfo>)sender ;
 // - (void)updateDraggingItemsForDrag:(id<NSDraggingInfo>)sender
 
-#pragma mark - imageAdditions
+#pragma mark imageAdditions
 
 - (NSSize) _scaleImageWithSize: (NSSize)imageSize
                    toFitInSize: (NSSize)canvasSize
@@ -3506,7 +3506,7 @@ static int canvas_compositeTypes(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

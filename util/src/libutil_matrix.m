@@ -6,9 +6,9 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 // #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 /// hs._asm.uitk.util.matrix.identity() -> matrixObject
 /// Constructor
@@ -36,7 +36,7 @@ static int matrix_identity(lua_State *L) {
     return 1;
 }
 
-#pragma mark - Module Methods
+#pragma mark - Module Methods -
 
 /// hs._asm.uitk.util.matrix:invert() -> matrixObject
 /// Method
@@ -248,9 +248,9 @@ static int matrix_translate(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 
 static int pushNSAffineTransform(lua_State *L, id obj) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -326,7 +326,7 @@ static id toNSAffineTransform(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {

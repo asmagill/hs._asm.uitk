@@ -203,7 +203,7 @@ static int saveOpen_canCreateDirectories(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.canCreateDirectories) ;
     } else {
-        panel.panel.canCreateDirectories = lua_toboolean(L, 2) ;
+        panel.panel.canCreateDirectories = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -222,7 +222,7 @@ static int saveOpen_showsHiddenFiles(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.showsHiddenFiles) ;
     } else {
-        panel.panel.showsHiddenFiles = lua_toboolean(L, 2) ;
+        panel.panel.showsHiddenFiles = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -241,7 +241,7 @@ static int saveOpen_treatsFilePackagesAsDirectories(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.treatsFilePackagesAsDirectories) ;
     } else {
-        panel.panel.treatsFilePackagesAsDirectories = lua_toboolean(L, 2) ;
+        panel.panel.treatsFilePackagesAsDirectories = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -567,7 +567,7 @@ static int save_canSelectHiddenExtension(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.canSelectHiddenExtension) ;
     } else {
-        panel.panel.canSelectHiddenExtension = lua_toboolean(L, 2) ;
+        panel.panel.canSelectHiddenExtension = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -581,7 +581,7 @@ static int save_extensionHidden(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.extensionHidden) ;
     } else {
-        panel.panel.extensionHidden = lua_toboolean(L, 2) ;
+        panel.panel.extensionHidden = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -604,7 +604,7 @@ static int save_allowsOtherFileTypes(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.allowsOtherFileTypes) ;
     } else {
-        panel.panel.allowsOtherFileTypes = lua_toboolean(L, 2) ;
+        panel.panel.allowsOtherFileTypes = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -646,7 +646,7 @@ static int save_showsTagField(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.showsTagField) ;
     } else {
-        panel.panel.showsTagField = lua_toboolean(L, 2) ;
+        panel.panel.showsTagField = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -692,7 +692,7 @@ static int open_allowsMultipleSelection(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.allowsMultipleSelection) ;
     } else {
-        panel.panel.allowsMultipleSelection = lua_toboolean(L, 2) ;
+        panel.panel.allowsMultipleSelection = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -706,7 +706,7 @@ static int open_canChooseDirectories(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.canChooseDirectories) ;
     } else {
-        panel.panel.canChooseDirectories = lua_toboolean(L, 2) ;
+        panel.panel.canChooseDirectories = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -720,7 +720,7 @@ static int open_canChooseFiles(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.canChooseFiles) ;
     } else {
-        panel.panel.canChooseFiles = lua_toboolean(L, 2) ;
+        panel.panel.canChooseFiles = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -734,7 +734,7 @@ static int open_canChooseFiles(lua_State *L) {
 //     if (lua_gettop(L) == 1) {
 //         lua_pushboolean(L, panel.panel.canDownloadUbiquitousContents) ;
 //     } else {
-//         panel.panel.canDownloadUbiquitousContents = lua_toboolean(L, 2) ;
+//         panel.panel.canDownloadUbiquitousContents = (BOOL)(lua_toboolean(L, 2)) ;
 //         lua_pushvalue(L, 1) ;
 //     }
 //     return 1 ;
@@ -748,7 +748,7 @@ static int open_canChooseFiles(lua_State *L) {
 //     if (lua_gettop(L) == 1) {
 //         lua_pushboolean(L, panel.panel.canResolveUbiquitousConflicts) ;
 //     } else {
-//         panel.panel.canResolveUbiquitousConflicts = lua_toboolean(L, 2) ;
+//         panel.panel.canResolveUbiquitousConflicts = (BOOL)(lua_toboolean(L, 2)) ;
 //         lua_pushvalue(L, 1) ;
 //     }
 //     return 1 ;
@@ -762,7 +762,7 @@ static int open_resolvesAliases(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.resolvesAliases) ;
     } else {
-        panel.panel.resolvesAliases = lua_toboolean(L, 2) ;
+        panel.panel.resolvesAliases = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -776,7 +776,7 @@ static int open_accessoryViewDisclosed(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, panel.panel.accessoryViewDisclosed) ;
     } else {
-        panel.panel.accessoryViewDisclosed = lua_toboolean(L, 2) ;
+        panel.panel.accessoryViewDisclosed = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;

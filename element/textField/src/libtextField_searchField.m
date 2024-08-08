@@ -208,7 +208,7 @@ static int searchField_sendsSearchStringImmediately(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, field.sendsSearchStringImmediately) ;
     } else {
-        field.sendsSearchStringImmediately = lua_toboolean(L, 2) ;
+        field.sendsSearchStringImmediately = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -222,7 +222,7 @@ static int searchField_sendsWholeSearchString(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, field.sendsWholeSearchString) ;
     } else {
-        field.sendsWholeSearchString = lua_toboolean(L, 2) ;
+        field.sendsWholeSearchString = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -368,7 +368,7 @@ static int searchField_menuConstants(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

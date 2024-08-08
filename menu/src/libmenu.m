@@ -6,7 +6,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
 
 static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
     return NSMakePoint(thePoint.x, [[NSScreen screens][0] frame].size.height - thePoint.y) ;
@@ -136,7 +136,7 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 
 @end
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 static int menu_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -152,7 +152,7 @@ static int menu_new(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Module Methods
+#pragma mark - Module Methods -
 
 // make sure to document that for a dynamically generated menu, the menu structure should be rebuilt
 // during the update callback, not the open one (which is why update is the first flag)
@@ -566,9 +566,9 @@ static int menu_indexOfItemWithTitle(lua_State *L) {
 
 // // ?? - (void)performActionForItemAtIndex:(NSInteger)index;
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -594,7 +594,7 @@ static id toHSMenu(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

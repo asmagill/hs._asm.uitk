@@ -84,7 +84,7 @@ static void defineInternalDictionaries(void) {
 
 static HSUITKPanelColor *colorReceiver ;
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 // - (void)setAction:(SEL)selector;
 // - (void)setTarget:(id)target;
@@ -347,7 +347,7 @@ static int color_detachColorList(lua_State *L) {
     return 0 ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int meta_gc(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

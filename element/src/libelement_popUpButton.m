@@ -115,13 +115,13 @@ static int popUpButton_new(lua_State *L) {
                 menu = [skin toNSObjectAtIndex:1] ;
             } else {
                 [skin checkArgs:LS_TBOOLEAN, LS_TBREAK] ;
-                pullsDown = lua_toboolean(L, 1) ;
+                pullsDown = (BOOL)(lua_toboolean(L, 1)) ;
             }
             break ;
         case 2:
             [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
             menu = [skin toNSObjectAtIndex:1] ;
-            pullsDown = lua_toboolean(L, 2) ;
+            pullsDown = (BOOL)(lua_toboolean(L, 2)) ;
             break ;
     }
 
@@ -191,7 +191,7 @@ static int popUpButton_pullsDown(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, button.pullsDown) ;
     } else {
-        button.pullsDown = lua_toboolean(L, 2) ;
+        button.pullsDown = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
 
@@ -296,7 +296,7 @@ static int popUpButton_preferredEdge(lua_State *L) {
 // TODO: should inherit from NSButton
 //       either make this a submodule (like textField stuff) or copy methods here?
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

@@ -1519,7 +1519,7 @@ static int textView_rangesForLines(lua_State *L) {
     case 2:
         [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
         if (lua_type(L, 2) == LUA_TBOOLEAN) {
-            hardLines = lua_toboolean(L, 2) ;
+            hardLines = (BOOL)(lua_toboolean(L, 2)) ;
         } else {
             startLine = lua_tointeger(L, 2) ;
             endLine   = startLine ;
@@ -1529,7 +1529,7 @@ static int textView_rangesForLines(lua_State *L) {
         [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
         startLine = lua_tointeger(L, 2) ;
         if (lua_type(L, 3) == LUA_TBOOLEAN) {
-            hardLines = lua_toboolean(L, 3) ;
+            hardLines = (BOOL)(lua_toboolean(L, 3)) ;
             endLine   = startLine ;
         } else {
             endLine = lua_tointeger(L, 3) ;
@@ -1539,7 +1539,7 @@ static int textView_rangesForLines(lua_State *L) {
         [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER, LS_TBOOLEAN, LS_TBREAK] ;
         startLine = lua_tointeger(L, 2) ;
         endLine   = lua_tointeger(L, 3) ;
-        hardLines = lua_toboolean(L, 4) ;
+        hardLines = (BOOL)(lua_toboolean(L, 4)) ;
         break ;
     }
 
@@ -1681,7 +1681,7 @@ static int textView_textCheckingTypes(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 

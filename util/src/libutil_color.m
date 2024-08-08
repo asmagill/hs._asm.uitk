@@ -124,7 +124,7 @@ static int colorList_listNamed(lua_State *L) {
     [skin checkArgs:LS_TSTRING, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
 
     NSString    *name  = [skin toNSObjectAtIndex:1] ;
-    BOOL        create = (lua_gettop(L) == 2) ? lua_toboolean(L, 2) : NO ;
+    BOOL        create = (lua_gettop(L) == 2) ? (BOOL)(lua_toboolean(L, 2)) : NO ;
 
     NSColorList *list = nil ;
     if (create) {
@@ -410,7 +410,7 @@ static id table_toNSColor(lua_State *L, int idx) {
     }
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

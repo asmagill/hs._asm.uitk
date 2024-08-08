@@ -496,7 +496,7 @@ static int tabs_allowsTruncatedLabels(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, tabView.allowsTruncatedLabels) ;
     } else {
-        tabView.allowsTruncatedLabels = lua_toboolean(L, 2) ;
+        tabView.allowsTruncatedLabels = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -510,7 +510,7 @@ static int tabs_drawsBackground(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, tabView.drawsBackground) ;
     } else {
-        tabView.drawsBackground = lua_toboolean(L, 2) ;
+        tabView.drawsBackground = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -611,7 +611,7 @@ static int tabs_item_sizeOfLabel(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementContainerTabViewItem *item = [skin toNSObjectAtIndex:1] ;
-    BOOL computeMin = (lua_gettop(L) == 2) ? lua_toboolean(L, 2) : NO ;
+    BOOL computeMin = (lua_gettop(L) == 2) ? (BOOL)(lua_toboolean(L, 2)) : NO ;
 
     [skin pushNSSize:[item sizeOfLabel:computeMin]] ;
     return 1 ;
@@ -749,7 +749,7 @@ static int tabs_item_tabView(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -797,7 +797,7 @@ static id toHSUITKElementContainerTabViewItem(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;

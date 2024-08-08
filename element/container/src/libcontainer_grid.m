@@ -704,7 +704,7 @@ static int gridRow_hidden(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, row.hidden) ;
     } else {
-        row.hidden = lua_toboolean(L, 2) ;
+        row.hidden = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -974,7 +974,7 @@ static int gridCol_hidden(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, col.hidden) ;
     } else {
-        col.hidden = lua_toboolean(L, 2) ;
+        col.hidden = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
