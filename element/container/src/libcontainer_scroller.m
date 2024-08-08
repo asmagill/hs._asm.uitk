@@ -138,7 +138,7 @@ BOOL oneOfOurs(NSView *obj) {
 
 // allow next responder a chance since we don't have a callback set
 - (void)passCallbackUpWith:(NSArray *)arguments {
-    NSObject *nextInChain = [self nextResponder] ;
+    NSResponder *nextInChain = [self nextResponder] ;
 
     SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
     while(nextInChain) {
@@ -148,7 +148,7 @@ BOOL oneOfOurs(NSView *obj) {
                                        waitUntilDone:YES] ;
             break ;
         } else {
-            nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+            nextInChain = nextInChain.nextResponder ;
         }
     }
 }

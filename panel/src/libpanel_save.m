@@ -69,7 +69,7 @@ BOOL oneOfOurs(NSView *obj) {
         }
     } else {
         // allow next responder a chance since we don't have a callback set
-        NSObject *nextInChain = [self.panel nextResponder] ;
+        NSResponder *nextInChain = [self.panel nextResponder] ;
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -78,7 +78,7 @@ BOOL oneOfOurs(NSView *obj) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }
@@ -121,7 +121,7 @@ BOOL oneOfOurs(NSView *obj) {
         }
     } else {
         // allow next responder a chance since we don't have a callback set
-        NSObject *nextInChain = [self.panel nextResponder] ;
+        NSResponder *nextInChain = [self.panel nextResponder] ;
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -130,7 +130,7 @@ BOOL oneOfOurs(NSView *obj) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }

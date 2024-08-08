@@ -103,7 +103,7 @@ static BOOL oneOfOurs(NSView *obj) {
         }
     } else {
         // allow next responder a chance since we don't have a callback set
-        NSObject *nextInChain = [self nextResponder] ;
+        NSResponder *nextInChain = [self nextResponder] ;
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -112,7 +112,7 @@ static BOOL oneOfOurs(NSView *obj) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }
@@ -142,7 +142,7 @@ static BOOL oneOfOurs(NSView *obj) {
             [skin logError:[NSString stringWithFormat:@"%s:passthroughCallback error:%@", USERDATA_TAG, errorMessage]] ;
         }
     } else {
-        NSObject *nextInChain = [self nextResponder] ;
+        NSResponder *nextInChain = [self nextResponder] ;
 
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while(nextInChain) {
@@ -152,7 +152,7 @@ static BOOL oneOfOurs(NSView *obj) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }

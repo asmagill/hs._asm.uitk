@@ -13,14 +13,14 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 }
 
 @interface HSMenu : NSMenu <NSMenuDelegate>
-@property        int    callbackRef ;
-@property        int    passthroughCallback ;
-@property        int    selfRefCount ;
-@property        BOOL   trackOpen ;
-@property        BOOL   trackClose ;
-@property        BOOL   trackUpdate ;
-@property        BOOL   trackHighlight ;
-@property (weak) NSView *assignedTo ;
+@property        int         callbackRef ;
+@property        int         passthroughCallback ;
+@property        int         selfRefCount ;
+@property        BOOL        trackOpen ;
+@property        BOOL        trackClose ;
+@property        BOOL        trackUpdate ;
+@property        BOOL        trackHighlight ;
+@property (weak) NSResponder *assignedTo ;
 @end
 
 @implementation HSMenu
@@ -43,21 +43,21 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 }
 
 - (void)passCallbackUpWith:(NSArray *)arguments {
-    NSObject *nextInChain = [self supermenu] ;
+    NSMenu *nextMenu = self.supermenu ;
     SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
-    while (nextInChain && [nextInChain isKindOfClass:[HSMenu class]]) {
-        if ([nextInChain respondsToSelector:passthroughCallback]) {
-            [nextInChain performSelectorOnMainThread:passthroughCallback
+    while (nextMenu && [nextMenu isKindOfClass:[HSMenu class]]) {
+        if ([nextMenu respondsToSelector:passthroughCallback]) {
+            [nextMenu performSelectorOnMainThread:passthroughCallback
                                           withObject:arguments
                                        waitUntilDone:YES] ;
             break ;
         } else {
-            nextInChain = [(HSMenu *)nextInChain supermenu] ;
+            nextMenu = nextMenu.supermenu ;
         }
     }
 
-    if (!nextInChain) {
-        nextInChain = _assignedTo ;
+    if (!nextMenu) {
+        NSResponder *nextInChain = _assignedTo ;
         // allow next responder a chance since we don't have a callback set
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -66,7 +66,7 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }

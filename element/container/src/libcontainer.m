@@ -154,7 +154,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
 
 // allow next responder a chance since we don't have a callback set
 - (void)passCallbackUpWith:(NSArray *)arguments {
-    NSObject *nextInChain = [self nextResponder] ;
+    NSResponder *nextInChain = [self nextResponder] ;
 
     SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
     while(nextInChain) {
@@ -164,7 +164,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
                                        waitUntilDone:YES] ;
             break ;
         } else {
-            nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+            nextInChain = nextInChain.nextResponder ;
         }
     }
 }

@@ -228,7 +228,7 @@ static void updateTranslationMatrix(HSUITKElementImageView *view) {
         }
     } else {
         // allow next responder a chance since we don't have a callback set
-        NSObject *nextInChain = [self nextResponder] ;
+        NSResponder *nextInChain = [self nextResponder] ;
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -237,7 +237,7 @@ static void updateTranslationMatrix(HSUITKElementImageView *view) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }

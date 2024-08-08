@@ -134,7 +134,7 @@ BOOL oneOfOurs(NSTextField *obj) {
         }
     } else {
         // allow next responder a chance since we don't have a callback set
-        NSObject *nextInChain = [self nextResponder] ;
+        NSResponder *nextInChain = [self nextResponder] ;
         SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
         while (nextInChain) {
             if ([nextInChain respondsToSelector:passthroughCallback]) {
@@ -143,7 +143,7 @@ BOOL oneOfOurs(NSTextField *obj) {
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [(NSResponder *)nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }
