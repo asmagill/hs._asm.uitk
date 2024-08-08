@@ -49,8 +49,7 @@ local subModules = {
 local preload = function(m, isLua)
     return function()
         local el = isLua and require(USERDATA_TAG .. "_" .. m)
-                         or  require(USERDATA_TAG:match("^(.+)%.") .. ".lib" ..
-                                     USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
+                         or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib") .. "_" .. m)
         local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
         if el and elMT then
             uitk.element._elementControlViewWrapper(elMT)

@@ -44,8 +44,7 @@ local subModules = {
 local preload = function(m, isLua)
     return function()
         local sm = isLua and require(USERDATA_TAG .. "_" .. m)
-                         or  require(USERDATA_TAG:match("^(.+)%.") .. ".lib" ..
-                                     USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
+                         or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib") .. "_" .. m)
         if getmetatable(sm) == nil and type(sm.new) == "function" then
             sm = setmetatable(sm, { __call = function(self, ...) return self.new(...) end })
         end
@@ -57,9 +56,7 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-module.item = setmetatable(require(USERDATA_TAG .. ".item"), {
-    __call = function(self, ...) return self.new(...) end,
-})
+module.item = require(USERDATA_TAG .. ".item")
 local menuItemMT = hs.getObjectMetatable(USERDATA_TAG .. ".item")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so

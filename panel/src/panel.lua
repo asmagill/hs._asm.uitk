@@ -42,8 +42,7 @@ local subModules = {
 local preload = function(m, isLua)
     return function()
         local el = isLua and require(USERDATA_TAG .. "_" .. m)
-                         or  require(USERDATA_TAG:match("^(.+)%.") .. ".lib" ..
-                                     USERDATA_TAG:match("^.+%.(.+)$") .. "_" .. m)
+                         or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib") .. "_" .. m)
 --         if getmetatable(el) == nil and type(el.new) == "function" then
 --             el = setmetatable(el, { __call = function(self, ...) return self.new(...) end })
 --         end
