@@ -31,48 +31,25 @@ static NSDictionary *languageDictionary ;
 #pragma mark - Class Interfaces -
 
 @interface HSUITKElementCanvas : NSView <NSDraggingDestination>
-@property            int        selfRefCount ;
-@property (readonly) LSRefTable refTable ;
-@property            int        callbackRef ;
+@property            int                                         selfRefCount ;
+@property (readonly) LSRefTable                                  refTable ;
+@property            int                                         callbackRef ;
 
-@property int                   mouseCallbackRef ;
-@property int                   draggingCallbackRef ;
-@property BOOL                  mouseTracking ;
-@property BOOL                  canvasMouseDown ;
-@property BOOL                  canvasMouseUp ;
-@property BOOL                  canvasMouseEnterExit ;
-@property BOOL                  canvasMouseMove ;
-@property NSUInteger            previousTrackedIndex ;
-@property NSMutableDictionary   *canvasDefaults ;
-@property NSMutableArray        *elementList ;
-@property NSMutableArray        *elementBounds ;
-@property NSAffineTransform     *canvasTransform ;
-@property NSMapTable            *imageAnimations ;
-
-// - (NSObject *)getElementValueFor:(NSString *)keyName atIndex:(NSUInteger)index ;
-// - (NSObject *)getElementValueFor:(NSString *)keyName atIndex:(NSUInteger)index onlyIfSet:(BOOL)onlyIfSet ;
-// - (NSObject *)getElementValueFor:(NSString *)keyName atIndex:(NSUInteger)index resolvePercentages:(BOOL)resolvePercentages ;
-// - (NSObject *)getElementValueFor:(NSString *)keyName atIndex:(NSUInteger)index resolvePercentages:(BOOL)resolvePercentages onlyIfSet:(BOOL)onlyIfSet ;
-//
-// // (imageAdditions)
-// - (void)drawImage:(NSImage *)theImage atIndex:(NSUInteger)idx inRect:(NSRect)cellFrame operation:(NSUInteger)compositeType ;
-//
-// // (viewNotifications)
-// - (void)willRemoveFromCanvas ;
-// - (void)didRemoveFromCanvas ;
-// - (void)willAddToCanvas ;
-// - (void)didAddToCanvas ;
-//
-// - (void)canvasWillHide ;
-// - (void)canvasDidHide ;
-// - (void)canvasWillShow ;
-// - (void)canvasDidShow ;
+@property (atomic)   int                                         mouseCallbackRef ;
+@property            int                                         draggingCallbackRef ;
+@property            BOOL                                        canvasMouseDown ;
+@property            BOOL                                        canvasMouseUp ;
+@property            BOOL                                        canvasMouseEnterExit ;
+@property            BOOL                                        canvasMouseMove ;
+@property            NSMutableDictionary<NSString *, NSObject *> *canvasDefaults ;
+@property            NSMutableArray<NSMutableDictionary *>       *elementList ;
+@property            NSAffineTransform                           *canvasTransform ;
 @end
 
 @interface HSUITKElementCanvasGifAnimator : NSObject
 @property (weak) NSBitmapImageRep    *animatingRepresentation ;
 @property (weak) HSUITKElementCanvas *inCanvas ;
-@property BOOL             isRunning ;
+@property BOOL                       isRunning ;
 
 -(instancetype)initWithImage:(NSImage *)image forCanvas:(HSUITKElementCanvas *)canvas ;
 -(void)startAnimating ;
@@ -1022,9 +999,16 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
 #pragma mark - Class Implementations -
 
 @implementation HSUITKElementCanvas {
-    NSTrackingArea *_trackingArea ;
-    NSSize         _assignedSize ;
+    NSTrackingArea                 *_trackingArea ;
+    NSSize                         _assignedSize ;
+    BOOL                           _mouseTracking ;
+    NSMutableArray<NSDictionary *> *_elementBounds ;
+    NSMapTable                     *_imageAnimations ;
+    NSUInteger                     _previousTrackedIndex ;
 }
+
+// we're using custom getter/setter methods
+@synthesize mouseCallbackRef = _mouseCallbackRef ;
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
     @try {
@@ -1082,6 +1066,21 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                                                   object:nil] ;
     [self removeTrackingArea:_trackingArea] ;
     _trackingArea = nil ;
+}
+
+- (int)mouseCallbackRef {
+    int ref ;
+    @synchronized (self) {
+        ref = _mouseCallbackRef ;
+    }
+    return ref ;
+}
+
+- (void)setMouseCallbackRef:(int)ref {
+    @synchronized (self) {
+        _mouseCallbackRef     = ref ;
+    }
+    _previousTrackedIndex = NSNotFound ;
 }
 
 - (NSSize)fittingSize { return _assignedSize ; }
@@ -2132,7 +2131,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                 }
             }
 
-            [(NSMutableDictionary *)_elementList[index] removeObjectForKey:keyName] ;
+            [_elementList[index] removeObjectForKey:keyName] ;
             break ;
         case attributeInvalid:
             break ;
@@ -2787,7 +2786,6 @@ static int canvas_mouseCallback(lua_State *L) {
     } else {
         // We're either removing callback(s), or setting new one(s). Either way, remove existing.
         canvasView.mouseCallbackRef = [skin luaUnref:refTable ref:canvasView.mouseCallbackRef];
-        canvasView.previousTrackedIndex = NSNotFound ;
 
         if (lua_type(L, 2) != LUA_TNIL) {
             lua_pushvalue(L, 2);
@@ -3163,7 +3161,7 @@ static int canvas_elementKeysAtIndex(lua_State *L) {
     }
     NSUInteger indexPosition = (NSUInteger)tablePosition ;
 
-    NSMutableSet *list = [[NSMutableSet alloc] initWithArray:[(NSDictionary *)canvasView.elementList[indexPosition] allKeys]] ;
+    NSMutableSet *list = [[NSMutableSet alloc] initWithArray:canvasView.elementList[indexPosition].allKeys] ;
     if ((lua_gettop(L) == 3) && lua_toboolean(L, 3)) {
         NSString *ourType = canvasView.elementList[indexPosition][@"type"] ;
         [languageDictionary enumerateKeysAndObjectsUsingBlock:^(NSString *keyName, NSDictionary *keyValue, __unused BOOL *stop) {
@@ -3242,7 +3240,7 @@ static int canvas_canvasDefaultKeys(lua_State *L) {
                     LS_TBREAK] ;
     HSUITKElementCanvas   *canvasView   = [skin luaObjectAtIndex:1 toClass:"HSUITKElementCanvas"] ;
 
-    NSMutableSet *list = [[NSMutableSet alloc] initWithArray:[(NSDictionary *)canvasView.canvasDefaults allKeys]] ;
+    NSMutableSet *list = [[NSMutableSet alloc] initWithArray:canvasView.canvasDefaults.allKeys] ;
     if ((lua_gettop(L) == 2) && lua_toboolean(L, 2)) {
         [languageDictionary enumerateKeysAndObjectsUsingBlock:^(NSString *keyName, NSDictionary *keyValue, __unused BOOL *stop) {
             if (keyValue[@"default"]) {
