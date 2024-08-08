@@ -227,7 +227,7 @@ static int comboButton_imageScaling(lua_State *L) {
             ((NSButtonCell *)button.cell).imageScaling = [imageScaling unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_SCALING_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -255,7 +255,7 @@ static int comboButton_style(lua_State *L) {
             button.style = [style integerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[COMBO_BUTTON_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COMBO_BUTTON_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

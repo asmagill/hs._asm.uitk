@@ -340,7 +340,7 @@ static int avplayerview_controlsStyle(lua_State *L) {
             playerView.controlsStyle = [controlsStyle integerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[CONTROLS_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [CONTROLS_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -637,7 +637,7 @@ static int avplayerview_videoGravity(lua_State *L) {
             playerView.videoGravity = string ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[VIDEO_GRAVITY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [VIDEO_GRAVITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -670,7 +670,7 @@ static int avplayerview_videoFrameAnalysisTypes(lua_State *L) {
                 playerView.videoFrameAnalysisTypes = [number unsignedIntegerValue] ;
                 lua_pushvalue(L, 1) ;
             } else {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[ANALYSIS_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [ANALYSIS_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
         } else {
             [skin logInfo:[NSString stringWithFormat:@"%s:frameAnalysisType - only supported in macOS 13 and newer", USERDATA_TAG]] ;
@@ -1198,7 +1198,7 @@ static int avplayer_audiovisualBackgroundPlaybackPolicy(lua_State *L) {
             if (value) {
                 player.audiovisualBackgroundPlaybackPolicy = [value integerValue] ;
             } else {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[BACKGROUND_POLICY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [BACKGROUND_POLICY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
         } else {
             [skin logInfo:[NSString stringWithFormat:@"%s:backgroundPolicy - only supported in macOS 12 and newer", USERDATA_TAG]] ;

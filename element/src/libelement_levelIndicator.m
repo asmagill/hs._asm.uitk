@@ -407,7 +407,7 @@ static int levelIndicator_placeholderVisibility(lua_State *L) {
             element.placeholderVisibility = [number integerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[LEVELINDICATOR_PLACEHOLDER_VISIBILITY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_PLACEHOLDER_VISIBILITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -435,7 +435,7 @@ static int levelIndicator_levelIndicatorStyle(lua_State *L) {
             element.levelIndicatorStyle = [number unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[LEVELINDICATOR_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -463,7 +463,7 @@ static int levelIndicator_tickMarkPosition(lua_State *L) {
             element.tickMarkPosition = [number unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[LEVELINDICATOR_TICKMARK_POSITION allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_TICKMARK_POSITION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

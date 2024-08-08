@@ -547,7 +547,7 @@ static int image_imageAlignment(lua_State *L) {
             image.imageAlignment = [type unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_ALIGNMENTS allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_ALIGNMENTS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -593,7 +593,7 @@ static int image_imageFrameStyle(lua_State *L) {
             image.imageFrameStyle = [type unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_FRAME_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_FRAME_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -635,7 +635,7 @@ static int image_imageScaling(lua_State *L) {
             image.imageScaling = [type unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_SCALING_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

@@ -146,7 +146,7 @@ static int pathControl_pathStyle(lua_State *L) {
             element.pathStyle = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[PATHCONTROL_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [PATHCONTROL_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

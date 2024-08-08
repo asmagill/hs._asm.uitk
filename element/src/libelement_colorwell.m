@@ -235,7 +235,7 @@ static int colorwell_colorWellStyle(lua_State *L) {
             if (wellStyle) {
                 well.colorWellStyle = [wellStyle integerValue] ;
             } else {
-                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[COLORWELL_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORWELL_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
             lua_pushvalue(L, 1) ;
         } else {

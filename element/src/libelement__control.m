@@ -108,7 +108,7 @@ static int control_textAlignment(lua_State *L) {
         if (alignment) {
             control.alignment = (NSTextAlignment)[alignment unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[TEXT_ALIGNMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TEXT_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {
@@ -155,7 +155,7 @@ static int control_controlSize(lua_State *L) {
         if (controlSize) {
             control.controlSize = [controlSize unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[CONTROL_SIZE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [CONTROL_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {
@@ -314,7 +314,7 @@ static int control_lineBreakMode(lua_State *L) {
         if (lineBreakMode) {
             control.lineBreakMode = [lineBreakMode unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[TEXT_LINEBREAK allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TEXT_LINEBREAK.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {

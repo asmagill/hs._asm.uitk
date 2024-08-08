@@ -413,7 +413,7 @@ static int tabs_controlSize(lua_State *L) {
         if (value) {
             tabView.controlSize = [value unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[CONTROL_SIZE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [CONTROL_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {
@@ -441,7 +441,7 @@ static int tabs_tabPosition(lua_State *L) {
         if (value) {
             tabView.tabPosition = [value unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[TAB_POSITION allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TAB_POSITION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {
@@ -470,7 +470,7 @@ static int tabs_tabViewBorderType(lua_State *L) {
         if (value) {
             tabView.tabViewBorderType = [value unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[TAB_BORDER allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TAB_BORDER.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {

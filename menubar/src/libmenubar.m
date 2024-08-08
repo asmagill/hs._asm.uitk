@@ -450,7 +450,7 @@ static int menubar_imagePosition(lua_State *L) {
             button.imagePosition = [imagePosition unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_POSITIONS allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_POSITIONS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -480,7 +480,7 @@ static int menubar_imageScaling(lua_State *L) {
             button.imageScaling = [imageScaling unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_SCALING_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

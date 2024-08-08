@@ -970,7 +970,7 @@ static int textField_bezelStyle(lua_State *L) {
             element.bezelStyle = [number unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[BEZEL_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [BEZEL_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1001,7 +1001,7 @@ static int textField_lineBreakStrategy(lua_State *L) {
             element.lineBreakStrategy = [number unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[LINE_BREAK_STRATEGIES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LINE_BREAK_STRATEGIES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

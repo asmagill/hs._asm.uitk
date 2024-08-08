@@ -120,7 +120,7 @@ static int color_mode(lua_State *L) {
         if (value) {
             colorPanel.mode = [value integerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[COLORPANEL_MODES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORPANEL_MODES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {

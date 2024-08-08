@@ -238,7 +238,7 @@ static int menuitem_state(lua_State *L) {
             item.state = [state integerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[MENU_ITEM_STATES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [MENU_ITEM_STATES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

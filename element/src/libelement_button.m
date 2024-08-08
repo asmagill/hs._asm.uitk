@@ -247,7 +247,7 @@ static int button_newButtonType(lua_State *L) {
             lua_pushnil(L) ;
         }
     } else {
-        return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[BUTTON_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+        return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [BUTTON_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
     }
     return 1 ;
 }
@@ -655,7 +655,7 @@ static int button_bezelStyle(lua_State *L) {
             button.bezelStyle = [bezelStyle unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[BEZEL_STYLES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [BEZEL_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -702,7 +702,7 @@ static int button_imagePosition(lua_State *L) {
             button.imagePosition = [imagePosition unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_POSITIONS allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_POSITIONS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -743,7 +743,7 @@ static int button_imageScaling(lua_State *L) {
             ((NSButtonCell *)button.cell).imageScaling = [imageScaling unsignedIntegerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_SCALING_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -882,7 +882,7 @@ static int button_state(lua_State *L) {
             if (state) {
                 button.state = [state integerValue] ;
             } else {
-                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@, or next", [[BUTTON_STATES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@, or next", [BUTTON_STATES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
             lua_pushvalue(L, 1) ;
         }

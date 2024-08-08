@@ -316,7 +316,7 @@ static int view_focusRingType(lua_State *L) {
         if (focusRingType) {
             view.focusRingType = [focusRingType unsignedIntegerValue] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[VIEW_FOCUSRINGTYPE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [VIEW_FOCUSRINGTYPE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {

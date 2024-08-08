@@ -272,7 +272,7 @@ static void defineInternalDictionaries(void) {
             @"compositeRule" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [COMPOSITING_TYPES allKeys],
+                @"values"      : COMPOSITING_TYPES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"sourceOver",
                 @"optionalFor" : VISIBLE,
@@ -494,7 +494,7 @@ static void defineInternalDictionaries(void) {
             @"imageAlignment" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [IMAGEALIGNMENT_TYPES allKeys],
+                @"values"      : IMAGEALIGNMENT_TYPES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"center",
                 @"optionalFor" : @[ @"image" ],
@@ -518,7 +518,7 @@ static void defineInternalDictionaries(void) {
             @"imageScaling" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [IMAGESCALING_TYPES allKeys],
+                @"values"      : IMAGESCALING_TYPES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"scaleProportionally",
                 @"optionalFor" : @[ @"image" ],
@@ -589,7 +589,7 @@ static void defineInternalDictionaries(void) {
             @"strokeCapStyle" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [STROKE_CAP_STYLES allKeys],
+                @"values"      : STROKE_CAP_STYLES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"butt",
                 @"optionalFor" : PRIMITIVES,
@@ -620,7 +620,7 @@ static void defineInternalDictionaries(void) {
             @"strokeJoinStyle" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [STROKE_JOIN_STYLES allKeys],
+                @"values"      : STROKE_JOIN_STYLES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"miter",
                 @"optionalFor" : PRIMITIVES,
@@ -642,7 +642,7 @@ static void defineInternalDictionaries(void) {
             @"textAlignment" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [TEXTALIGNMENT_TYPES allKeys],
+                @"values"      : TEXTALIGNMENT_TYPES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"natural",
                 @"optionalFor" : @[ @"text" ],
@@ -664,7 +664,7 @@ static void defineInternalDictionaries(void) {
             @"textLineBreak" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [TEXTWRAP_TYPES allKeys],
+                @"values"      : TEXTWRAP_TYPES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"wordWrap",
                 @"optionalFor" : @[ @"text" ],
@@ -733,7 +733,7 @@ static void defineInternalDictionaries(void) {
             @"windingRule" : @{
                 @"class"       : @[ [NSString class] ],
                 @"luaClass"    : @"string",
-                @"values"      : [WINDING_RULES allKeys],
+                @"values"      : WINDING_RULES.allKeys,
                 @"nullable"    : @(YES),
                 @"default"     : @"nonZero",
                 @"optionalFor" : PRIMITIVES,

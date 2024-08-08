@@ -488,7 +488,7 @@ static int segmentBar_alignmentForSegment(lua_State *L) {
             [element setAlignment:value.integerValue forSegment:segment] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 3, [[NSString stringWithFormat:@"must be one of %@", [[SEGMENTS_ALIGNMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 3, [[NSString stringWithFormat:@"must be one of %@", [SEGMENTS_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -526,7 +526,7 @@ static int segmentBar_imageScalingForSegment(lua_State *L) {
             [element setImageScaling:value.unsignedIntegerValue forSegment:segment] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 3, [[NSString stringWithFormat:@"must be one of %@", [[IMAGE_SCALING_TYPES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 3, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -556,7 +556,7 @@ static int segmentBar_trackingMode(lua_State *L) {
             element.trackingMode = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SEGMENTS_TRACKING allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SEGMENTS_TRACKING.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -586,7 +586,7 @@ static int segmentBar_segmentDistribution(lua_State *L) {
             element.segmentDistribution = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SEGMENTS_DISTRIBUTION allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SEGMENTS_DISTRIBUTION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -616,7 +616,7 @@ static int segmentBar_segmentStyle(lua_State *L) {
             element.segmentStyle = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SEGMENTS_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SEGMENTS_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

@@ -580,7 +580,7 @@ static int scroller_borderType(lua_State *L) {
             element.borderType = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[BORDER_TYPE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [BORDER_TYPE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -608,7 +608,7 @@ static int scroller_horizontalScrollElasticity(lua_State *L) {
             element.horizontalScrollElasticity = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SCROLL_ELASTICITY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SCROLL_ELASTICITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -636,7 +636,7 @@ static int scroller_verticalScrollElasticity(lua_State *L) {
             element.verticalScrollElasticity = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SCROLL_ELASTICITY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SCROLL_ELASTICITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -664,7 +664,7 @@ static int scroller_scrollerKnobStyle(lua_State *L) {
             element.scrollerKnobStyle = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SCROLLER_KNOB_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SCROLLER_KNOB_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -692,7 +692,7 @@ static int scroller_scrollerStyle(lua_State *L) {
             element.scrollerStyle = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[SCROLLER_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [SCROLLER_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -720,7 +720,7 @@ static int scroller_findBarPosition(lua_State *L) {
             element.findBarPosition = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[FIND_BAR_POSITION allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [FIND_BAR_POSITION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

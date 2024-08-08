@@ -1025,7 +1025,7 @@ static int textView_selectionGranularity(lua_State *L) {
             element.selectionGranularity = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[TEXTVIEW_SELECTION_GRANULARITY allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TEXTVIEW_SELECTION_GRANULARITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1141,7 +1141,7 @@ static int textView_textContainer_lineBreakMode(lua_State *L) {
             element.textContainer.lineBreakMode = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[TEXT_LINEBREAK allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TEXT_LINEBREAK.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

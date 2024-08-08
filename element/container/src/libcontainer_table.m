@@ -723,7 +723,7 @@ static int table_columnAutoresizingStyle(lua_State *L) {
             table.columnAutoresizingStyle = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[AUTORESIZING_STYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [AUTORESIZING_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -751,7 +751,7 @@ static int table_gridStyleMask(lua_State *L) {
             table.gridStyleMask = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[TABLE_GRIDLINES allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TABLE_GRIDLINES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -790,7 +790,7 @@ static int table_rowSizeStyle(lua_State *L) {
             table.rowSizeStyle = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[TABLE_ROWSIZE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TABLE_ROWSIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -845,7 +845,7 @@ static int table_style(lua_State *L) {
                 table.style = value.integerValue ;
                 lua_pushvalue(L, 1) ;
             } else {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[TABLE_VIEWSTYLE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TABLE_VIEWSTYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
         }
     } else {
@@ -882,7 +882,7 @@ static int table_userInterfaceLayoutDirection(lua_State *L) {
             table.userInterfaceLayoutDirection = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[INTERFACE_LAYOUTDIRECTION allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [INTERFACE_LAYOUTDIRECTION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1708,7 +1708,7 @@ static int tableColumn_resizingMask(lua_State *L) {
             column.resizingMask = value.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[COLUMN_RESIZING allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [COLUMN_RESIZING.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

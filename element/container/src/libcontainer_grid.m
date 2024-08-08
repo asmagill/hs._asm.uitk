@@ -439,7 +439,7 @@ static int grid_rowAlignment(lua_State *L) {
             grid.rowAlignment = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_ROW_ALIGNMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_ROW_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -467,7 +467,7 @@ static int grid_xPlacement(lua_State *L) {
             grid.xPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -495,7 +495,7 @@ static int grid_yPlacement(lua_State *L) {
             grid.yPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -814,7 +814,7 @@ static int gridRow_yPlacement(lua_State *L) {
             row.yPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -847,7 +847,7 @@ static int gridRow_alignment(lua_State *L) {
             row.rowAlignment = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_ROW_ALIGNMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_ROW_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1084,7 +1084,7 @@ static int gridCol_xPlacement(lua_State *L) {
             col.xPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1256,7 +1256,7 @@ static int gridCell_rowAlignment(lua_State *L) {
             cell.rowAlignment = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_ROW_ALIGNMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_ROW_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1289,7 +1289,7 @@ static int gridCell_xPlacement(lua_State *L) {
             cell.xPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1322,7 +1322,7 @@ static int gridCell_yPlacement(lua_State *L) {
             cell.yPlacement = value.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [[GRID_CELL_PLACEMENT allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [GRID_CELL_PLACEMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;

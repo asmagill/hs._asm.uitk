@@ -431,7 +431,7 @@ static int progress_controlSize(lua_State *L) {
             progress.controlSize = [controlSize unsignedIntegerValue] ;
             [progress sizeToFit] ;
         } else {
-            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [[PROGRESS_SIZE allKeys] componentsJoinedByString:@", "]] UTF8String]) ;
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [PROGRESS_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     } else {
