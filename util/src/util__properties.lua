@@ -186,8 +186,9 @@ module.addPropertiesWrapper = function(objMT, readonlyAdditions)
 
             if type(inheritedMethod) == "function" then
                 value = function(self, ...)
-                    local result = inheritedMethod(parent, self, ...)
-                    return result == parent and self or result
+                    local results = table.pack(inheritedMethod(parent, self, ...))
+                    if results[1] == parent then results[1] = self end
+                    return table.unpack(results)
                 end
             end
         end
