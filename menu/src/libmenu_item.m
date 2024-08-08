@@ -24,7 +24,16 @@ static NSDictionary *MENU_ITEM_STATES ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
-#pragma mark - Support Functions and Classes
+#pragma mark - Support Functions and Classes -
+
+static BOOL oneOfOurs(NSView *obj) {
+    return [obj isKindOfClass:[NSView class]]  &&
+           [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
+}
 
 static void defineInternalDictionaries(void) {
     MENU_ITEM_STATES = @{
@@ -168,7 +177,7 @@ static void defineInternalDictionaries(void) {
 }
 @end
 
-#pragma mark - Module Functions
+#pragma mark - Module Functions -
 
 static int menuitem_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -196,7 +205,7 @@ static int menuitem_new(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Module Methods
+#pragma mark - Module Methods -
 
 static int menuitem_state(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -484,8 +493,9 @@ static int menuitem_view(lua_State *L) {
             item.view = nil ;
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!view || ![view isKindOfClass:[NSView class]]) {
-                return luaL_argerror(L, 2, "expected userdata representing a gui element (NSView subclass)") ;
+//             if (!view || ![view isKindOfClass:[NSView class]]) {
+            if (!(view && oneOfOurs(view))) {
+                return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
             [skin luaRetain:refTable forNSObject:view] ;
@@ -810,7 +820,7 @@ static int menuitem_highlighted(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Module Constants
+#pragma mark - Module Constants -
 
 static int pushSpecialCharacters(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -913,7 +923,7 @@ static int pushSpecialCharacters(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -939,7 +949,7 @@ static id toNSMenuItem(lua_State *L, int idx) {
     return value ;
 }
 
-#pragma mark - Hammerspoon/Lua Infrastructure
+#pragma mark - Hammerspoon/Lua Infrastructure -
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -1004,7 +1014,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"title",            menuitem_title},
     {"enabled",          menuitem_enabled},
     {"hidden",           menuitem_hidden},
-    {"view",             menuitem_view},
+    {"element",          menuitem_view},
     {"submenu",          menuitem_submenu},
     {"callback",         menuitem_callback},
     {"tag",              menuitem_tag},
@@ -1064,7 +1074,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
         @"title",
         @"enabled",
         @"hidden",
-        @"view",
+        @"element",
         @"submenu",
         @"callback",
         @"tag",
