@@ -1,12 +1,7 @@
-// 2023-07-02 -- WTF? Did I ever really test this?
-//               Though it might in fact make dealing with items we get from other things harder...
-//               Do we need to do the same with NSMenu? Or maybe just a way to get the items from
-//                  an NSMenu so we can put them into one of our own?
-
 // Uses associated objects to "add" callback and selfRef -- this is done instead of
 // subclassing so we don't have to add special code in menu.m to deal with regular
 // menu items and separator items; forcing an NSMenuItem for a separator into an
-// HSMenuItem object seems... disingenuous at best.
+// HSUITKMenuItem object seems... disingenuous at best.
 
 @import Cocoa ;
 @import LuaSkin ;
@@ -56,6 +51,7 @@ static void defineInternalDictionaries(void) {
 - (void)setValidateCallback:(int)value ;
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem;
+- (instancetype)copyWithState:(lua_State *)L ;
 @end
 
 @implementation NSMenuItem (HammerspoonAdditions)
@@ -74,6 +70,28 @@ static void defineInternalDictionaries(void) {
         item.target           = item ;
     }
     return item ;
+}
+
+- (instancetype)copyWithState:(lua_State *)L {
+    NSMenuItem *newItem = [self copy] ;
+    if (newItem) {
+        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+        if (self.callbackRef != LUA_NOREF) {
+            [skin pushLuaRef:refTable ref:self.callbackRef] ;
+            newItem.callbackRef = [skin luaRef:refTable] ;
+        } else {
+            newItem.callbackRef = LUA_NOREF ;
+        }
+        if (self.validateCallback != LUA_NOREF) {
+            [skin pushLuaRef:refTable ref:self.validateCallback] ;
+            newItem.validateCallback = [skin luaRef:refTable] ;
+        } else {
+            newItem.validateCallback = LUA_NOREF ;
+        }
+        newItem.selfRefCount = 0 ;
+        newItem.target = newItem ;
+    }
+    return newItem ;
 }
 
 - (void)setCallbackRef:(int)value {

@@ -12,7 +12,11 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
     return NSMakePoint(thePoint.x, [[NSScreen screens][0] frame].size.height - thePoint.y) ;
 }
 
-@interface HSMenu : NSMenu <NSMenuDelegate>
+@interface NSMenuItem (HammerspoonAdditions)
+- (instancetype)copyWithState:(lua_State *)L ;
+@end
+
+@interface HSUITKMenu : NSMenu <NSMenuDelegate>
 @property        int         callbackRef ;
 @property        int         passthroughCallback ;
 @property        int         selfRefCount ;
@@ -23,7 +27,7 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 @property (weak) NSResponder *assignedTo ;
 @end
 
-@implementation HSMenu
+@implementation HSUITKMenu
 - (instancetype)initWithTitle:(NSString *)title {
     self = [super initWithTitle:title] ;
     if (self) {
@@ -42,10 +46,53 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
     return self ;
 }
 
+- (instancetype)copyWithState:(lua_State *)L {
+    HSUITKMenu *newMenu = [[HSUITKMenu alloc] initWithTitle:self.title] ;
+    if (newMenu) {
+        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+
+        if (_callbackRef != LUA_NOREF) {
+            [skin pushLuaRef:refTable ref:_callbackRef] ;
+            newMenu.callbackRef = [skin luaRef:refTable] ;
+        }
+        if (_passthroughCallback != LUA_NOREF) {
+            [skin pushLuaRef:refTable ref:_passthroughCallback] ;
+            newMenu.passthroughCallback = [skin luaRef:refTable] ;
+        }
+
+        newMenu.trackOpen                    = _trackOpen ;
+        newMenu.trackClose                   = _trackClose ;
+        newMenu.trackUpdate                  = _trackUpdate ;
+        newMenu.trackHighlight               = _trackHighlight ;
+
+        newMenu.allowsContextMenuPlugIns     = self.allowsContextMenuPlugIns ;
+        newMenu.showsStateColumn             = self.showsStateColumn ;
+        newMenu.minimumWidth                 = self.minimumWidth ;
+        newMenu.title                        = self.title ;
+        newMenu.font                         = self.font ;
+
+        // may implement later, so copy them just in case
+        if (@available(macos 14.0, *)) {
+            newMenu.presentationStyle        = self.presentationStyle ;
+            newMenu.selectionMode            = self.selectionMode ;
+        }
+        newMenu.userInterfaceLayoutDirection = self.userInterfaceLayoutDirection ;
+
+        NSMutableArray *newItemArray = [NSMutableArray arrayWithCapacity:self.itemArray.count] ;
+        for (NSMenuItem *item in self.itemArray) {
+            NSMenuItem *newItem = [item copyWithState:L] ;
+            [newItemArray addObject:newItem] ;
+            [skin luaRetain:refTable forNSObject:newItem] ;
+        }
+        newMenu.itemArray = newItemArray.copy ;
+    }
+    return newMenu ;
+}
+
 - (void)passCallbackUpWith:(NSArray *)arguments {
     NSMenu *nextMenu = self.supermenu ;
     SEL passthroughCallback = NSSelectorFromString(@"performPassthroughCallback:") ;
-    while (nextMenu && [nextMenu isKindOfClass:[HSMenu class]]) {
+    while (nextMenu && [nextMenu isKindOfClass:[HSUITKMenu class]]) {
         if ([nextMenu respondsToSelector:passthroughCallback]) {
             [nextMenu performSelectorOnMainThread:passthroughCallback
                                           withObject:arguments
@@ -143,7 +190,7 @@ static int menu_new(lua_State *L) {
     [skin checkArgs:LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSString *title = (lua_gettop(L)) == 1 ? [skin toNSObjectAtIndex:1] : [[NSUUID UUID] UUIDString] ;
 
-    HSMenu *menu = [[HSMenu alloc] initWithTitle:title] ;
+    HSUITKMenu *menu = [[HSUITKMenu alloc] initWithTitle:title] ;
     if (menu) {
         [skin pushNSObject:menu] ;
     } else {
@@ -164,7 +211,7 @@ static int menu_callbackFlags(lua_State *L) {
                     LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
                     LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, menu.trackUpdate) ;
@@ -186,7 +233,7 @@ static int menu_callbackFlags(lua_State *L) {
 static int menu_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         menu.callbackRef = [skin luaUnref:refTable ref:menu.callbackRef] ;
@@ -208,7 +255,7 @@ static int menu_callback(lua_State *L) {
 static int menu_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 2) {
         menu.passthroughCallback = [skin luaUnref:refTable ref:menu.passthroughCallback] ;
@@ -230,7 +277,7 @@ static int menu_passthroughCallback(lua_State *L) {
 static int menu_showsStateColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushboolean(L, menu.showsStateColumn) ;
@@ -244,7 +291,7 @@ static int menu_showsStateColumn(lua_State *L) {
 static int menu_highlightedItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (menu.highlightedItem) {
         [skin pushNSObject:menu.highlightedItem] ;
@@ -257,7 +304,7 @@ static int menu_highlightedItem(lua_State *L) {
 static int menu_size(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     [skin pushNSSize:menu.size] ;
     return 1 ;
@@ -266,7 +313,7 @@ static int menu_size(lua_State *L) {
 static int menu_update(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     [menu update] ;
 
@@ -277,7 +324,7 @@ static int menu_update(lua_State *L) {
 static int menu_popupMenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK | LS_TVARARG] ;
-    HSMenu     *menu    = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu    = [skin toNSObjectAtIndex:1] ;
     NSPoint    location = PointWithFlippedYCoordinate([skin tableToPointAtIndex:2]) ;
     NSMenuItem *item    = nil ;
 
@@ -349,7 +396,7 @@ static int menu_popupMenu(lua_State *L) {
 static int menu_minimumWidth(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu     *menu    = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu    = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, menu.minimumWidth) ;
@@ -364,7 +411,7 @@ static int menu_minimumWidth(lua_State *L) {
 static int menu_title(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu     *menu    = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu    = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:menu.title] ;
@@ -378,7 +425,7 @@ static int menu_title(lua_State *L) {
 static int menu_font(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:menu.font] ;
@@ -392,7 +439,7 @@ static int menu_font(lua_State *L) {
 static int menu_supermenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (menu.supermenu) {
         [skin pushNSObject:menu.supermenu] ;
@@ -405,7 +452,7 @@ static int menu_supermenu(lua_State *L) {
 static int menu_numberOfItems(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     lua_pushinteger(L, menu.numberOfItems) ;
     return 1 ;
@@ -414,7 +461,7 @@ static int menu_numberOfItems(lua_State *L) {
 static int menu_itemArray(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (menu.itemArray) {
         [skin pushNSObject:menu.itemArray] ;
@@ -430,7 +477,7 @@ static int menu_insertItemAtIndex(lua_State *L) {
                     LS_TUSERDATA, "hs._asm.uitk.menu.item",
                     LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
                     LS_TBREAK] ;
-    HSMenu     *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
     NSMenuItem *item = [skin toNSObjectAtIndex:2] ;
     NSInteger idx = (lua_type(L, -1) == LUA_TNUMBER) ? (lua_tointeger(L, -1) - 1) : menu.numberOfItems ;
     if ((idx < 0) || (idx > menu.numberOfItems)) return luaL_argerror(L, lua_gettop(L), "index out of bounds") ;
@@ -448,7 +495,7 @@ static int menu_insertItemAtIndex(lua_State *L) {
 static int menu_itemAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSMenu     *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
     NSInteger  idx   = lua_tointeger(L, 2) ;
     NSMenuItem *item = nil ;
 
@@ -465,7 +512,7 @@ static int menu_itemAtIndex(lua_State *L) {
 static int menu_removeItemAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    HSMenu     *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
     NSInteger idx = ((lua_type(L, -1) == LUA_TNUMBER) ? lua_tointeger(L, -1) : menu.numberOfItems) - 1 ;
     if ((idx < 0) || (idx >= menu.numberOfItems)) return luaL_argerror(L, lua_gettop(L), "index out of bounds") ;
 
@@ -479,7 +526,7 @@ static int menu_removeItemAtIndex(lua_State *L) {
 static int menu_removeAll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu     *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
 
     if (menu.itemArray) {
         for (NSMenuItem *item in menu.itemArray) [skin luaRelease:refTable forNSObject:item] ;
@@ -492,7 +539,7 @@ static int menu_removeAll(lua_State *L) {
 static int menu_indexOfItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
-    HSMenu     *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
     NSMenuItem *item = [skin toNSObjectAtIndex:2] ;
 
     NSInteger idx = [menu indexOfItem:item] + 1 ;
@@ -507,8 +554,8 @@ static int menu_indexOfItem(lua_State *L) {
 static int menu_indexOfItemWithRepresentedObject(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL, LS_TBREAK] ;
-    HSMenu   *menu = [skin toNSObjectAtIndex:1] ;
-    NSString *obj  = (lua_type(L, 2) != LUA_TNIL) ? [skin toNSObjectAtIndex:2] : nil ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
+    NSString   *obj  = (lua_type(L, 2) != LUA_TNIL) ? [skin toNSObjectAtIndex:2] : nil ;
 
     NSInteger idx = [menu indexOfItemWithRepresentedObject:obj] + 1 ;
     if (idx > 0) {
@@ -522,8 +569,8 @@ static int menu_indexOfItemWithRepresentedObject(lua_State *L) {
 static int menu_indexOfItemWithSubmenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    HSMenu *menu = [skin toNSObjectAtIndex:1] ;
-    HSMenu *item = [skin toNSObjectAtIndex:2] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenu *item = [skin toNSObjectAtIndex:2] ;
 
     NSInteger idx = [menu indexOfItemWithSubmenu:item] + 1 ;
     if (idx > 0) {
@@ -537,8 +584,8 @@ static int menu_indexOfItemWithSubmenu(lua_State *L) {
 static int menu_indexOfItemWithTag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
-    HSMenu    *menu = [skin toNSObjectAtIndex:1] ;
-    NSInteger tag   = lua_tointeger(L, 2) ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
+    NSInteger  tag   = lua_tointeger(L, 2) ;
 
     NSInteger idx = [menu indexOfItemWithTag:tag] + 1 ;
     if (idx > 0) {
@@ -552,8 +599,8 @@ static int menu_indexOfItemWithTag(lua_State *L) {
 static int menu_indexOfItemWithTitle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING, LS_TBREAK] ;
-    HSMenu   *menu  = [skin toNSObjectAtIndex:1] ;
-    NSString *title = [skin toNSObjectAtIndex:2] ;
+    HSUITKMenu *menu  = [skin toNSObjectAtIndex:1] ;
+    NSString   *title = [skin toNSObjectAtIndex:2] ;
 
     NSInteger idx = [menu indexOfItemWithTitle:title] + 1 ;
     if (idx > 0) {
@@ -572,21 +619,21 @@ static int menu_indexOfItemWithTitle(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushHSMenu(lua_State *L, id obj) {
-    HSMenu *value = obj;
+static int pushHSUITKMenu(lua_State *L, id obj) {
+    HSUITKMenu *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSMenu *));
+    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKMenu *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toHSMenu(lua_State *L, int idx) {
+static id toHSUITKMenu(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSMenu *value ;
+    HSUITKMenu *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge HSMenu, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge HSUITKMenu, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -598,7 +645,7 @@ static id toHSMenu(lua_State *L, int idx) {
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSMenu *obj = [skin luaObjectAtIndex:1 toClass:"HSMenu"] ;
+    HSUITKMenu *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKMenu"] ;
     NSString *title = obj.title ;
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ (%p)", USERDATA_TAG, title, lua_topointer(L, 1)]] ;
     return 1 ;
@@ -609,8 +656,8 @@ static int userdata_eq(lua_State* L) {
 // so use luaL_testudata before the macro causes a lua error
     if (luaL_testudata(L, 1, USERDATA_TAG) && luaL_testudata(L, 2, USERDATA_TAG)) {
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-        HSMenu *obj1 = [skin luaObjectAtIndex:1 toClass:"HSMenu"] ;
-        HSMenu *obj2 = [skin luaObjectAtIndex:2 toClass:"HSMenu"] ;
+        HSUITKMenu *obj1 = [skin luaObjectAtIndex:1 toClass:"HSUITKMenu"] ;
+        HSUITKMenu *obj2 = [skin luaObjectAtIndex:2 toClass:"HSUITKMenu"] ;
         lua_pushboolean(L, [obj1 isEqualTo:obj2]) ;
     } else {
         lua_pushboolean(L, NO) ;
@@ -619,7 +666,7 @@ static int userdata_eq(lua_State* L) {
 }
 
 static int userdata_gc(lua_State* L) {
-    HSMenu *obj = get_objectFromUserdata(__bridge_transfer HSMenu, L, 1, USERDATA_TAG) ;
+    HSUITKMenu *obj = get_objectFromUserdata(__bridge_transfer HSUITKMenu, L, 1, USERDATA_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
@@ -696,9 +743,9 @@ int luaopen_hs__asm_uitk_libmenu(lua_State* L) {
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSMenu  forClass:"HSMenu"];
-    [skin registerLuaObjectHelper:toHSMenu forClass:"HSMenu"
-                                withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKMenu  forClass:"HSUITKMenu"];
+    [skin registerLuaObjectHelper:toHSUITKMenu forClass:"HSUITKMenu"
+                                    withUserdataMapping:USERDATA_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
