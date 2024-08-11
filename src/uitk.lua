@@ -42,6 +42,7 @@ local subModules = {
     window  = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
     panel   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
     util    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".util",
+    toolbar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".toolbar",
 }
 
 -- private variables and methods -----------------------------------------

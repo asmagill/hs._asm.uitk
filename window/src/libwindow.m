@@ -8,7 +8,48 @@ static NSArray *windowNotifications ;
 
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
+static NSDictionary *TOOLBAR_STYLES ;
+static NSDictionary *TITLE_VISIBILITY ;
+static NSDictionary *WINDOW_APPEARANCES ;
+static NSDictionary *ANIMATION_BEHAVIORS ;
+
 #pragma mark - Support Functions and Classes -
+
+static void defineInternalDictionaries(void) {
+    if (@available(macOS 11.0, *)) {
+        TOOLBAR_STYLES = @{
+            @"automatic"      : @(NSWindowToolbarStyleAutomatic),
+            @"expanded"       : @(NSWindowToolbarStyleExpanded),
+            @"preference"     : @(NSWindowToolbarStylePreference),
+            @"unified"        : @(NSWindowToolbarStyleUnified),
+            @"unifiedCompact" : @(NSWindowToolbarStyleUnifiedCompact),
+        } ;
+    }
+
+    TITLE_VISIBILITY = @{
+        @"visible" : @(NSWindowTitleVisible),
+        @"hidden"  : @(NSWindowTitleHidden),
+    } ;
+
+    WINDOW_APPEARANCES = @{
+        @"aqua"                 : NSAppearanceNameAqua,
+        @"darkAqua"             : NSAppearanceNameDarkAqua,
+        @"light"                : NSAppearanceNameVibrantLight,
+        @"dark"                 : NSAppearanceNameVibrantDark,
+        @"highContrastAqua"     : NSAppearanceNameAccessibilityHighContrastAqua,
+        @"highContrastDarkAqua" : NSAppearanceNameAccessibilityHighContrastDarkAqua,
+        @"highContrastLight"    : NSAppearanceNameAccessibilityHighContrastVibrantLight,
+        @"highContrastDark"     : NSAppearanceNameAccessibilityHighContrastVibrantDark
+    } ;
+
+    ANIMATION_BEHAVIORS = @{
+        @"default"        : @(NSWindowAnimationBehaviorDefault),
+        @"none"           : @(NSWindowAnimationBehaviorNone),
+        @"documentWindow" : @(NSWindowAnimationBehaviorDocumentWindow),
+        @"utilityWindow"  : @(NSWindowAnimationBehaviorUtilityWindow),
+        @"alertPanel"     : @(NSWindowAnimationBehaviorAlertPanel),
+    } ;
+}
 
 BOOL oneOfOurs(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
@@ -25,6 +66,13 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
                       theRect.size.width,
                       theRect.size.height) ;
 }
+
+@interface NSToolbar (Hammerspoon)
+@property (weak)     NSWindow            *window ;
+
+- (NSWindow *)window ;
+- (void)setWindow:(NSWindow *)window ;
+@end
 
 @interface HSUITKWindow : NSPanel <NSWindowDelegate>
 @property        int          selfRefCount ;
@@ -604,23 +652,24 @@ static int window_styleMask(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
-    NSUInteger oldStyle = window.styleMask ;
+    NSString   *theTitle = window.title ;     // NSPanel resets title when style changes
+    NSUInteger oldStyle  = window.styleMask ; // in case we have to reset it
+
     if (lua_type(L, 2) == LUA_TNONE) {
         lua_pushinteger(L, (lua_Integer)oldStyle) ;
     } else {
-// FIXME: can we check this through logic or do we have to use try/catch?
-            @try {
-            // Because we're using NSPanel, the title is reset when the style is changed
-                NSString *theTitle = window.title ;
-            // Also, some styles don't get properly set unless we start from a clean slate
-                window.styleMask = 0 ;
-                window.styleMask = (NSUInteger)luaL_checkinteger(L, 2) ;
-                if (theTitle) window.title = theTitle ;
-            }
-            @catch ( NSException *theException ) {
-                window.styleMask = oldStyle ;
-                return luaL_error(L, "invalid style mask: %s, %s", [[theException name] UTF8String], [[theException reason] UTF8String]) ;
-            }
+        // FIXME: can we determine this through logic or do we have to use try/catch?
+        @try {
+            window.styleMask = 0 ;  // some styles don't get properly set unless we start from a clean slate
+            window.styleMask = (NSUInteger)luaL_checkinteger(L, 2) ;
+            if (theTitle) window.title = theTitle ;
+        }
+        @catch (NSException *exception) {
+            window.styleMask = oldStyle ;
+            if (theTitle) window.title = theTitle ;
+            NSString *errMsg = [NSString stringWithFormat:@"invalid style mask: %@, %@", exception.name, exception.reason] ;
+            return luaL_argerror(L, 2, errMsg.UTF8String) ;
+        }
         lua_settop(L, 1) ;
     }
     return 1 ;
@@ -683,19 +732,17 @@ static int window_titlebarAppearsTransparent(lua_State *L) {
 ///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * NOT IMPLEMENTED YET - When a toolbar is attached to the window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title ("visible") or in the window's title bar itself, as seen in applications like Safari ("hidden").
+///  * When a toolbar is attached to the window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title ("visible") or in the window's title bar itself, as seen in applications like Safari ("hidden").
 static int window_titleVisibility(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
-// FIXME: should we switch this to true/false?
-    NSDictionary *mapping = @{
-        @"visible" : @(NSWindowTitleVisible),
-        @"hidden"  : @(NSWindowTitleHidden),
-    } ;
+
+// ??? should we switch this to true/false?
+
     if (lua_gettop(L) == 1) {
         NSNumber *titleVisibility = @(window.titleVisibility) ;
-        NSString *value = [[mapping allKeysForObject:titleVisibility] firstObject] ;
+        NSString *value = [[TITLE_VISIBILITY allKeysForObject:titleVisibility] firstObject] ;
         if (value) {
             [skin pushNSObject:value] ;
         } else {
@@ -703,12 +750,90 @@ static int window_titleVisibility(lua_State *L) {
             lua_pushnil(L) ;
         }
     } else {
-        NSNumber *value = mapping[[skin toNSObjectAtIndex:2]] ;
+        NSNumber *value = TITLE_VISIBILITY[[skin toNSObjectAtIndex:2]] ;
         if (value) {
             window.titleVisibility = [value intValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [[mapping allKeys] componentsJoinedByString:@"', '"]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [TITLE_VISIBILITY.allKeys componentsJoinedByString:@"', '"]] UTF8String]) ;
+        }
+    }
+    return 1 ;
+}
+
+static int window_toolbar(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:window.toolbar withOptions:LS_NSDescribeUnknownTypes] ;
+    } else {
+        NSToolbar *toolbar = nil ;
+        switch(lua_type(L, 2)) {
+            case LUA_TNIL:
+                break ;
+            case LUA_TUSERDATA:
+                [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs._asm.uitk.toolbar", LS_TBREAK] ;
+                toolbar = [skin toNSObjectAtIndex:2] ;
+                [skin luaRetain:refTable forNSObject:toolbar] ;
+                toolbar.window = window ;
+                break ;
+            default:
+                return luaL_argerror(L, 2, "expected nil or hs._asm.uitk.toolbar userdata") ;
+        }
+
+        if (window.toolbar) {
+            [skin luaRelease:refTable forNSObject:window.toolbar] ;
+            window.toolbar.window = nil ;
+        }
+        window.toolbar = toolbar ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int window_toggleToolbarShown(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
+
+    [window toggleToolbarShown:window] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+static int window_toolbarStyle(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        if (@available(macOS 11.0, *)) {
+            NSNumber *value = @(window.toolbarStyle) ;
+            NSArray *temp = [TOOLBAR_STYLES allKeysForObject:value];
+            NSString *answer = [temp firstObject] ;
+            if (answer) {
+                [skin pushNSObject:answer] ;
+            } else {
+                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized toolbar style %@ -- notify developers", USERDATA_TAG, value]] ;
+                lua_pushnil(L) ;
+            }
+        } else {
+            lua_pushnil(L) ;
+        }
+    } else {
+        if (@available(macOS 11.0, *)) {
+            NSString *key = [skin toNSObjectAtIndex:2] ;
+            NSNumber *value = TOOLBAR_STYLES[key] ;
+            if (value) {
+                window.toolbarStyle = value.integerValue ;
+                lua_pushvalue(L, 1) ;
+            } else {
+                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TOOLBAR_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
+            }
+        } else {
+            lua_pushvalue(L, 1) ;
         }
     }
     return 1 ;
@@ -736,37 +861,20 @@ static int appearanceCustomization_appearance(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
-    NSDictionary *mapping = @{
-        @"aqua"                 : NSAppearanceNameAqua,          // 10.9+
-        @"light"                : NSAppearanceNameVibrantLight,  // 10.10+
-        @"dark"                 : NSAppearanceNameVibrantDark,   // 10.10+
-    } ;
-    if (@available(macOS 10.14, *)) {
-        mapping = @{
-            @"aqua"                 : NSAppearanceNameAqua,
-            @"darkAqua"             : NSAppearanceNameDarkAqua,
-            @"light"                : NSAppearanceNameVibrantLight,
-            @"dark"                 : NSAppearanceNameVibrantDark,
-            @"highContrastAqua"     : NSAppearanceNameAccessibilityHighContrastAqua,
-            @"highContrastDarkAqua" : NSAppearanceNameAccessibilityHighContrastDarkAqua,
-            @"highContrastLight"    : NSAppearanceNameAccessibilityHighContrastVibrantLight,
-            @"highContrastDark"     : NSAppearanceNameAccessibilityHighContrastVibrantDark
-        } ;
-    }
     if (lua_gettop(L) == 1) {
         NSString *actual   = window.effectiveAppearance.name ;
-        NSString *returned = [[mapping allKeysForObject:actual] firstObject] ;
+        NSString *returned = [[WINDOW_APPEARANCES allKeysForObject:actual] firstObject] ;
         if (!returned) returned = actual ;
         [skin pushNSObject:returned] ;
     } else {
         NSString *name = [skin toNSObjectAtIndex:2] ;
-        NSString *appearanceName = mapping[name] ;
+        NSString *appearanceName = WINDOW_APPEARANCES[name] ;
         if (!appearanceName) appearanceName = name ;
         NSAppearance *appearance = [NSAppearance appearanceNamed:appearanceName] ;
         if (appearance) {
             window.appearance = appearance ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [[mapping allKeys] componentsJoinedByString:@"', '"]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [WINDOW_APPEARANCES.allKeys componentsJoinedByString:@"', '"]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -922,17 +1030,9 @@ static int window_animationBehavior(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
-    NSDictionary *mapping = @{
-        @"default"        : @(NSWindowAnimationBehaviorDefault),
-        @"none"           : @(NSWindowAnimationBehaviorNone),
-        @"documentWindow" : @(NSWindowAnimationBehaviorDocumentWindow),
-        @"utilityWindow"  : @(NSWindowAnimationBehaviorUtilityWindow),
-        @"alertPanel"     : @(NSWindowAnimationBehaviorAlertPanel),
-    } ;
-
     if (lua_gettop(L) == 1) {
         NSNumber *animationBehavior = @(window.animationBehavior) ;
-        NSString *value = [[mapping allKeysForObject:animationBehavior] firstObject] ;
+        NSString *value = [[ANIMATION_BEHAVIORS allKeysForObject:animationBehavior] firstObject] ;
         if (value) {
             [skin pushNSObject:value] ;
         } else {
@@ -940,12 +1040,12 @@ static int window_animationBehavior(lua_State *L) {
             lua_pushnil(L) ;
         }
     } else {
-        NSNumber *value = mapping[[skin toNSObjectAtIndex:2]] ;
+        NSNumber *value = ANIMATION_BEHAVIORS[[skin toNSObjectAtIndex:2]] ;
         if (value) {
             window.animationBehavior = [value integerValue] ;
             lua_pushvalue(L, 1) ;
         } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [[mapping allKeys] componentsJoinedByString:@"', '"]] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [ANIMATION_BEHAVIORS.allKeys componentsJoinedByString:@"', '"]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1611,7 +1711,7 @@ static int window_notifications(lua_State *L) {
     return 1 ;
 }
 
-#pragma mark - Lua<->NSObject Conversion Functions
+#pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
@@ -1625,7 +1725,7 @@ static int pushHSUITKWindow(lua_State *L, id obj) {
     return 1;
 }
 
-static id toHSUITKWindowFromLua(lua_State *L, int idx) {
+static id toHSUITKWindow(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     HSUITKWindow *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
@@ -1700,6 +1800,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"animationDuration",          window_animationDuration},
     {"hide",                       window_hide},
     {"show",                       window_show},
+    {"toggleToolbar",              window_toggleToolbarShown},
 
     {"alpha",                      window_alphaValue},
     {"animationBehavior",          window_animationBehavior},
@@ -1725,6 +1826,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"passthroughCallback",        window_passthroughCallback},
     {"content",                    window_contentView},
     {"activeElement",              window_firstResponder},
+    {"toolbar",                    window_toolbar},
+    {"toolbarStyle",               window_toolbarStyle},
 
 //     {"accessibilitySubrole",       window_accessibilitySubrole},
 
@@ -1756,9 +1859,11 @@ int luaopen_hs__asm_uitk_libwindow(lua_State* L) {
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushHSUITKWindow         forClass:"HSUITKWindow"];
-    [skin registerLuaObjectHelper:toHSUITKWindowFromLua forClass:"HSUITKWindow"
-                                             withUserdataMapping:USERDATA_TAG];
+    defineInternalDictionaries() ;
+
+    [skin registerPushNSHelper:pushHSUITKWindow  forClass:"HSUITKWindow"];
+    [skin registerLuaObjectHelper:toHSUITKWindow forClass:"HSUITKWindow"
+                                      withUserdataMapping:USERDATA_TAG];
 
     window_collectionTypeTable(L) ; lua_setfield(L, -2, "behaviors") ;
     window_windowLevels(L) ;        lua_setfield(L, -2, "levels") ;
@@ -1792,6 +1897,8 @@ int luaopen_hs__asm_uitk_libwindow(lua_State* L) {
         @"passthroughCallback",
         @"content",
         @"activeElement",
+        @"toolbar",
+        @"toolbarStyle",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;
