@@ -4,13 +4,21 @@
 
 // TODO: Master List of Major Crap
 // +  toolbar and dictionary constructors
-//    newEmptyItem should be passed identifier, not type; if identifier exists, honor type; else placeholder
 //    add/modify/delete need to check and update if identifier for a present subitem
+//        also handle duplicate items
+//    menuForm, menu, element properties need to accept false to clear and reset to "normal"
+//        item metamethods should take nil, but also need to compare to initial and conditionally release existing
+//
+//
 //    update without replace needs to be specific when groupMembers changes
-//        applyDefinition shouldn't remove existing and remaining items, just tweak and reassign array
-//    should a removed (and visible) subitem revert to placeholder as the "owner" still lists them in groupMembers?
+//        i.e. applyDefinition shouldn't remove existing and remaining items, just tweak and reassign array
 //
 //    centered methods for toolbar
+//
+// +  should a removed (and visible) subitem revert to placeholder as the "owner" still lists them in groupMembers?
+// +      already creates placeholder item when identifier not found
+//
+// ?  newEmptyItem should be passed identifier, not type; if identifier exists, honor type; else placeholder
 //
 // +  item dealloc removes menu, menuForm, etc. instead of userdata
 // +  when dictionary adds, modifies, or removes item definition, trigger update on all assigned toolbars
@@ -127,6 +135,7 @@ static void defineInternalDictionaries(void) {
 @property            int        selfRefCount ;
 @property (atomic)   BOOL       allowsDuplicatesInToolbar ;
 @property            BOOL       enableOverrideDictionary ;
+@property            NSMenuItem *ourMenuFormRepresentation ;
 @property (readonly) NSMenuItem *initialMenuFormRepresentation ;
 @end
 
@@ -134,6 +143,7 @@ static void defineInternalDictionaries(void) {
 @property          int          selfRefCount ;
 @property (atomic) BOOL         allowsDuplicatesInToolbar ;
 @property          BOOL         enableOverrideDictionary ;
+@property            NSMenuItem *ourMenuFormRepresentation ;
 @property (readonly) NSMenuItem *initialMenuFormRepresentation ;
 @end
 
@@ -141,6 +151,7 @@ static void defineInternalDictionaries(void) {
 @property          int          selfRefCount ;
 @property (atomic) BOOL         allowsDuplicatesInToolbar ;
 @property          BOOL         enableOverrideDictionary ;
+@property            NSMenuItem *ourMenuFormRepresentation ;
 @property (readonly) NSMenuItem *initialMenuFormRepresentation ;
 @property (readonly) NSMenu     *initialMenu ;
 @end
@@ -383,7 +394,6 @@ static void defineInternalDictionaries(void) {
         if (lua_type(L, -2) == LUA_TSTRING) {
             keyName = [skin toNSObjectAtIndex:-2] ;
             value   = nil ;
-
             if ([keyName isEqualToString:@"type"]) {
                 if (lua_type(L, -1) == LUA_TSTRING) {
                     NSString *type = [skin toNSObjectAtIndex:-1] ;
@@ -684,14 +694,14 @@ static void defineInternalDictionaries(void) {
     } // else error already set in validatePropertiesAtIndex:forIdentifier:withState:error:
 
     if (result) {
-        HSUITKToolbar *toolbar = _toolbars.anyObject ; // what happens to one toolbar, happens to all
-        if (toolbar) {
-            NSArray   *itemIdentifiers = [toolbar.items valueForKey:@"itemIdentifier"] ;
+        HSUITKToolbar *sample = _toolbars.anyObject ; // what happens to one toolbar, happens to all
+        if (sample) {
+            NSArray   *itemIdentifiers = [sample.items valueForKey:@"itemIdentifier"] ;
             NSInteger atIdx            = (NSInteger)[itemIdentifiers indexOfObject:identifier] ;
             if (atIdx != NSNotFound) {
                 // item placeholder being shown
-                [toolbar removeItemAtIndex:atIdx] ;
-                [toolbar insertItemWithItemIdentifier:identifier atIndex:atIdx] ;
+                [sample removeItemAtIndex:atIdx] ;
+                [sample insertItemWithItemIdentifier:identifier atIndex:atIdx] ;
             }
         }
     }
@@ -725,12 +735,14 @@ static void defineInternalDictionaries(void) {
                     [self releaseLuaObjectsFromDefinition:itemDefinition withState:L] ;
                 } else {
                     if (properties[@"type"] == nil) {
-                        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+                        LuaSkin             *skin           = [LuaSkin sharedWithState:L] ;
+                        NSMutableDictionary *itemProperties = itemDefinition.mutableCopy ;
 
                         for (NSString *key in properties.allKeys) {
                             NSObject *value    = properties[key] ;
-                            NSObject *oldValue = _itemDefinitions[identifier][key] ;
+                            NSObject *oldValue = itemDefinition[key] ;
 
+                            // new value retained in validatePropertiesAtIndex:, but old one needs to be released
                             if (oldValue) {
                                 if ([key isEqualToString:@"callback"]) {
                                     NSNumber *callback = (NSNumber *)oldValue ;
@@ -743,8 +755,9 @@ static void defineInternalDictionaries(void) {
                                     [skin luaRelease:refTable forNSObject:oldValue] ;
                                 }
                             }
-                            _itemDefinitions[identifier][key] = value ;
+                            itemProperties[key] = value ;
                         }
+                        _itemDefinitions[identifier] = itemProperties.copy ;
                         result = YES ;
                     } else {
                         errMsg = @"can't change type of item unless replacing it" ;
@@ -770,12 +783,12 @@ static void defineInternalDictionaries(void) {
         } else {
             NSArray *toolbars = _toolbars.allObjects ;
             if (toolbars.count > 0) {
-                NSArray   *itemIdentifiers = [(NSToolbar *)toolbars.firstObject valueForKey:@"itemIdentifier"] ;
-                NSInteger atIdx            = (NSInteger)[itemIdentifiers indexOfObject:identifier] ;
-
+                HSUITKToolbar *sample          = toolbars.firstObject ;
+                NSArray       *itemIdentifiers = [sample.items valueForKey:@"itemIdentifier"] ;
+                NSUInteger atIdx               = [itemIdentifiers indexOfObject:identifier] ;
                 if (atIdx != NSNotFound) {
                     for (HSUITKToolbar *toolbar in toolbars) {
-                        NSToolbarItem *item = toolbar.items[(NSUInteger)atIdx] ;
+                        NSToolbarItem *item = toolbar.items[atIdx] ;
                         [self applyDefinition:properties withToolbar:toolbar
                                                               toItem:item
                                                            withState:L] ;
@@ -816,11 +829,11 @@ static void defineInternalDictionaries(void) {
     if (itemDefinition) [self releaseLuaObjectsFromDefinition:itemDefinition withState:L] ;
 
     if (result) {
-        HSUITKToolbar *toolbar = _toolbars.anyObject ; // what happens to one toolbar, happens to all
-        if (toolbar) {
-            NSArray   *itemIdentifiers = [toolbar.items valueForKey:@"itemIdentifier"] ;
+        HSUITKToolbar *sample = _toolbars.anyObject ; // what happens to one toolbar, happens to all
+        if (sample) {
+            NSArray   *itemIdentifiers = [sample.items valueForKey:@"itemIdentifier"] ;
             NSInteger atIdx            = (NSInteger)[itemIdentifiers indexOfObject:identifier] ;
-            if (atIdx != NSNotFound) [toolbar removeItemAtIndex:atIdx] ;
+            if (atIdx != NSNotFound) [sample removeItemAtIndex:atIdx] ;
         }
     }
 
@@ -898,7 +911,8 @@ static void defineInternalDictionaries(void) {
         }
         NSMenuItem *newValue = [menuForm copyWithState:L] ;
         [skin luaRetain:refTable forNSObject:newValue] ;
-        asItem.menuFormRepresentation = newValue ;
+        asItem.menuFormRepresentation    = newValue ;
+        asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
     }
     if (element) {
 // ??? I suspect we're going to need to add copyWithState: to all of the possibilities for this as well...
@@ -928,7 +942,7 @@ static void defineInternalDictionaries(void) {
                     NSString *type = subitemDefinition[@"type"] ;
                     if (!type) type = @"item" ;
                     if (![ITEM_TYPES containsObject:type]) {
-                        [LuaSkin logInfo:[NSString stringWithFormat:@"%s:%@ - unrecognized item type %@", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
+                        [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
                         type = @"item" ;
                     }
 
@@ -1008,6 +1022,8 @@ static void defineInternalDictionaries(void) {
     NSDictionary  *itemDefinition = self.itemDefinitions[itemIdentifier] ;
     NSToolbarItem *toolbarItem    = nil ;
 
+//     [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s%@ - %@ %@", USERDATA_TAG, NSStringFromSelector(_cmd), itemIdentifier, (flag ? @"YES" : @"NO ")]] ;
+
     if (itemDefinition) {
         NSString *type = itemDefinition[@"type"] ;
 
@@ -1016,7 +1032,7 @@ static void defineInternalDictionaries(void) {
 
         // treat unrecognized types as regular items, but log it
         if (![ITEM_TYPES containsObject:type]) {
-            [LuaSkin logInfo:[NSString stringWithFormat:@"%s:%@ - unrecognized item type %@", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
+            [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
             type = @"item" ;
         }
 
@@ -1024,21 +1040,22 @@ static void defineInternalDictionaries(void) {
 
         [self applyDefinition:itemDefinition withToolbar:(HSUITKToolbar *)toolbar toItem:toolbarItem
                                                                                withState:NULL] ;
-
-        // if this is for the configuration pane, enabled should be YES, even if the definition says it's not ATM
-        if (!flag) toolbarItem.enabled = YES ;
     } else {
-        [LuaSkin logVerbose:[NSString stringWithFormat:@"%s:%@ - undefined identifier %@; returning placeholder", UD_DICT_TAG, NSStringFromSelector(_cmd), itemIdentifier]] ;
+        [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - undefined identifier %@; returning placeholder", UD_DICT_TAG, NSStringFromSelector(_cmd), itemIdentifier]] ;
 
         // placeholder so dictionary can push updates if item defined after toolbar attached
         toolbarItem = [[HSUITKToolbarItem alloc] initWithItemIdentifier:itemIdentifier]  ;
     }
 
+    // if this is for the configuration pane, enabled should be YES, even if the definition says it's not ATM
+    if (toolbarItem && !flag) toolbarItem.enabled = YES ;
+
     return toolbarItem ;
 }
 
 - (void)toolbarDidRemoveItem:(NSNotification *)notification {
-[LuaSkin logInfo:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+    [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+
     NSToolbarItem *item = nil ;
     if (@available(macos 13.0, *)) {
         item = notification.userInfo[NSToolbarItemKey] ;
@@ -1050,7 +1067,8 @@ static void defineInternalDictionaries(void) {
 }
 
 - (void)toolbarWillAddItem:(NSNotification *)notification {
-[LuaSkin logInfo:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+    [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+
     NSToolbarItem *item = nil ;
     if (@available(macos 13.0, *)) {
         item = notification.userInfo[NSToolbarItemKey] ;
@@ -1101,6 +1119,7 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
     if (self) {
         _selfRefCount                  = 0 ;
         _enableOverrideDictionary      = NO ;
+        _ourMenuFormRepresentation     = nil ;
         _initialMenuFormRepresentation = self.menuFormRepresentation ;
     }
     return self ;
@@ -1108,10 +1127,10 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
 
 - (void)dealloc {
     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
-    if (![self.menuFormRepresentation isEqualTo:_initialMenuFormRepresentation]) {
-        [skin luaRelease:refTable forNSObject:self.menuFormRepresentation] ;
-        self.menuFormRepresentation = _initialMenuFormRepresentation ;
-    }
+    // dealloc crashes if trying to access self.menuFormRepresentation, so we track
+    // if we've changed it another way...
+    if (_ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:_ourMenuFormRepresentation] ;
+    _ourMenuFormRepresentation = nil ;
 }
 
 // the default implementation ignores items with a view set, plus we're putting the enabled onus on the user, so...
@@ -1128,6 +1147,7 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
     if (self) {
         _selfRefCount                  = 0 ;
         _enableOverrideDictionary      = NO ;
+        _ourMenuFormRepresentation     = nil ;
         _initialMenuFormRepresentation = self.menuFormRepresentation ;
     }
     return self ;
@@ -1135,10 +1155,11 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
 
 - (void)dealloc {
     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
-    if (![self.menuFormRepresentation isEqualTo:_initialMenuFormRepresentation]) {
-        [skin luaRelease:refTable forNSObject:self.menuFormRepresentation] ;
-        self.menuFormRepresentation = _initialMenuFormRepresentation ;
-    }
+    // dealloc crashes if trying to access self.menuFormRepresentation, so we track
+    // if we've changed it another way...
+    if (_ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:_ourMenuFormRepresentation] ;
+    _ourMenuFormRepresentation = nil ;
+    // TODO: see if subitems has the same issue as menuFormRepresentation
     for (NSToolbarItem *item in self.subitems) [skin luaRelease:refTable forNSObject:item] ;
     self.subitems = [NSArray array] ;
 }
@@ -1157,6 +1178,7 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
     if (self) {
         _selfRefCount                  = 0 ;
         _enableOverrideDictionary      = NO ;
+        _ourMenuFormRepresentation     = nil ;
         _initialMenuFormRepresentation = self.menuFormRepresentation ;
         _initialMenu                   = self.menu ;
     }
@@ -1165,10 +1187,11 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
 
 - (void)dealloc {
     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
-    if (![self.menuFormRepresentation isEqualTo:_initialMenuFormRepresentation]) {
-        [skin luaRelease:refTable forNSObject:self.menuFormRepresentation] ;
-        self.menuFormRepresentation = _initialMenuFormRepresentation ;
-    }
+    // dealloc crashes if trying to access self.menuFormRepresentation, so we track
+    // if we've changed it another way...
+    if (_ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:_ourMenuFormRepresentation] ;
+    _ourMenuFormRepresentation = nil ;
+    // TODO: see if menu has the same issue as menuFormRepresentation
     if (![self.menu isEqualTo:_initialMenu]) {
         [skin luaRelease:refTable forNSObject:self.menu] ;
         self.menu = _initialMenu ;
@@ -1207,6 +1230,7 @@ static int toolbar_new(lua_State *L) {
 
     HSUITKToolbar *toolbar = [[HSUITKToolbar alloc] initWithDictionary:dictionary withState:L] ;
     if (toolbar) {
+        [dictionary addToolbar:toolbar] ;
         [skin pushNSObject:toolbar] ;
     } else {
         lua_pushnil(L) ;
@@ -1601,14 +1625,14 @@ static int dictionary_defaultItems(lua_State *L) {
     } else {
         NSArray *itemIdentifiers = [skin toNSObjectAtIndex:2] ;
 
-        NSArray *allowedIdentifiers = dictionary.allowedIdentifiers ;
+//         NSArray *allowedIdentifiers = dictionary.allowedIdentifiers ;
 
         // Make sure the table is an array and not key-value pairs
         BOOL listIsGood = [itemIdentifiers isKindOfClass:[NSArray class]] ;
         // Make sure all of the members are strings and are allowed identifier
         if (listIsGood) {
             for (NSString *identifier in itemIdentifiers) {
-                if (!([identifier isKindOfClass:[NSString class]] && [allowedIdentifiers containsObject:identifier])) {
+                if (!([identifier isKindOfClass:[NSString class]])) { // && [allowedIdentifiers containsObject:identifier])) {
                     listIsGood = NO ;
                     break ;
                 }
@@ -1616,7 +1640,7 @@ static int dictionary_defaultItems(lua_State *L) {
         }
 
         if (!listIsGood) {
-            return luaL_argerror(L, 2, "expected array of string identifiers for allowed items") ;
+            return luaL_argerror(L, 2, "expected array of string identifiers from list of allowed items") ;
         }
 
         dictionary.defaultIdentifiers = itemIdentifiers ;
@@ -1674,7 +1698,7 @@ static int dictionary_addItem(lua_State *L) {
         } else {
             return luaL_argerror(L, 2, "expected id key with string value in definition table") ;
         }
-        lua_pop(L, 2) ;
+        lua_pop(L, 1) ;
     } else {
         [skin checkArgs:LS_TUSERDATA, UD_DICT_TAG, LS_TSTRING, LS_TTABLE, LS_TBREAK] ;
     }
@@ -1708,7 +1732,7 @@ static int dictionary_modifyItem(lua_State *L) {
         } else {
             return luaL_argerror(L, 2, "expected id key with string value in definition table") ;
         }
-        lua_pop(L, 2) ;
+        lua_pop(L, 1) ;
     } else {
         [skin checkArgs:LS_TUSERDATA, UD_DICT_TAG, LS_TSTRING, LS_TTABLE, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     }
@@ -2430,11 +2454,10 @@ static int ud_dictionary_gc(lua_State* L) {
 
 static int ud_item_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    HSUITKToolbarItem *obj = [skin luaObjectAtIndex:1 toClass:"HSUITKToolbarItem"] ;
+    HSUITKToolbarItem *obj = [skin toNSObjectAtIndex:1] ;
     NSString *title = obj.itemIdentifier ;
-    if ([obj isKindOfClass:[HSUITKToolbarItemGroup class]]) title = [title stringByAppendingString:@"group "] ;
-    if ([obj isKindOfClass:[HSUITKMenuToolbarItem class]])  title = [title stringByAppendingString:@"menu "] ;
-
+    if ([obj isKindOfClass:[HSUITKToolbarItemGroup class]]) title = [@"group " stringByAppendingString:title] ;
+    if ([obj isKindOfClass:[HSUITKMenuToolbarItem class]])  title = [@"group " stringByAppendingString:title] ;
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ (%p)", UD_ITEM_TAG, title, lua_topointer(L, 1)]] ;
     return 1 ;
 }
@@ -2444,8 +2467,8 @@ static int ud_item_eq(lua_State* L) {
 // so use luaL_testudata before the macro causes a lua error
     if (luaL_testudata(L, 1, UD_ITEM_TAG) && luaL_testudata(L, 2, UD_ITEM_TAG)) {
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-        HSUITKToolbarItem *obj1 = [skin luaObjectAtIndex:1 toClass:"HSUITKToolbarItem"] ;
-        HSUITKToolbarItem *obj2 = [skin luaObjectAtIndex:2 toClass:"HSUITKToolbarItem"] ;
+        HSUITKToolbarItem *obj1 = [skin toNSObjectAtIndex:1] ;
+        HSUITKToolbarItem *obj2 = [skin toNSObjectAtIndex:2] ;
         lua_pushboolean(L, [obj1 isEqualTo:obj2]) ;
     } else {
         lua_pushboolean(L, NO) ;
