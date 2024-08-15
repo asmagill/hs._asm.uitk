@@ -24,9 +24,9 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.module ===
+--- === hs._asm.uitk.panel ===
 ---
---- Stuff about the module
+--- These submodules provide some of the dialogs and panels common within macOS applications.
 
 local USERDATA_TAG = "hs._asm.uitk.panel"
 local uitk         = require("hs._asm.uitk")
@@ -37,6 +37,7 @@ local subModules = {
     font  = false,
     open  = true,
     save  = true,
+    alert = true,
 }
 
 local preload = function(m, isLua)
