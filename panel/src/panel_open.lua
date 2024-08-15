@@ -30,7 +30,8 @@
 
 local USERDATA_TAG = "hs._asm.uitk.panel.open"
 local uitk         = require("hs._asm.uitk")
-local module       = uitk.panel.save._open
+local savePanel    = uitk.panel.save
+local module       = savePanel._open
 local fnutils      = require("hs.fnutils")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
@@ -38,11 +39,16 @@ local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
 -- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+-- local settings     = require("hs.settings")
 -- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 -- private variables and methods -----------------------------------------
 
-local sharedModuleKeys = uitk.panel.save._sharedWithOpen
+module.__refTable = savePanel.__refTable
+
+-- Public interface ------------------------------------------------------
+
+module.refreshFileTypeBindings = savePanel.refreshFileTypeBindings
 
 -- Return Module Object --------------------------------------------------
 
@@ -50,11 +56,4 @@ uitk.util._properties.addPropertiesWrapper(moduleMT)
 
 return setmetatable(module, {
     __call = function(self, ...) return self.new(...) end,
-    __index = function(self, key)
-        if fnutils.contains(sharedModuleKeys, key) then
-            return uitk.panel.save[key]
-        else
-            return nil
-        end
-    end,
 })

@@ -39,12 +39,15 @@ local openMT       = hs.getObjectMetatable(USERDATA_TAG:match("^(.+)%.%w+$") .. 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
 local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
+local settings     = require("hs.settings")
 local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 -- private variables and methods -----------------------------------------
 
 local _open = module._open
 module._open = nil
+
+-- Public interface ------------------------------------------------------
 
 module.refreshFileTypeBindings = function()
     local UTIBinding, MIMEBinding, ExtensionBinding = {}, {}, {}
@@ -82,6 +85,10 @@ module.refreshFileTypeBindings = function()
     module.mimeTypes      = ls.makeConstantsTable(MIMEBinding)
     module.utiTypes       = ls.makeConstantsTable(UTIBinding)
     module.fileExtensions = ls.makeConstantsTable(ExtensionBinding)
+
+    _open.mimeTypes      = module.mimeTypes
+    _open.utiTypes       = module.utiTypes
+    _open.fileExtensions = module.fileExtensions
 end
 
 local _contentTypes = moduleMT.contentTypes
@@ -130,8 +137,6 @@ return setmetatable(module, {
     __index = function(self, key)
         if key == "_open" then
             return _open
-        elseif key == "_sharedWithOpen" then
-            return { "mimeTypes", "utiTypes", "fileExtensions", "refreshFileTypeBindings" }
         else
             return nil
         end
