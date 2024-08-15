@@ -28,11 +28,9 @@
 ---
 --- A basic container within which complex windows and graphical elements can be combined.
 ---
---- This module provides a basic container within which Hammerspoon can build more complex windows and graphical elements. The approach taken with this module is to create a "window" or rectangular space within which a container element from one of the submodules of `hs._asm.uitk.element` can be assigned. Canvas, WebView, and other visual or GUI elements can then be assigned to the container element and will be positioned and auto-arranged as determined by the rules governing the chosen element.
+--- This module provides a basic container within which Hammerspoon can build more complex windows and graphical elements. The approach taken with this module is to create a "window" or rectangular space within which an element or container from one of the submodules of `hs._asm.uitk.element` can be assigned. Container elements allow for additional elements to be assigned within them and will be visually arranged by their methods as described in the container element's documentation.
 ---
---- This approach allows concentrating the common code necessary for managing macOS window and visual containers in one place while leveraging container element views within macOS to easily encorporate different GUI elements. This will allow the creation of significantly more complex and varied displays and input mechanisms than are currently difficult or impossible to create with just `hs.canvas` or `hs.webview`.
----
---- This is a work in progress and is still extremely experimental.
+--- This allows for the creation of significantly more complex and varied displays and input/output mechanisms than are currently difficult or impossible to create with just `hs.canvas` or `hs.webview`.
 
 local USERDATA_TAG = "hs._asm.uitk.window"
 local uitk         = require("hs._asm.uitk")
@@ -55,6 +53,7 @@ require("hs.window")
 
 -- Public interface ------------------------------------------------------
 
+-- wrap so the initial content is one of our containers
 module._new = module.new
 module.new = function(...)
     return module._new(...):content(uitk.element.container())
@@ -77,6 +76,9 @@ module.notifications = ls.makeConstantsTable(module.notifications)
 ---
 --- Returns:
 ---  * if a parameter is specified, returns the window object, otherwise the current value
+---
+--- Notes:
+---  * to toggle multiple style masks, you must either create the new mask (as an integer or table of strings) or issue this method multiple times, each with a single string value for `mask`.
 windowMT._styleMask = windowMT.styleMask -- save raw version
 windowMT.styleMask = function(self, ...) -- add nice wrapper version
     local arg = table.pack(...)

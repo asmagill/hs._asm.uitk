@@ -83,7 +83,6 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 @property        NSNumber     *animationTime ;
 @property        NSMutableSet *notifyFor ;
 @property (weak) NSResponder  *lastFirstResponder ;
-// @property        NSString     *subroleOverride ;
 @end
 
 @implementation HSUITKWindow
@@ -125,8 +124,6 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
                                                                           @"didResize",
                                                                           @"didMove",
                                                                       ]] ;
-//         _subroleOverride        = nil ;
-
         self.delegate           = self ;
     }
     return self ;
@@ -206,21 +203,6 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
       [[self animator] setAlphaValue:0.0] ;
     [NSAnimationContext endGrouping] ;
 }
-
-#pragma mark * NSAccessibility protocol methods
-
-// // Hoping this is no longer necessary and we can remove subrole munging from *all* modules
-//
-// // to mimic canvas's default subrole, set object subroleOverride to "+.Hammerspoon"
-// - (NSString *)accessibilitySubrole {
-//     NSString *defaultSubrole = [super accessibilitySubrole] ;
-//     NSString *newSubrole     = defaultSubrole ;
-//     if (_subroleOverride) {
-//         newSubrole = [_subroleOverride stringByReplacingOccurrencesOfString:@"+"
-//                                                                  withString:defaultSubrole] ;
-//     }
-//     return newSubrole ;
-// }
 
 #pragma mark * NSStandardKeyBindingResponding protocol methods
 
@@ -413,6 +395,19 @@ static int window_orderHelper(lua_State *L, NSWindowOrderingMode mode) {
 
 #pragma mark - Module Functions -
 
+/// hs._asm.uitk.window.uitk.window.minimumWidth(title, [styleMask]) -> number
+/// Function
+/// Returns the minimum width to fully show a window with the given title and style mask.
+///
+/// Parameters:
+///  * `title`     - the proposed title for the window
+///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.window.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
+///
+/// Returns:
+///  * the width for the window to fully display the given title with the specified window style.
+///
+/// Notes:
+///  * this width is just a suggestion -- you can still create the window with a smaller width, but the title may be truncated or not visible.
 static int window_minFrameWidthWithTitle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -423,6 +418,18 @@ static int window_minFrameWidthWithTitle(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window.uitk.contentRectForFrame(rect, [styleMask]) -> number
+/// Function
+/// Returns a rect table with the height and width available for content (elements) in a window with the given size and style mask.
+///
+/// Parameters:
+///  * `rect`      - a rect-table specifying the initial location and size of the window.
+///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.window.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
+///
+/// Returns:
+///  * a rect table, in screen coordinates, specifying the height and width of the area available for content (elements) in a window with the specified frame and style mask.
+///
+///  * if you leave out the `x` and `y` keys (i.e. use a size table) for `rect`, the result will assign 0 to the `x` and `y` keys in the return value.
 static int window_contentRectForFrameRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -433,6 +440,18 @@ static int window_contentRectForFrameRect(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window.uitk.frameRectForContent(rect, [styleMask]) -> number
+/// Function
+/// Returns a rect table with the height and width a window would require to fully display content (elements) with the given size in a window with the specified style mask.
+///
+/// Parameters:
+///  * `rect`      - a rect-table specifying the initial location and size of the content.
+///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.window.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
+///
+/// Returns:
+///  * a rect table, in screen coordinates, specifying the the height and width of the window necessary for the content size.
+///
+///  * if you leave out the `x` and `y` keys (i.e. use a size table) for `rect`, the result will assign 0 to the `x` and `y` keys in the return value.
 static int window_frameRectForContentRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -448,7 +467,7 @@ static int window_frameRectForContentRect(lua_State *L) {
 /// Creates a new empty window.
 ///
 /// Parameters:
-///  * `rect`     - a rect-table specifying the initial location and size of the window.
+///  * `rect`      - a rect-table specifying the initial location and size of the window.
 ///  * `styleMask` - an optional integer specifying the style mask for the window as a combination of logically or'ed values from the [hs._asm.uitk.window.masks](#masks) table.  Defaults to `titled | closable | resizable | miniaturizable` (a standard macOS window with the appropriate titlebar and decorations).
 ///
 /// Returns:
@@ -456,6 +475,8 @@ static int window_frameRectForContentRect(lua_State *L) {
 ///
 /// Notes:
 ///  * a rect-table is a table with key-value pairs specifying the top-left coordinate on the screen of the window (keys `x`  and `y`) and the size (keys `h` and `w`). The table may be crafted by any method which includes these keys, including the use of an `hs.geometry` object.
+///
+///  * the window will have an initial content element of `hs._asm.uitk.element.container`, to which other elements can be assigned. See [hs._asm.uitk.window:content](#content).
 static int window_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -474,7 +495,7 @@ static int window_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.window:allowTextEntry([value]) -> windowObject | boolean
+/// hs._asm.uitk.window:allowTextEntry([value]) -> windowObject | currentValue
 /// Method
 /// Get or set whether or not the window object can accept keyboard entry. Defaults to true.
 ///
@@ -500,33 +521,7 @@ static int window_allowTextEntry(lua_State *L) {
     return 1 ;
 }
 
-// /// hs._asm.uitk.window:deleteOnClose([value]) -> windowObject | boolean
-// /// Method
-// /// Get or set whether or not the window should delete itself when its window is closed.
-// ///
-// /// Parameters:
-// ///  * `value` - an optional boolean, default false, which sets whether or not the window will delete itself when its window is closed by any method.
-// ///
-// /// Returns:
-// ///  * If a value is provided, then this method returns the window object; otherwise the current value
-// ///
-// /// Notes:
-// ///  * setting this to true allows Lua garbage collection to release the window resources when the user closes the window.
-// static int window_deleteOnClose(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-//     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
-//
-//     if (lua_gettop(L) == 1) {
-//         lua_pushboolean(L, window.deleteOnClose) ;
-//     } else {
-//         window.deleteOnClose = (BOOL) lua_toboolean(L, 2) ;
-//         lua_settop(L, 1) ;
-//     }
-//     return 1 ;
-// }
-
-/// hs._asm.uitk.window:alpha([alpha]) -> windowObject | number
+/// hs._asm.uitk.window:alpha([alpha]) -> windowObject | currentValue
 /// Method
 /// Get or set the alpha level of the window representing the window object.
 ///
@@ -573,7 +568,7 @@ static int window_backgroundColor(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:hasShadow([state]) -> windowObject | boolean
+/// hs._asm.uitk.window:hasShadow([state]) -> windowObject | currentValue
 /// Method
 /// Get or set whether the window displays a shadow.
 ///
@@ -596,7 +591,7 @@ static int window_hasShadow(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:opaque([state]) -> windowObject | boolean
+/// hs._asm.uitk.window:opaque([state]) -> windowObject | currentValue
 /// Method
 /// Get or set whether the window is opaque.
 ///
@@ -619,7 +614,7 @@ static int window_opaque(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:ignoresMouseEvents([state]) -> windowObject | boolean
+/// hs._asm.uitk.window:ignoresMouseEvents([state]) -> windowObject | currentValue
 /// Method
 /// Get or set whether the window ignores mouse events.
 ///
@@ -658,7 +653,7 @@ static int window_styleMask(lua_State *L) {
     if (lua_type(L, 2) == LUA_TNONE) {
         lua_pushinteger(L, (lua_Integer)oldStyle) ;
     } else {
-        // FIXME: can we determine this through logic or do we have to use try/catch?
+        // ??? can we determine this through logic or do we have to use try/catch?
         @try {
             window.styleMask = 0 ;  // some styles don't get properly set unless we start from a clean slate
             window.styleMask = (NSUInteger)luaL_checkinteger(L, 2) ;
@@ -675,7 +670,7 @@ static int window_styleMask(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:title([title]) -> windowObject | string
+/// hs._asm.uitk.window:title([title]) -> windowObject | currentValue
 /// Method
 /// Get or set the window's title.
 ///
@@ -698,7 +693,7 @@ static int window_title(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:titlebarAppearsTransparent([state]) -> windowObject | boolean
+/// hs._asm.uitk.window:titlebarAppearsTransparent([state]) -> windowObject | currentValue
 /// Method
 /// Get or set whether the window's title bar draws its background.
 ///
@@ -761,6 +756,18 @@ static int window_titleVisibility(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window:toolbar([toolbar]) -> windowObject | currentValue
+/// Method
+/// Get or set the toolbar for the window.
+///
+/// Parameters:
+///  * `toolbar` - an optional `hs._asm.uitk.toolbar` object, to attach as the window's toolbar or an explici nil to remove the existing toolbar.
+///
+/// Returns:
+///  * If an argument is provided, the window object; otherwise the current value, which may be nil if no toolbar is attached.
+///
+/// Notes:
+///  * a window can only have one toolbar object attached at a time.
 static int window_toolbar(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -793,6 +800,18 @@ static int window_toolbar(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window:toggleToolbar() -> windowObject
+/// Method
+/// Toggle whether the window's toolbar is currently visible or hidden.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the windowObject
+///
+/// Notes:
+///  * you can determine if the toolbar is currently visible or hidden by using `hs._asm.uitk.window:toolbar():visible()`.
 static int window_toggleToolbarShown(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -803,6 +822,25 @@ static int window_toggleToolbarShown(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window:toolbarStyle([style]) -> windowObject | currentValue
+/// Method
+/// Get or set the window's toolbar style.
+///
+/// Parameters:
+///  * style - an optional string to set the toolbar style of the window.
+///
+/// Returns:
+///  * If an argument is provided, the window object; otherwise the current value
+///
+/// Notes:
+///  * This is only available for macOS 11.0+ and is a no-op for earlier macOS versions.
+///
+///  * Currently recognizes the following styles:
+///     * `automatic`      - the system determines the toolbar’s appearance and location.
+///     * `expanded`       - the toolbar appears below the window title.
+///     * `preference`     - the toolbar appears below the window title with toolbar items centered in the toolbar.
+///     * `unified`        - the toolbar appears next to the window title.
+///     * `unifiedCompact` - the toolbar appears next to the window title with reduced margins.
 static int window_toolbarStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -839,22 +877,30 @@ static int window_toolbarStyle(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:appearance([appearance]) -> windowObject | string
+/// hs._asm.uitk.window:appearance([appearance]) -> windowObject | currentValue
 /// Method
 /// Get or set the appearance name applied to the window decorations for the window.
 ///
 /// Parameters:
-///  * `appearance` - an optional string specifying the name of the appearance style to apply to the window frame and decorations.  Should be one of "aqua", "light", or "dark".
+///  * `appearance` - an optional string specifying the name of the appearance style to apply to the window frame and decorations.
 ///
 /// Returns:
 ///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * Other string values are allowed for forwards compatibility if Apple or third party software adds additional themes.
-///  * The built in labels are actually shortcuts:
-///    * "aqua"  is shorthand for "NSAppearanceNameAqua" and is the default.
-///    * "light" is shorthand for "NSAppearanceNameVibrantLight"
-///    * "dark"  is shorthand for "NSAppearanceNameVibrantDark" and can be used to mimic the macOS dark mode.
+///  * The following appearance names are know to work:
+///    * `aqua`     - The standard light system appearance; default if your system apearance is currenlty set to Light.
+///    * `darkAqua` - The standard dark system appearance; default if your system apearance is currenlty set to Dark.
+///
+///  * The following appearance names are defined, but only allowed for views or other situations we don't currently directly support. Assigning them will effectively assign the closest of "aqua" or "darkAqua", but may be supported in elements in the future.
+///    * `light`                - The light vibrant appearance, available only in visual effect views.
+///    * `dark`                 - A dark vibrant appearance, available only in visual effect views.
+///    * `highContrastAqua`     - A high-contrast version of the standard light system appearance.
+///    * `highContrastDarkAqua` - A high-contrast version of the standard dark system appearance.
+///    * `highContrastLight`    - A high-contrast version of the light vibrant appearance.
+///    * `highContrastDark`     - A high-contrast version of the dark vibrant appearance.
+///
+///  * Other string values are allowed for forwards compatibility if Apple or third party software adds additional appearances.
 ///  * This method will return an error if the string provided does not correspond to a recognized appearance theme.
 static int appearanceCustomization_appearance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -881,12 +927,12 @@ static int appearanceCustomization_appearance(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:closeOnEscape([flag]) -> windowObject | boolean
+/// hs._asm.uitk.window:closeOnEscape([flag]) -> windowObject | currentValue
 /// Method
-/// If the window is closable, this will get or set whether or not the Escape key is allowed to close the window.
+/// If the window is titled and closable, this will get or set whether or not the Escape key is allowed to close the window.
 ///
 /// Parameters:
-///  * `flag` - an optional boolean value which indicates whether the window, when it's style includes `closable` (see [hs._asm.uitk.window:styleMask](#styleMask)), should allow the Escape key to be a shortcut for closing the window.  Defaults to false.
+///  * `flag` - an optional boolean value which indicates whether the window, when it's style includes `closable` and `titled` (see [hs._asm.uitk.window:styleMask](#styleMask)), should allow the Escape key to be a shortcut for closing the window.  Defaults to false.
 ///
 /// Returns:
 ///  * If a value is provided, then this method returns the window object; otherwise the current value
@@ -1008,7 +1054,7 @@ static int window_size(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.window:animationBehavior([behavior]) -> windowObject | string
+/// hs._asm.uitk.window:animationBehavior([behavior]) -> windowObject | currentValue
 /// Method
 /// Get or set the macOS animation behavior used when the window is shown or hidden.
 ///
@@ -1088,7 +1134,7 @@ static int window_collectionBehavior(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, (lua_Integer)oldBehavior) ;
     } else {
-// FIXME: can we check this through logic or do we have to use try/catch?
+// ??? can we check this through logic or do we have to use try/catch?
         @try {
             window.collectionBehavior = (NSUInteger)lua_tointeger(L, 2) ;
         }
@@ -1100,38 +1146,6 @@ static int window_collectionBehavior(lua_State *L) {
     }
     return 1 ;
 }
-
-// /// hs._asm.uitk.window:delete([fadeOut]) -> none
-// /// Method
-// /// Destroys the window object, optionally fading it out first (if currently visible).
-// ///
-// /// Parameters:
-// ///  * `fadeOut` - An optional number of seconds over which to fade out the window object. Defaults to zero (i.e. immediate).
-// ///
-// /// Returns:
-// ///  * None
-// ///
-// /// Notes:
-// ///  * This method is automatically called during garbage collection, notably during a Hammerspoon termination or reload, with a fade time of 0.
-// static int window_delete(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-//     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
-//
-//     if (lua_gettop(L) == 1) {
-//         lua_pushcfunction(L, userdata_gc) ;
-//         lua_pushvalue(L, 1) ;
-//         if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-//             [skin logError:[NSString stringWithFormat:@"%s:error invoking __gc for delete method:%s", USERDATA_TAG, lua_tostring(L, -1)]] ;
-//             lua_pop(L, 1) ;
-//             [window orderOut:nil] ; // the least we can do is hide the window if an error occurs with __gc
-//         }
-//     } else {
-//         [window fadeOut:lua_tonumber(L, 2) andDelete:YES] ;
-//     }
-//     lua_pushnil(L);
-//     return 1;
-// }
 
 /// hs._asm.uitk.window:hide([fadeOut]) -> windowObject
 /// Method
@@ -1312,6 +1326,21 @@ static int window_notificationCallback(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.window:passthroughCallback([fn | nil]) -> windowObject | currentValue
+/// Method
+/// Get or set the passthrough callback for the window.
+///
+/// Parameters:
+///  * `fn` - a function, or explicit nil to remove, that should be invoked whenever an element contained within this window does not have a more specific callback registered.
+///
+/// Returns:
+///  * If an argument is provided, the window object; otherwise the current value.
+///
+/// Notes:
+///  * this function is provided as a fallback for capturing informational events or actions that trigger callbacks within assigned elements, but were not handled by a closer or more specific callback.
+///
+///  * The function should expect two arguments (the windowObject itself and a table contianing the arguments provided to the previous container or element that didn't provide a callback) and return none. The specific contents of the argument array will depend upon the element and intervening containers or elements, but should follow the general form of:
+///      * `{ window, { container, { ..., {element, <element specific> } ... }, }, }`
 static int window_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1335,7 +1364,7 @@ static int window_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:notificationMessages([notifications, [replace]]) -> windowObject | table
+/// hs._asm.uitk.window:notificationMessages([notifications, [replace]]) -> windowObject | currentValue
 /// Method
 /// Get or set the specific notifications which should trigger a callback set with [hs._asm.uitk.window:notificationCallback](#notificationCallback).
 ///
@@ -1772,6 +1801,10 @@ static int userdata_gc(lua_State* L) {
             obj.delegate               = nil ;
            [skin luaRelease:refTable forNSObject:obj.contentView] ;
             obj.contentView            = nil ;
+            if (obj.toolbar) {
+                [skin luaRelease:refTable forNSObject:obj.toolbar] ;
+                obj.toolbar = nil ;
+            }
 // causes crash in autoreleasepool during reload or quit; did confirm dealloc invoked on gc, though,
 // so I guess it doesn't matter. May need to consider wrapper to mimic drawing/canvas/webview behavior of
 // requiring explicit delete since this implementation could have multiple ud for the same object still
@@ -1828,8 +1861,6 @@ static const luaL_Reg userdata_metaLib[] = {
     {"activeElement",              window_firstResponder},
     {"toolbar",                    window_toolbar},
     {"toolbarStyle",               window_toolbarStyle},
-
-//     {"accessibilitySubrole",       window_accessibilitySubrole},
 
     {"__tostring",                 userdata_tostring},
     {"__eq",                       userdata_eq},

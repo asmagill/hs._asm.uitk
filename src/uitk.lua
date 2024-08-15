@@ -26,14 +26,26 @@
 
 --- === hs._asm.uitk ===
 ---
---- Stuff about the module
+--- A module providing submodules and methods for creating user interface elements for use with Hammerspoon.
+---
+--- This is the base module that coordinates the submodules and ensures that the necessary supporting modules are loaded and initialized properly.
+---
+--- When using this module and its submodules, you should always load this module first with `require` and access the submodule components as members of this module -- Using `require` to load a submodule directly is not supported and may result in errors or unexpected results.
+---
+--- e.g.
+---     local uitk   = require("hs._asm.uitk")
+---     local window = uitk.window
+---
+--- instead of:
+---     local window = require("hs._asm.uitk.window")
+---
 
 local USERDATA_TAG = "hs._asm.uitk"
 local module       = {}
 
 local settings = require("hs.settings")
 
-local legacyWrappers = { "canvas", "webview", "color", "menubar" }
+local legacyWrappers = { "canvas", "webview", "color", "menubar", "toolbar" }
 
 local subModules = {
     element = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
@@ -48,6 +60,76 @@ local subModules = {
 -- private variables and methods -----------------------------------------
 
 -- Public interface ------------------------------------------------------
+
+--- hs._asm.uitk.wrapCanvas([state]) -> bool | nil
+--- Function
+--- Get or set whether the built-in `hs.canvas` module is emulated by this module.
+---
+--- Parameters:
+---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.
+---
+--- Returns:
+---  * a boolean or nil indicating whether or not the module should be emulated by `hs._asm.uitk`. A nil response indicates that you have never set a preference, and is equivalent to false.
+---
+--- Notes:
+---  * the emulation provided strives to provide as close to a drop-in replacement as possible -- the goal is that you shouldn't have to make any changes to existing code that is using the specified module; however, the emulation may not be perfect, and where there are known discrepancies, this will be noted.
+---  * the emulation will also likely provide additional features or functionality not found in the core module.
+
+--- hs._asm.uitk.wrapWebview([state]) -> bool | nil
+--- Function
+--- Get or set whether the built-in `hs.webview` module is emulated by this module.
+---
+--- Parameters:
+---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.
+---
+--- Returns:
+---  * a boolean or nil indicating whether or not the module should be emulated by `hs._asm.uitk`. A nil response indicates that you have never set a preference, and is equivalent to false.
+---
+--- Notes:
+---  * the emulation provided strives to provide as close to a drop-in replacement as possible -- the goal is that you shouldn't have to make any changes to existing code that is using the specified module; however, the emulation may not be perfect, and where there are known discrepancies, this will be noted.
+---  * the emulation will also likely provide additional features or functionality not found in the core module.
+
+--- hs._asm.uitk.wrapColor([state]) -> bool | nil
+--- Function
+--- Get or set whether the built-in `hs.drawing.color` module is emulated by this module.
+---
+--- Parameters:
+---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.
+---
+--- Returns:
+---  * a boolean or nil indicating whether or not the module should be emulated by `hs._asm.uitk`. A nil response indicates that you have never set a preference, and is equivalent to false.
+---
+--- Notes:
+---  * the emulation provided strives to provide as close to a drop-in replacement as possible -- the goal is that you shouldn't have to make any changes to existing code that is using the specified module; however, the emulation may not be perfect, and where there are known discrepancies, this will be noted.
+---  * the emulation will also likely provide additional features or functionality not found in the core module.
+
+--- hs._asm.uitk.wrapMenubar([state]) -> bool | nil
+--- Function
+--- Get or set whether the built-in `hs.menubar` module is emulated by this module.
+---
+--- Parameters:
+---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.
+---
+--- Returns:
+---  * a boolean or nil indicating whether or not the module should be emulated by `hs._asm.uitk`. A nil response indicates that you have never set a preference, and is equivalent to false.
+---
+--- Notes:
+---  * the emulation provided strives to provide as close to a drop-in replacement as possible -- the goal is that you shouldn't have to make any changes to existing code that is using the specified module; however, the emulation may not be perfect, and where there are known discrepancies, this will be noted.
+---  * the emulation will also likely provide additional features or functionality not found in the core module.
+
+--- hs._asm.uitk.wrapToolbar([state]) -> bool | nil
+--- Function
+--- Get or set whether the built-in `hs.webview.toolbar` module is emulated by this module.
+---
+--- Parameters:
+---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.
+---
+--- Returns:
+---  * a boolean or nil indicating whether or not the module should be emulated by `hs._asm.uitk`. A nil response indicates that you have never set a preference, and is equivalent to false.
+---
+--- Notes:
+---  * the emulation provided strives to provide as close to a drop-in replacement as possible -- the goal is that you shouldn't have to make any changes to existing code that is using the specified module; however, the emulation may not be perfect, and where there are known discrepancies, this will be noted.
+---  * the emulation will also likely provide additional features or functionality not found in the core module.
 
 for _, v in ipairs(legacyWrappers) do
     local upperV = v:sub(1,1):upper() .. v:sub(2)
@@ -71,10 +153,27 @@ for _, v in ipairs(legacyWrappers) do
     end
 end
 
+--- hs._asm.uitk.wrapperStatus() -> table
+--- Function
+--- Get the current status of the core module wrappers provided by this module.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * a table containing key-value pairs indicating which, if any, wrappers provided by this module are currently in effect.
+---
+--- Notes:
+---  * the table returned will have a __tostring metamethod that displays the status of each key, so the results can easily be viewed in the Hammerspoon console by simply invoking this function.
 module.wrapperStatus = function()
+    local results = {}
+    local output = ""
     for _, v in ipairs(legacyWrappers) do
-        print(v, settings.get("uitk_wrap" .. v:sub(1,1):upper() .. v:sub(2)))
+        local status = settings.get("uitk_wrap" .. v:sub(1,1):upper() .. v:sub(2))
+        results[v] = status
+        output = output .. string.format("%-10s %s\n", v, tostring(status))
     end
+    return setmetatable(results, { __tostring = function(...) return output end })
 end
 
 -- Return Module Object --------------------------------------------------
