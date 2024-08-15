@@ -46,6 +46,7 @@ p     menubar rewrite so it can use views for status icon and menu items
     uitk.window
         tabs
         add modal sheet support
+        NSAlert sheet support?
 
  +  __view needs wrap method that checks container for way to wrap element
  +  add wrap method to container, container.scroller, container.grid
