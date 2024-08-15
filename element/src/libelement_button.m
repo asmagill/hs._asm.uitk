@@ -34,22 +34,61 @@ static void defineInternalDictionaries(void) {
         @"multiLevelAccelerator" : @(NSButtonTypeMultiLevelAccelerator),
     } ;
 
+    if (@available(macOS 14, *)) {
+        BEZEL_STYLES = @{
+            @"accessoryBar"       : @(NSBezelStyleAccessoryBar),
+            @"accessoryBarAction" : @(NSBezelStyleAccessoryBarAction),
+            @"automatic"          : @(NSBezelStyleAutomatic),
+            @"badge"              : @(NSBezelStyleBadge),
+            @"circular"           : @(NSBezelStyleCircular),
+            @"disclosure"         : @(NSBezelStyleDisclosure),
+            @"flexiblePush"       : @(NSBezelStyleFlexiblePush),
+            @"helpButton"         : @(NSBezelStyleHelpButton),
+            @"push"               : @(NSBezelStylePush),
+            @"pushDisclosure"     : @(NSBezelStylePushDisclosure),
+            @"smallSquare"        : @(NSBezelStyleSmallSquare),
+            @"toolbar"            : @(NSBezelStyleToolbar),
 
-    BEZEL_STYLES = @{
-        @"rounded"           : @(NSBezelStyleRounded),
-        @"regularSquare"     : @(NSBezelStyleRegularSquare),
-        @"disclosure"        : @(NSBezelStyleDisclosure),
-        @"shadowlessSquare"  : @(NSBezelStyleShadowlessSquare),
-        @"circular"          : @(NSBezelStyleCircular),
-        @"texturedSquare"    : @(NSBezelStyleTexturedSquare),
-        @"helpButton"        : @(NSBezelStyleHelpButton),
-        @"smallSquare"       : @(NSBezelStyleSmallSquare),
-        @"texturedRounded"   : @(NSBezelStyleTexturedRounded),
-        @"roundRect"         : @(NSBezelStyleRoundRect),
-        @"recessed"          : @(NSBezelStyleRecessed),
-        @"roundedDisclosure" : @(NSBezelStyleRoundedDisclosure),
-        @"inline"            : @(NSBezelStyleInline),
-    } ;
+// old names reassigned in 14.0
+            @"inline"             : @(NSBezelStyleBadge),
+            @"recessed"           : @(NSBezelStyleAccessoryBar),
+            @"regularSquare"      : @(NSBezelStyleFlexiblePush),
+            @"rounded"            : @(NSBezelStylePush),
+            @"roundedDisclosure"  : @(NSBezelStylePushDisclosure),
+            @"roundRect"          : @(NSBezelStyleAccessoryBarAction),
+            @"texturedRounded"    : @(NSBezelStyleToolbar),
+
+// best guesses, should check against pre-14
+            @"shadowlessSquare"   : @(NSBezelStyleToolbar),
+            @"texturedSquare"     : @(NSBezelStyleToolbar),
+
+        } ;
+    } else {
+        BEZEL_STYLES = @{
+            @"circular"           : @(NSBezelStyleCircular),
+            @"disclosure"         : @(NSBezelStyleDisclosure),
+            @"helpButton"         : @(NSBezelStyleHelpButton),
+            @"inline"             : @(NSBezelStyleInline),
+            @"recessed"           : @(NSBezelStyleRecessed),
+            @"regularSquare"      : @(NSBezelStyleRegularSquare),
+            @"rounded"            : @(NSBezelStyleRounded),
+            @"roundedDisclosure"  : @(NSBezelStyleRoundedDisclosure),
+            @"roundRect"          : @(NSBezelStyleRoundRect),
+            @"shadowlessSquare"   : @(NSBezelStyleShadowlessSquare),
+            @"smallSquare"        : @(NSBezelStyleSmallSquare),
+            @"texturedRounded"    : @(NSBezelStyleTexturedRounded),
+            @"texturedSquare"     : @(NSBezelStyleTexturedSquare),
+
+// 14+ names and best guess based on old name reassignments
+            @"accessoryBar"       : @(NSBezelStyleRecessed),
+            @"accessoryBarAction" : @(NSBezelStyleRoundRect),
+            @"automatic"          : @(0),
+            @"badge"              : @(NSBezelStyleInline),
+            @"flexiblePush"       : @(NSBezelStyleRegularSquare),
+            @"pushDisclosure"     : @(NSBezelStyleRoundedDisclosure),
+            @"toolbar"            : @(NSBezelStyleTexturedRounded),
+        } ;
+    }
 
     IMAGE_SCALING_TYPES = @{
         @"proportionallyDown"     : @(NSImageScaleProportionallyDown),
@@ -75,6 +114,11 @@ static void defineInternalDictionaries(void) {
         @"off"   : @(NSControlStateValueOff),
         @"mixed" : @(NSControlStateValueMixed),
     } ;
+}
+
+static float fclamp(float d, float min, float max) {
+  const float t = d < min ? min : d;
+  return t > max ? max : t;
 }
 
 @interface HSUITKElementButton : NSButton
@@ -974,11 +1018,6 @@ static int button_maxAcceleratorLevel(lua_State *L) {
     return 1 ;
 }
 
-static float fclamp(float d, float min, float max) {
-  const float t = d < min ? min : d;
-  return t > max ? max : t;
-}
-
 /// hs._asm.uitk.element.button:periodicDelay([table]) -> buttonObject | table
 /// Method
 /// Get or set the delay and interval periods for the callbacks of a continuous button.
@@ -1029,6 +1068,47 @@ static int button_periodicDelay(lua_State *L) {
     return 1 ;
 }
 
+static int button_keyEquivalent(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementButton *button = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:button.keyEquivalent] ;
+    } else {
+        button.keyEquivalent = [skin toNSObjectAtIndex:2] ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int button_keyEquivalentModifierMask(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementButton *button = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, (lua_Integer)button.keyEquivalentModifierMask) ;
+    } else {
+        button.keyEquivalentModifierMask = (NSEventModifierFlags)(lua_tointeger(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+#pragma message "Wrap keyEquivalent and keyEquivalentModifierMask in lua"
+
+// treat as separate properties for wrapper sake, but lua side, allow
+//     keyEquivalent("key")
+//     keyEquivalent(#, "key")
+//     keyEquivalent({"ctrl"|"⌃", "alt"|"opt"|"⌥", "cmd"|"⌘"}, "key")
+// for syntactic sugar
+
+// @property NSEventModifierFlags keyEquivalentModifierMask; says only these count, but check NSEventModifierFlagShift
+//     NSEventModifierFlagControl
+//     NSEventModifierFlagOption
+//     NSEventModifierFlagCommand
+
 #pragma mark - Module Constants -
 
 #pragma mark - Lua<->NSObject Conversion Functions -
@@ -1078,6 +1158,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"value",               button_value},
     {"maxAcceleratorLevel", button_maxAcceleratorLevel},
     {"periodicDelay",       button_periodicDelay},
+    {"keyEquivalent",       button_keyEquivalent},
+    {"keyModifierMask",     button_keyEquivalentModifierMask},
 
 // other metamethods inherited from _control and _view
     {NULL,    NULL}
@@ -1126,6 +1208,8 @@ int luaopen_hs__asm_uitk_libelement_button(lua_State* L) {
         @"periodicDelay",
         @"highlighted",
         @"maxAcceleratorLevel",
+        @"keyEquivalent",
+        @"keyModifierMask",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     // (all elements inherit from _view)
