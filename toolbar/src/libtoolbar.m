@@ -33,7 +33,7 @@
 // +       or remove and replace at same location in toolbar?
 // +  prevent adding group into group (throws exception)
 //
-// +  I think menu, menuForm, element, and image? will need to be copied from dict in [toolbar applyDefinition:toItem:]
+// +  I think menu, menuForm, and element will need to be copied from dict in [toolbar applyDefinition:toItem:]
 //        must test...
 //
 // *  make pass through's for toolbar to dictionary methods? (lua side?)
@@ -97,6 +97,12 @@ static void defineInternalDictionaries(void) {
         @"expanded"  : @(NSToolbarItemGroupControlRepresentationExpanded),
         @"collapsed" : @(NSToolbarItemGroupControlRepresentationCollapsed),
     } ;
+}
+
+static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
+   CFTypeID boolID = CFBooleanGetTypeID() ;                   // the type ID of CFBoolean
+   CFTypeID numID  = CFGetTypeID((__bridge CFTypeRef)(num)) ; // the type ID of num
+   return numID == boolID;
 }
 
 @interface NSMenu (HammerspoonAdditions)
@@ -203,7 +209,7 @@ static void defineInternalDictionaries(void) {
         if (![skin protectedCallAndTraceback:(int)messageParts.count nresults:0]) {
             NSString *errorMessage = [skin toNSObjectAtIndex:-1] ;
             lua_pop(skin.L, 1) ;
-            [skin logError:[NSString stringWithFormat:@"%s:callback error:%@", USERDATA_TAG, errorMessage]] ;
+            [skin logError:@"%s:callback error:%@", USERDATA_TAG, errorMessage] ;
         }
     } else {
         // allow next responder a chance since we don't have a callback set
@@ -432,9 +438,10 @@ static void defineInternalDictionaries(void) {
             } else if ([keyName isEqualToString:@"image"]) {
                 if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs.image")) {
                     value = [skin toNSObjectAtIndex:-1] ;
-                    [skin luaRetain:refTable forNSObject:value] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected hs.image object for image key" ;
+                    errMsg = @"expected hs.image object for image key or false to remove" ;
                 }
             } else if ([keyName isEqualToString:@"priority"]) {
                 if (lua_type(L, -1) == LUA_TNUMBER && lua_isinteger(L, -1)) {
@@ -476,16 +483,20 @@ static void defineInternalDictionaries(void) {
                 if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs._asm.uitk.menu.item")) {
                     value = [skin toNSObjectAtIndex:-1] ;
                     [skin luaRetain:refTable forNSObject:value] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected hs._asm.uitk.menu.item object for menuForm key" ;
+                    errMsg = @"expected hs._asm.uitk.menu.item object for menuForm key or false to reset to default" ;
                 }
             } else if ([keyName isEqualToString:@"element"]) {
                 NSView *view = (lua_type(L, -1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:-1] : nil ;
                 if (view && oneOfOurs(view)) {
                     value = view ;
                     [skin luaRetain:refTable forNSObject:value] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected userdata representing a uitk element" ;
+                    errMsg = @"expected userdata representing a uitk element for element key or false to remove" ;
                 }
             } else if ([keyName isEqualToString:@"selectable"]) {
                 if (lua_type(L, -1) == LUA_TBOOLEAN) {
@@ -510,8 +521,10 @@ static void defineInternalDictionaries(void) {
                     lua_pushvalue(L, -1) ;
                     int callbackRef = [skin luaRef:refTable] ;
                     value = [NSNumber numberWithInt:callbackRef] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected function for callback key" ;
+                    errMsg = @"expected function for callback key or false to remove" ;
                 }
 // Don't think these will be useful
 //             } else if ([keyName isEqualToString:@"autoValidates"]) {  // not sure how useful yet
@@ -576,8 +589,10 @@ static void defineInternalDictionaries(void) {
                 if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs._asm.uitk.menu")) {
                     value = [skin toNSObjectAtIndex:-1] ;
                     [skin luaRetain:refTable forNSObject:value] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected hs._asm.uitk.menu object for menu key" ;
+                    errMsg = @"expected hs._asm.uitk.menu object for menu key or false to remove" ;
                 }
             } else if ([keyName isEqualToString:@"menuIndicator"]) {
                 if (lua_type(L, -1) == LUA_TBOOLEAN) {
@@ -659,9 +674,8 @@ static void defineInternalDictionaries(void) {
     for (NSString *key in details.allKeys) {
         if ([key isEqualToString:@"callback"]) {
             NSNumber *callback = details[key] ;
-            [skin luaUnref:refTable ref:callback.intValue] ;
-        } else if ( [key isEqualToString:@"image"] ||
-                    [key isEqualToString:@"menuForm"] ||
+            if (!isNSNumberActuallyABoolean(callback)) [skin luaUnref:refTable ref:callback.intValue] ;
+        } else if ( [key isEqualToString:@"menuForm"] ||
                     [key isEqualToString:@"element"] ||
                     [key isEqualToString:@"menu"] )
         {
@@ -701,6 +715,7 @@ static void defineInternalDictionaries(void) {
             if (atIdx != NSNotFound) {
                 // item placeholder being shown
                 [sample removeItemAtIndex:atIdx] ;
+                [self purgeFalsePlaceholdersInDefinitionFor:identifier] ;
                 [sample insertItemWithItemIdentifier:identifier atIndex:atIdx] ;
             }
         }
@@ -747,15 +762,18 @@ static void defineInternalDictionaries(void) {
                                 if ([key isEqualToString:@"callback"]) {
                                     NSNumber *callback = (NSNumber *)oldValue ;
                                     [skin luaUnref:refTable ref:callback.intValue] ;
-                                } else if ( [key isEqualToString:@"image"] ||
-                                            [key isEqualToString:@"menuForm"] ||
+                                } else if ( [key isEqualToString:@"menuForm"] ||
                                             [key isEqualToString:@"element"] ||
                                             [key isEqualToString:@"menu"] )
                                 {
                                     [skin luaRelease:refTable forNSObject:oldValue] ;
                                 }
                             }
-                            itemProperties[key] = value ;
+                            if ([key isEqualToString:@"callback"] && isNSNumberActuallyABoolean((NSNumber *)value)) {
+                                itemProperties[key] = nil ;
+                            } else {
+                                itemProperties[key] = value ;
+                            }
                         }
                         _itemDefinitions[identifier] = itemProperties.copy ;
                         result = YES ;
@@ -777,6 +795,7 @@ static void defineInternalDictionaries(void) {
                 NSInteger atIdx            = (NSInteger)[itemIdentifiers indexOfObject:identifier] ;
                 if (atIdx != NSNotFound) {
                     [toolbar removeItemAtIndex:atIdx] ;
+                    [self purgeFalsePlaceholdersInDefinitionFor:identifier] ;
                     [toolbar insertItemWithItemIdentifier:identifier atIndex:atIdx] ;
                 }
             }
@@ -795,6 +814,7 @@ static void defineInternalDictionaries(void) {
                     }
                 }
             }
+            [self purgeFalsePlaceholdersInDefinitionFor:identifier] ;
         }
     }
 
@@ -847,6 +867,22 @@ static void defineInternalDictionaries(void) {
     return result ;
 }
 
+- (void)purgeFalsePlaceholdersInDefinitionFor:(NSString *)identifier {
+    @synchronized (self) {
+        NSMutableDictionary *itemDefinition = _itemDefinitions[identifier] ;
+        if (itemDefinition) {
+            NSNumber *temp = itemDefinition[@"menuForm"] ;
+            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menuForm"] = nil ;
+            temp = itemDefinition[@"element"] ;
+            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"element"]  = nil ;
+            temp = itemDefinition[@"menu"] ;
+            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menu"]     = nil ;
+
+            _itemDefinitions[identifier] = itemDefinition ;
+        }
+    }
+}
+
 - (void)applyDefinition:(NSDictionary *)itemDefinition withToolbar:(HSUITKToolbar *)toolbar
                                                            toItem:(NSToolbarItem *)toolbarItem
                                                         withState:(lua_State *)L {
@@ -881,7 +917,12 @@ static void defineInternalDictionaries(void) {
         asItem.toolTip = tooltip ;
     }
     if (image) {
-        asItem.image = image ;
+        if (asItem.image) {
+            asItem.image = nil ;
+        }
+        if ([image isKindOfClass:[NSImage class]]) {
+            asItem.image = image ;
+        } // else it's false and we've already removed it
     }
     if (priority) {
         asItem.visibilityPriority = priority.longLongValue ;
@@ -908,18 +949,27 @@ static void defineInternalDictionaries(void) {
         NSMenuItem *oldValue = asItem.menuFormRepresentation ;
         if (oldValue && ![oldValue isEqualTo:asItem.initialMenuFormRepresentation]) {
             [skin luaRelease:refTable forNSObject:oldValue] ;
+            asItem.menuFormRepresentation    = asItem.initialMenuFormRepresentation ;
+            asItem.ourMenuFormRepresentation = nil ;
         }
-        NSMenuItem *newValue = [menuForm copyWithState:L] ;
-        [skin luaRetain:refTable forNSObject:newValue] ;
-        asItem.menuFormRepresentation    = newValue ;
-        asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
+        if ([menuForm isKindOfClass:[NSMenuItem class]]) {
+            NSMenuItem *newValue = [menuForm copyWithState:L] ;
+            [skin luaRetain:refTable forNSObject:newValue] ;
+            asItem.menuFormRepresentation    = newValue ;
+            asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
+        } // else it's false and we've already removed it
     }
     if (element) {
-// ??? I suspect we're going to need to add copyWithState: to all of the possibilities for this as well...
         NSView *oldValue = asItem.view ;
-        if (oldValue) [skin luaRelease:refTable forNSObject:oldValue] ;
-        [skin luaRetain:refTable forNSObject:element] ;
-        asItem.view = element ;
+        if (oldValue) {
+            [skin luaRelease:refTable forNSObject:oldValue] ;
+            asItem.view = nil ;
+        }
+        if ([element isKindOfClass:[NSView class]]) {
+// ??? I suspect we're going to need to add copyWithState: to all of the possibilities for this as well...
+            [skin luaRetain:refTable forNSObject:element] ;
+            asItem.view = element ;
+        } // else it's false and we've already removed it
     }
 
     if ([toolbarItem isKindOfClass:[NSToolbarItemGroup class]]) {
@@ -942,12 +992,12 @@ static void defineInternalDictionaries(void) {
                     NSString *type = subitemDefinition[@"type"] ;
                     if (!type) type = @"item" ;
                     if (![ITEM_TYPES containsObject:type]) {
-                        [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
+                        [LuaSkin logDebug:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type] ;
                         type = @"item" ;
                     }
 
                     if ([type isEqualToString:@"group"]) {
-                            [skin logVerbose:[NSString stringWithFormat:@"%s:%@ - %@ group member %@ cannot be a group item; ignoring", USERDATA_TAG, NSStringFromSelector(_cmd), asGroupItem.itemIdentifier, identifier]] ;
+                            [skin logVerbose:@"%s:%@ - %@ group member %@ cannot be a group item; ignoring", USERDATA_TAG, NSStringFromSelector(_cmd), asGroupItem.itemIdentifier, identifier] ;
                     } else {
                         NSToolbarItem *subitem = [self newEmptyItem:identifier ofType:type] ;
                         if (subitem) {
@@ -955,11 +1005,11 @@ static void defineInternalDictionaries(void) {
                             [skin luaRetain:refTable forNSObject:subitem] ;
                             [newSubItems addObject:subitem] ;
                         } else {
-                            [skin logError:[NSString stringWithFormat:@"%s:%@ - failed to create subitem of type %@; skipping", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
+                            [skin logError:@"%s:%@ - failed to create subitem of type %@; skipping", USERDATA_TAG, NSStringFromSelector(_cmd), type] ;
                         }
                     }
                 } else {
-                    [LuaSkin logVerbose:[NSString stringWithFormat:@"%s:%@ - %@ group member %@ is undefined; ignoring", USERDATA_TAG, NSStringFromSelector(_cmd), asGroupItem.itemIdentifier, identifier]] ;
+                    [LuaSkin logVerbose:@"%s:%@ - %@ group member %@ is undefined; ignoring", USERDATA_TAG, NSStringFromSelector(_cmd), asGroupItem.itemIdentifier, identifier] ;
                 }
             }
             asGroupItem.subitems = newSubItems.copy ;
@@ -983,11 +1033,14 @@ static void defineInternalDictionaries(void) {
             if (oldValue && ![oldValue isEqualTo:asMenuItem.initialMenu]) {
                 [skin luaRelease:refTable forNSObject:oldValue] ;
                 oldValue.assignedTo = nil ;
+                asMenuItem.menu = asMenuItem.initialMenu ;
             }
-            NSMenu *newValue = [menu copyWithState:L] ;
-            newValue.assignedTo = (NSResponder *)toolbar ;
-            [skin luaRetain:refTable forNSObject:newValue] ;
-            asMenuItem.menu = newValue ;
+            if ([menu isKindOfClass:[NSMenu class]]) {
+                NSMenu *newValue = [menu copyWithState:L] ;
+                newValue.assignedTo = (NSResponder *)toolbar ;
+                [skin luaRetain:refTable forNSObject:newValue] ;
+                asMenuItem.menu = newValue ;
+            } // else it's false and we've already removed it
         }
         if (menuIndicator) {
             asMenuItem.showsIndicator = menuIndicator.boolValue ;
@@ -1022,7 +1075,7 @@ static void defineInternalDictionaries(void) {
     NSDictionary  *itemDefinition = self.itemDefinitions[itemIdentifier] ;
     NSToolbarItem *toolbarItem    = nil ;
 
-//     [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s%@ - %@ %@", USERDATA_TAG, NSStringFromSelector(_cmd), itemIdentifier, (flag ? @"YES" : @"NO ")]] ;
+//     [LuaSkin logBreadcrumb:@"%s%@ - %@ %@", USERDATA_TAG, NSStringFromSelector(_cmd), itemIdentifier, (flag ? @"YES" : @"NO ")] ;
 
     if (itemDefinition) {
         NSString *type = itemDefinition[@"type"] ;
@@ -1032,7 +1085,7 @@ static void defineInternalDictionaries(void) {
 
         // treat unrecognized types as regular items, but log it
         if (![ITEM_TYPES containsObject:type]) {
-            [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type]] ;
+            [LuaSkin logDebug:@"%s:%@ - unrecognized type %@; treating as item", USERDATA_TAG, NSStringFromSelector(_cmd), type] ;
             type = @"item" ;
         }
 
@@ -1041,7 +1094,7 @@ static void defineInternalDictionaries(void) {
         [self applyDefinition:itemDefinition withToolbar:(HSUITKToolbar *)toolbar toItem:toolbarItem
                                                                                withState:NULL] ;
     } else {
-        [LuaSkin logDebug:[NSString stringWithFormat:@"%s:%@ - undefined identifier %@; returning placeholder", UD_DICT_TAG, NSStringFromSelector(_cmd), itemIdentifier]] ;
+        [LuaSkin logDebug:@"%s:%@ - undefined identifier %@; returning placeholder", UD_DICT_TAG, NSStringFromSelector(_cmd), itemIdentifier] ;
 
         // placeholder so dictionary can push updates if item defined after toolbar attached
         toolbarItem = [[HSUITKToolbarItem alloc] initWithItemIdentifier:itemIdentifier]  ;
@@ -1054,7 +1107,7 @@ static void defineInternalDictionaries(void) {
 }
 
 - (void)toolbarDidRemoveItem:(NSNotification *)notification {
-    [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+    [LuaSkin logBreadcrumb:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification] ;
 
     NSToolbarItem *item = nil ;
     if (@available(macos 13.0, *)) {
@@ -1067,7 +1120,7 @@ static void defineInternalDictionaries(void) {
 }
 
 - (void)toolbarWillAddItem:(NSNotification *)notification {
-    [LuaSkin logBreadcrumb:[NSString stringWithFormat:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification]] ;
+    [LuaSkin logBreadcrumb:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification] ;
 
     NSToolbarItem *item = nil ;
     if (@available(macos 13.0, *)) {
@@ -1245,6 +1298,7 @@ static int toolbar_dictionary(lua_State *L) {
 
     NSString *dictionaryName = [skin toNSObjectAtIndex:1] ;
     if ([knownDictionaries objectForKey:dictionaryName]) {
+    [skin logInfo:@"%@, %d", [knownDictionaries objectForKey:dictionaryName], ((HSUITKToolbarDictionary *)[knownDictionaries objectForKey:dictionaryName]).selfRefCount] ;
         return luaL_argerror(L, 1, "dictionary with that identifier already exists") ;
     }
 
@@ -2003,8 +2057,12 @@ static int item_image(lua_State *L) {
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:item.image] ;
     } else {
-        [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs.image", LS_TBREAK] ;
-        item.image = [skin toNSObjectAtIndex:2] ;
+        if (lua_type(L, 2) == LUA_TNIL) {
+            item.image = nil ;
+        } else {
+            [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs.image", LS_TBREAK] ;
+            item.image = [skin toNSObjectAtIndex:2] ;
+        }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -2013,13 +2071,22 @@ static int item_image(lua_State *L) {
 static int item_menuFormRepresentation(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+    HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:item.menuFormRepresentation] ;
     } else {
-        [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
-        item.menuFormRepresentation = [skin toNSObjectAtIndex:2] ;
+        if (lua_type(L, 2) == LUA_TNIL) {
+            if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
+            item.ourMenuFormRepresentation = nil ;
+            item.menuFormRepresentation = item.initialMenuFormRepresentation ;
+        } else {
+            [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
+            if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
+            item.menuFormRepresentation = [skin toNSObjectAtIndex:2] ;
+            item.ourMenuFormRepresentation = item.menuFormRepresentation ;
+            [skin luaRetain:refTable forNSObject:item.menuFormRepresentation] ;
+        }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -2229,8 +2296,15 @@ static int menuitem_menu(lua_State *L) {
         }
     } else {
         if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-            [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
-            item.menu = [skin toNSObjectAtIndex:2] ;
+            if (lua_type(L, 2) == LUA_TNIL) {
+                if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
+                item.menu = item.initialMenu ;
+            } else {
+                [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
+                if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
+                item.menu = [skin toNSObjectAtIndex:2] ;
+                [skin luaRetain:refTable forNSObject:item.menu] ;
+            }
         } else {
             return luaL_error(L, "method only valid for menu type items") ;
         }
@@ -2405,7 +2479,8 @@ static int userdata_gc(lua_State* L) {
             obj.callbackRef = [skin luaUnref:refTable ref:obj.callbackRef] ;
             if (dictionary) [dictionary removeToolbar:obj] ;
 
-            obj.delegate = nil ;
+// don't clear delegate -- this will be done by dealloc since a retain was done in init
+//             obj.delegate = nil ;
             obj = nil ;
         }
     }
@@ -2441,9 +2516,10 @@ static int ud_dictionary_gc(lua_State* L) {
     HSUITKToolbarDictionary *obj = get_objectFromUserdata(__bridge_transfer HSUITKToolbarDictionary, L, 1, UD_DICT_TAG) ;
     if (obj) {
         obj.selfRefCount-- ;
-//         if (obj.selfRefCount == 0) {
-//             obj = nil ;
-//         }
+        if (obj.selfRefCount == 0) {
+//             [knownDictionaries removeObjectForKey:obj.identifier] ;
+            obj = nil ;
+        }
     }
 
     // Remove the Metatable so future use of the variable in Lua won't think its valid
@@ -2583,6 +2659,7 @@ static const luaL_Reg ud_item_metaLib[] = {
 static luaL_Reg moduleLib[] = {
     {"new",        toolbar_new},
     {"dictionary", toolbar_dictionary},
+
     {NULL,         NULL}
 };
 
