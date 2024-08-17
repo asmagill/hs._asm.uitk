@@ -84,7 +84,7 @@ p     menubar rewrite so it can use views for status icon and menu items
   +       add NSColorList support?
   +           create lua portion for panel so uitk.util.color can be loaded
           should accessory be auto-removed whenever panel hidden?
-      NSAlert doesn't have non-modal option... should we write our own using these modules?
+  +   NSAlert doesn't have non-modal option... should we write our own using these modules?
 
 + table
       add lua file so column data can be wrapped as well
