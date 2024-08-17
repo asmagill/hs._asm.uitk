@@ -1,6 +1,10 @@
 @import Cocoa ;
 @import LuaSkin ;
 
+/// === hs._asm.uitk.panel.font ===
+///
+/// This module is currently unimplemented
+
 static const char * const USERDATA_TAG = "hs._asm.uitk.panel.font" ;
 static LSRefTable         refTable     = LUA_NOREF ;
 
