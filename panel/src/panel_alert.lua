@@ -24,7 +24,7 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- --- hs._asm.uitk.panel.alert ---
+--- === hs._asm.uitk.panel.alert ===
 ---
 --- This module provides an alert like dialog that can be used to provide information or warnings. You can use the `accessory` method wo attach other elements to extend the dialog. A common example would be to use an `hs._asm.uitk.element.textField` for simple text input.
 ---
@@ -184,7 +184,7 @@ moduleMT.accessory = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
     if args.n == 0 then
-        return obj.icon
+        return obj.accessory
     else
         assert(
             type(args[1]) == "nil" or uitk.element.isElementType(args[1]),
@@ -415,6 +415,7 @@ moduleMT.layout = function(self, ...)
         container[#container + 1] = {
             id             = "accessory",
             _self          = obj.accessory,
+            containerFrame = { w = width },
         }
         obj.accessory:position("below", informativeElement, padding, "center")
     end
@@ -479,6 +480,9 @@ moduleMT.layout = function(self, ...)
         _self          = container,
         containerFrame = { x = inset, y = inset, }
     }
+
+    -- if it's nil, then the alert window itself becomes the active element
+    obj.window:activeElement(obj.accessory)
 
     return self
 end
@@ -558,4 +562,6 @@ end
 
 uitk.util._properties.addPropertiesWrapper(moduleMT)
 
-return module
+return setmetatable(module, {
+    __call = function(self, ...) return self.new(...) end,
+})
