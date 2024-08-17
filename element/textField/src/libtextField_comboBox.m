@@ -14,6 +14,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 @property (readonly) LSRefTable refTable ;
 @property            int        editingCallbackRef ;
 @property            int        callbackRef ;
+@property            BOOL       testingControls ;
 @end
 
 @implementation HSUITKElementComboBox
@@ -22,7 +23,10 @@ static LSRefTable         refTable     = LUA_NOREF ;
     _callbackRef        = LUA_NOREF ;
     _editingCallbackRef = LUA_NOREF ;
     _refTable           = refTable ;
+    _testingControls    = NO ;
+
     _selfRefCount       = 0 ;
+
     self.delegate       = self ;
 //     self.target         = self ;
 //     self.action         = @selector(performCallback:) ;
@@ -60,7 +64,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
                                            waitUntilDone:YES] ;
                 break ;
             } else {
-                nextInChain = [nextInChain nextResponder] ;
+                nextInChain = nextInChain.nextResponder ;
             }
         }
     }
@@ -91,31 +95,36 @@ static LSRefTable         refTable     = LUA_NOREF ;
 //     [self callbackHamster:@[ self, self.stringValue ]] ;
 // }
 
-- (BOOL)performKeyEquivalent:(NSEvent *)event {
-    unsigned short       keyCode       = event.keyCode ;
-//     NSEventModifierFlags modifierFlags = event.modifierFlags & NSDeviceIndependentModifierFlagsMask ;
-//     [LuaSkin logWarn:[NSString stringWithFormat:@"%s:performKeyEquivalent: key:%3d, mods:0x%08lx %@", USERDATA_TAG, keyCode, (unsigned long)modifierFlags, event]] ;
-
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+    BOOL     result   = NO ; // assume we don't handle it
     NSString *keyName = nil ;
-    switch (keyCode) {
-        case kVK_Return:     keyName = @"return" ; break ;
-        case kVK_LeftArrow:  keyName = @"left" ;   break ;
-        case kVK_RightArrow: keyName = @"right" ;  break ;
-        case kVK_DownArrow:  keyName = @"down" ;   break ;
-        case kVK_UpArrow:    keyName = @"up" ;     break ;
-        case kVK_Escape:     keyName = @"escape" ; break ;
+
+    if (commandSelector == @selector(insertNewline:)) {
+        keyName = @"return" ;
+    } else if (commandSelector == @selector(cancelOperation:)) {
+        keyName = @"escape" ;
+    } else if (commandSelector == @selector(moveUp:)) {
+        keyName = @"up" ;
+    } else if (commandSelector == @selector(moveDown:)) {
+        keyName = @"down" ;
+    } else if (commandSelector == @selector(moveLeft:)) {
+        keyName = @"left" ;
+    } else if (commandSelector == @selector(moveRight:)) {
+        keyName = @"right" ;
+    } else if (commandSelector == @selector(insertTab:)) {
+        keyName = @"tab" ;
+    } else if (commandSelector == @selector(insertBacktab:)) {
+        keyName = @"backTab" ;
     }
 
     if (keyName) {
-        if ([self callbackHamster:@[ self, @"keyPress", keyName ] withDefault:NO]) return YES ;
+        result = [self callbackHamster:@[ self, @"keyPress", keyName ] withDefault:NO] ;
+    } else if (_testingControls) {
+        result = [self callbackHamster:@[ self, @"other", NSStringFromSelector(commandSelector) ] withDefault:NO] ;
     }
 
-    return [super performKeyEquivalent:event] ;
+    return result ;
 }
-
-// can this be replaced by checking for escape in performKeyEquivalent?
-// - (void)cancelOperation:(__unused id)sender {
-// }
 
 - (BOOL)textShouldBeginEditing:(NSText *)textObject {
     return [self callbackHamster:@[ self, @"shouldBeginEditing" ]

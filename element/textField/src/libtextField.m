@@ -33,11 +33,13 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
+// reduces casts in later code
 @interface NSTextField (Hammerspoon)
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ;
 @property            int        editingCallbackRef ;
+@property            BOOL       testingControls ;
 
 - (int)        selfRefCount ;
 - (void)       setSelfRefCount:(int)value ;
@@ -46,6 +48,8 @@ static void defineInternalDictionaries(void) {
 - (void)       setCallbackRef:(int)value ;
 - (int)        editingCallbackRef ;
 - (void)       setEditingCallbackRef:(int)value ;
+- (BOOL)       testingControls ;
+- (void)       setTestingControls ;
 @end
 
 BOOL oneOfOurs(NSTextField *obj) {
@@ -64,6 +68,7 @@ BOOL oneOfOurs(NSTextField *obj) {
 @property (readonly) LSRefTable refTable ;
 @property            int        editingCallbackRef ;
 @property            int        callbackRef ;
+@property            BOOL       testingControls ;
 @end
 
 @implementation HSUITKElementTextField
@@ -72,6 +77,8 @@ BOOL oneOfOurs(NSTextField *obj) {
     _callbackRef        = LUA_NOREF ;
     _editingCallbackRef = LUA_NOREF ;
     _refTable           = refTable ;
+    _testingControls    = NO ;
+
     _selfRefCount       = 0 ;
 
     self.delegate       = self ;
@@ -174,31 +181,36 @@ BOOL oneOfOurs(NSTextField *obj) {
 //     [self callbackHamster:@[ self, self.stringValue ]] ;
 // }
 
-- (BOOL)performKeyEquivalent:(NSEvent *)event {
-    unsigned short       keyCode       = event.keyCode ;
-//     NSEventModifierFlags modifierFlags = event.modifierFlags & NSDeviceIndependentModifierFlagsMask ;
-//     [LuaSkin logWarn:[NSString stringWithFormat:@"%s:performKeyEquivalent: key:%3d, mods:0x%08lx %@", USERDATA_TAG, keyCode, (unsigned long)modifierFlags, event]] ;
-
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+    BOOL     result   = NO ; // assume we don't handle it
     NSString *keyName = nil ;
-    switch (keyCode) {
-        case kVK_Return:     keyName = @"return" ; break ; // TODO: test -- I think target/action gets this one
-        case kVK_LeftArrow:  keyName = @"left" ;   break ;
-        case kVK_RightArrow: keyName = @"right" ;  break ;
-        case kVK_DownArrow:  keyName = @"down" ;   break ;
-        case kVK_UpArrow:    keyName = @"up" ;     break ;
-        case kVK_Escape:     keyName = @"escape" ; break ;
+
+    if (commandSelector == @selector(insertNewline:)) {
+        keyName = @"return" ;
+    } else if (commandSelector == @selector(cancelOperation:)) {
+        keyName = @"escape" ;
+    } else if (commandSelector == @selector(moveUp:)) {
+        keyName = @"up" ;
+    } else if (commandSelector == @selector(moveDown:)) {
+        keyName = @"down" ;
+    } else if (commandSelector == @selector(moveLeft:)) {
+        keyName = @"left" ;
+    } else if (commandSelector == @selector(moveRight:)) {
+        keyName = @"right" ;
+    } else if (commandSelector == @selector(insertTab:)) {
+        keyName = @"tab" ;
+    } else if (commandSelector == @selector(insertBacktab:)) {
+        keyName = @"backTab" ;
     }
 
     if (keyName) {
-        if ([self callbackHamster:@[ self, @"keyPress", keyName ] withDefault:NO]) return YES ;
+        result = [self callbackHamster:@[ self, @"keyPress", keyName ] withDefault:NO] ;
+    } else if (_testingControls) {
+        result = [self callbackHamster:@[ self, @"other", NSStringFromSelector(commandSelector) ] withDefault:NO] ;
     }
 
-    return [super performKeyEquivalent:event] ;
+    return result ;
 }
-
-// can this be replaced by checking for escape in performKeyEquivalent?
-// - (void)cancelOperation:(__unused id)sender {
-// }
 
 - (BOOL)textShouldBeginEditing:(NSText *)textObject {
     return [self callbackHamster:@[ self, @"shouldBeginEditing" ]
@@ -406,6 +418,8 @@ static int textField_wrappingLabel(lua_State *L) {
 ///      * the textField userdata object
 ///      * the string "textDidChange" indicating that the user has typed or deleted something in the textField
 ///      * the current string value of the textField -- see [hs._asm.uitk.element.textField:value](#value)
+
+// defined in libelement__controls.m
 
 /// hs._asm.uitk.element.textField:styleEditable([state]) -> textFieldObject | boolean
 /// Method
@@ -625,6 +639,46 @@ static int textField_editable(lua_State *L) {
         lua_pushboolean(L, element.editable) ;
     } else {
         element.editable = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+/// hs._asm.uitk.element.textField:testingControls([state]) -> textFieldObject | boolean
+/// Method
+/// Get or set whether the editing callback receives all control messages that might belong to special keys.
+///
+/// Parameters:
+///  * `state` - an optional boolean specifying whether the editing callback receives all control messages (true) or just the standard ones (false). Defaults to false.
+///
+/// Returns:
+///  * if a value is provided, returns the textFieldObject ; otherwise returns the current value.
+///
+/// Notes:
+///  * The standard control messages sent to the editing callback (if it is defined) are as follows:
+///    * Return Key - the callback receives `textFieldObject, "keyPress", "return", NO`
+///    * Tab Key    - the callback receives `textFieldObject, "keyPress", "tab", NO`
+///    * Shift-Tab  - the callback receives `textFieldObject, "keyPress", "backTab", NO`
+///    * Up Arrow   - the callback receives `textFieldObject, "keyPress", "up", NO`
+///    * Down Arrow - the callback receives `textFieldObject, "keyPress", "down", NO`
+///    * Left Arrow - the callback receives `textFieldObject, "keyPress", "left", NO`
+///    * Right Arrow - the callback receives `textFieldObject, "keyPress", "right", NO`
+///
+///  * This method allows testing other for other text-entry control keys that might be of interest. You should set this to true and then watch what the returned values are for the key or key-sequences you type are. If you feel that one or more of these are useful enough to warrant being made part of the standard set, Please feel free to submit a request.
+///    * If this method is used to set this property to true, then the following additional message will be sent:
+///      * `textFieldObject, "other", <Objective-C Selector Name>, NO`
+static int textField_testingControls(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!element || !oneOfOurs(element)) {
+        return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
+    }
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, element.testingControls) ;
+    } else {
+        element.testingControls = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1150,6 +1204,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"lineBreakStrategy",       textField_lineBreakStrategy},
     {"placeholder",             textField_placeholder},
     {"value",                   textField_value},
+
+    {"testingControls",         textField_testingControls},
 
     {"selectAll",               textField_selectText},
 
