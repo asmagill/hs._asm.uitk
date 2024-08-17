@@ -1068,6 +1068,28 @@ static int button_periodicDelay(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.element.button:press() -> buttonObject
+/// Method
+/// Simulates the user clicking the button.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the buttonObject
+///
+/// Notes:
+///  * This method allows you to programmatically "trigger" a button as if the user had clicked on it. All of the normal button visuals and actions (e.g. callback, state change, etc.) will occur.
+static int button_performClick(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKElementButton *button = [skin toNSObjectAtIndex:1] ;
+
+    [button performClick:button] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
 static int button_keyEquivalent(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1155,12 +1177,13 @@ static const luaL_Reg userdata_metaLib[] = {
     {"state",               button_state},
     {"highlighted",         button_highlighted},
     {"sound",               button_sound},
-    {"value",               button_value},
     {"maxAcceleratorLevel", button_maxAcceleratorLevel},
     {"periodicDelay",       button_periodicDelay},
     {"keyEquivalent",       button_keyEquivalent},
     {"keyModifierMask",     button_keyEquivalentModifierMask},
 
+    {"value",               button_value},
+    {"press",               button_performClick},
 // other metamethods inherited from _control and _view
     {NULL,    NULL}
 };
