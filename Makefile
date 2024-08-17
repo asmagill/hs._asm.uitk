@@ -70,7 +70,7 @@ everything: all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField all
 
-everything-universal: universal
+universal-everything: universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util universal
@@ -107,7 +107,7 @@ install-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install
 
-install-everything-universal: install
+install-universal-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C legacy install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel install-universal
@@ -124,7 +124,7 @@ uninstall-everything: uninstall
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C legacy uninstall
 	(pushd $(PREFIX)/$(MODPATH)/ ; rm -v -fr $(MODULE) ; popd)
 
-everything-docs: docs
+docs-everything: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util docs
@@ -136,7 +136,7 @@ everything-docs: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField docs
 
-everything-markdown: markdown
+markdown-everything: markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util markdown
@@ -148,7 +148,7 @@ everything-markdown: markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdown
 
-everything-markdownWithTOC: markdownWithTOC
+markdownWithTOC-everything: markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C window markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util markdownWithTOC
@@ -287,10 +287,10 @@ markdownWithTOC:
 	hs -c "dofile(\"$(MARKDOWNMAKER)\").genMarkdown([[$(join $(dir $(mkfile_path)), /src)]], true)" > README.tmp.md
 
 release: clean-everything
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-everything-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-universal-everything ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
 
-releaseWithDocs: clean-everything everything-docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-everything-universal ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
+releaseWithDocs: clean-everything docs-everything
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=tmp make install-universal-everything ; cd tmp ; tar -cf ../$(MODULE)-v$(VERSION).tar hs ; cd .. ; gzip $(MODULE)-v$(VERSION).tar
 
-.PHONY: all clean verify install install-lua install-x86_64 install-arm64 install-universal docs markdown markdownWithTOC release releaseWithDocs uninstall everything everything-universal clean-everything install-everything install-everything-universal uninstall-everything everything-docs everything-markdown everything-markdownWithTOC
+.PHONY: all clean verify install install-lua install-x86_64 install-arm64 install-universal docs markdown markdownWithTOC release releaseWithDocs uninstall everything universal-everything clean-everything install-everything install-universal-everything uninstall-everything docs-everything markdown-everything markdownWithTOC-everything
 
