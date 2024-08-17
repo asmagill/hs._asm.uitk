@@ -478,7 +478,7 @@ moduleMT.__tostring = function(self)
     return USERDATA_TAG .. tostring(obj.window):match("(:.+)$")
 end
 
---- hs._asm.uitk.element.canvas:alpha([alpha]) -> canvasObject | currentValue
+--- hs._asm.uitk.element.canvas:alpha([alpha]) -> canvasObject | number
 --- Method
 --- Get or set the alpha level of the canvasObject.
 ---
@@ -508,7 +508,7 @@ moduleMT.hide = function(self, ...)
     return self
 end
 
---- hs._asm.uitk.element.canvas:mouseCallback([mouseCallbackFn]) -> canvasObject | current value
+--- hs._asm.uitk.element.canvas:mouseCallback([mouseCallbackFn]) -> canvasObject | function | nil
 --- Method
 --- Sets a callback for mouse events with respect to the canvas
 ---
@@ -709,7 +709,7 @@ moduleMT._accessibilitySubrole = function(...)
     end
 end
 
---- hs._asm.uitk.element.canvas:frame([rect]) -> canvasWindowObject | currentValue | nil
+--- hs._asm.uitk.element.canvas:frame([rect]) -> canvasWindowObject | table
 --- Method
 --- Get or set the frame of the canvasWindowObject.
 ---
@@ -725,11 +725,16 @@ end
 ---  * elements in the canvas that have the `absolutePosition` attribute set to false will be moved so that their relative position within the canvas remains the same with respect to the new size.
 ---  * elements in the canvas that have the `absoluteSize` attribute set to false will be resized so that their relative size with respect to the canvas remains the same with respect to the new size.
 moduleMT.frame = function(self, ...)
-    self:topLeft(...)
-    return self:size(...)
+    local pos  = self:topLeft(...)
+    local size = self:size(...)
+    if size == pos then
+        return self
+    else
+        return { x = pos.x, y = pos.y, h = size.h, w = size.w }
+    end
 end
 
---- hs._asm.uitk.element.canvas:topLeft([point]) -> canvasWindowObject | currentValue | nil
+--- hs._asm.uitk.element.canvas:topLeft([point]) -> canvasWindowObject | table
 --- Method
 --- Get or set the top-left coordinate of the canvas object
 ---
@@ -747,7 +752,7 @@ moduleMT.topLeft = function(self, ...)
     return (result == obj.window) and self or result
 end
 
---- hs._asm.uitk.element.canvas:size([size]) -> canvasObject | currentValue
+--- hs._asm.uitk.element.canvas:size([size]) -> canvasObject | table
 --- Method
 --- Get or set the size of a canvas object
 ---
@@ -882,7 +887,7 @@ moduleMT.sendToBack = function(self, ...)
     return self
 end
 
---- hs._asm.uitk.element.canvas:clickActivating([flag]) -> canvasWindowObject | currentValue
+--- hs._asm.uitk.element.canvas:clickActivating([flag]) -> canvasWindowObject | boolean
 --- Method
 --- Get or set whether or not clicking on a canvas window with a click callback defined should bring all of Hammerspoon's open windows to the front.
 ---
@@ -916,7 +921,7 @@ moduleMT.clickActivating = function(self, ...)
     return self
 end
 
---- hs._asm.uitk.element.canvas:level([level]) -> canvasWindowObject | currentValue
+--- hs._asm.uitk.element.canvas:level([level]) -> canvasWindowObject | integer
 --- Method
 --- Sets the window level more precisely than sendToBack and bringToFront.
 ---
@@ -931,7 +936,7 @@ moduleMT.level = function(self, ...)
     return (result == obj.window) and self or result
 end
 
---- hs._asm.uitk.element.canvas:behavior([behavior]) -> canvasWindowObject | currentValue
+--- hs._asm.uitk.element.canvas:behavior([behavior]) -> canvasWindowObject | integer
 --- Method
 --- Get or set the window behavior settings for the canvas object using labels defined in [hs._asm.uitk.element.canvas.windowBehaviors](#windowBehaviors).
 ---
@@ -949,7 +954,7 @@ moduleMT.behavior = function(self, ...)
     return (result == obj.window) and self or result
 end
 
---- hs._asm.uitk.element.canvas:behaviorAsLabels(behaviorTable) -> canvasWindowObject | currentValue
+--- hs._asm.uitk.element.canvas:behaviorAsLabels(behaviorTable) -> canvasWindowObject | table
 --- Method
 --- Get or set the window behavior settings for the canvas object using labels defined in [hs._asm.uitk.element.canvas.windowBehaviors](#windowBehaviors).
 ---
@@ -961,7 +966,7 @@ end
 moduleMT.behaviorAsLabels = function(self, ...)
     local results = self:behavior(...)
 
-    if type(results) == "table" then
+    if type(results) == "number" then
         results = uitk.util.intToMasks(results, module.windowBehaviors)
         return setmetatable(results, { __tostring = function(_)
             table.sort(_)
@@ -991,7 +996,7 @@ moduleMT.assignElement = function(self, ...)
     return (result == obj.view) and self or result
 end
 
---- hs._asm.uitk.element.canvas:canvasDefaultFor(keyName, [newValue]) -> canvasObject | currentValue
+--- hs._asm.uitk.element.canvas:canvasDefaultFor(keyName, [newValue]) -> canvasObject | key value
 --- Method
 --- Get or set the element default specified by keyName.
 ---
@@ -1092,7 +1097,7 @@ moduleMT.draggingCallback = function(self, ...)
     end
 end
 
---- hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | current value
+--- hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | key value
 --- Method
 --- Get or set the attribute `key` for the canvas element at the specified index.
 ---
@@ -1232,7 +1237,7 @@ moduleMT.removeElement = function(self, ...)
     return (result == obj.view) and self or result
 end
 
---- hs._asm.uitk.element.canvas:transformation([matrix]) -> canvasObject | current value
+--- hs._asm.uitk.element.canvas:transformation([matrix]) -> canvasObject | table
 --- Method
 --- Get or set the matrix transformation which is applied to every element in the canvas before being individually processed and added to the canvas.
 ---
@@ -1250,7 +1255,7 @@ moduleMT.transformation = function(self, ...)
     return (result == obj.view) and self or result
 end
 
---- hs._asm.uitk.element.canvas:wantsLayer([flag]) -> canvasObject | currentValue
+--- hs._asm.uitk.element.canvas:wantsLayer([flag]) -> canvasObject | true
 --- Method
 --- Get or set whether or not the canvas object should be rendered by the view or by Core Animation.
 ---

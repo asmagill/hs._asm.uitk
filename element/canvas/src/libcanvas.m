@@ -2580,7 +2580,7 @@ static int canvas_defaultTextAttributes(lua_State *L) {
 //     return 1 ;
 // }
 
-/// hs._asm.uitk.element.canvas:draggingCallback([fn]) -> canvasObject | current value
+/// hs._asm.uitk.element.canvas:draggingCallback([fn]) -> canvasObject | function | nil
 /// Method
 /// Sets or remove a callback for accepting dragging and dropping items onto the canvas.
 ///
@@ -2713,7 +2713,7 @@ static int canvas_getTextElementSize(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.canvas:transformation([matrix]) -> canvasObject | current value
+/// hs._asm.uitk.element.canvas:transformation([matrix]) -> canvasObject | table
 /// Method
 /// Get or set the matrix transformation which is applied to every element in the canvas before being individually processed and added to the canvas.
 ///
@@ -2742,7 +2742,7 @@ static int canvas_canvasTransformation(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.canvas:mouseCallback([mouseCallbackFn]) -> canvasObject | current value
+/// hs._asm.uitk.element.canvas:mouseCallback([mouseCallbackFn]) -> canvasObject | function | nil
 /// Method
 /// Sets a callback for mouse events with respect to the canvas
 ///
@@ -2797,7 +2797,7 @@ static int canvas_mouseCallback(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.element.canvas:canvasMouseEvents([down], [up], [enterExit], [move]) -> canvasObject | current values
+/// hs._asm.uitk.element.canvas:canvasMouseEvents([down], [up], [enterExit], [move]) -> canvasObject | table
 /// Method
 /// Get or set whether or not regions of the canvas which are not otherwise covered by an element with mouse tracking enabled should generate a callback for mouse events.
 ///
@@ -2902,7 +2902,7 @@ static int canvas_alpha(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.canvas:wantsLayer([flag]) -> canvasObject | currentValue
+/// hs._asm.uitk.element.canvas:wantsLayer([flag]) -> canvasObject | boolean
 /// Method
 /// Get or set whether or not the canvas object should be rendered by the view or by Core Animation.
 ///
@@ -2933,7 +2933,7 @@ static int canvas_wantsLayer(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.element.canvas:canvasDefaultFor(keyName, [newValue]) -> canvasObject | currentValue
+/// hs._asm.uitk.element.canvas:canvasDefaultFor(keyName, [newValue]) -> canvasObject | key value
 /// Method
 /// Get or set the element default specified by keyName.
 ///
@@ -3069,7 +3069,7 @@ static int canvas_removeElementAtIndex(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | current value
+/// hs._asm.uitk.element.canvas:elementAttribute(index, key, [value]) -> canvasObject | key value
 /// Method
 /// Get or set the attribute `key` for the canvas element at the specified index.
 ///
@@ -3381,7 +3381,7 @@ static int canvas_assignElementAtIndex(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.canvas:size([size]) -> canvasObject | currentValue
+/// hs._asm.uitk.element.canvas:size([size]) -> canvasObject | table
 /// Method
 /// Get or set the size of a canvas object
 ///
