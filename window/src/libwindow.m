@@ -9,7 +9,6 @@ static NSArray *windowNotifications ;
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 
 static NSDictionary *TOOLBAR_STYLES ;
-static NSDictionary *TITLE_VISIBILITY ;
 static NSDictionary *WINDOW_APPEARANCES ;
 static NSDictionary *ANIMATION_BEHAVIORS ;
 
@@ -25,11 +24,6 @@ static void defineInternalDictionaries(void) {
             @"unifiedCompact" : @(NSWindowToolbarStyleUnifiedCompact),
         } ;
     }
-
-    TITLE_VISIBILITY = @{
-        @"visible" : @(NSWindowTitleVisible),
-        @"hidden"  : @(NSWindowTitleHidden),
-    } ;
 
     WINDOW_APPEARANCES = @{
         @"aqua"                 : NSAppearanceNameAqua,
@@ -495,7 +489,7 @@ static int window_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-/// hs._asm.uitk.window:allowTextEntry([value]) -> windowObject | currentValue
+/// hs._asm.uitk.window:allowTextEntry([value]) -> windowObject | boolean
 /// Method
 /// Get or set whether or not the window object can accept keyboard entry. Defaults to true.
 ///
@@ -521,7 +515,7 @@ static int window_allowTextEntry(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:alpha([alpha]) -> windowObject | currentValue
+/// hs._asm.uitk.window:alpha([alpha]) -> windowObject | number
 /// Method
 /// Get or set the alpha level of the window representing the window object.
 ///
@@ -568,7 +562,7 @@ static int window_backgroundColor(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:hasShadow([state]) -> windowObject | currentValue
+/// hs._asm.uitk.window:hasShadow([state]) -> windowObject | boolean
 /// Method
 /// Get or set whether the window displays a shadow.
 ///
@@ -591,7 +585,7 @@ static int window_hasShadow(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:opaque([state]) -> windowObject | currentValue
+/// hs._asm.uitk.window:opaque([state]) -> windowObject | bool
 /// Method
 /// Get or set whether the window is opaque.
 ///
@@ -614,7 +608,7 @@ static int window_opaque(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:ignoresMouseEvents([state]) -> windowObject | currentValue
+/// hs._asm.uitk.window:ignoresMouseEvents([state]) -> windowObject | bool
 /// Method
 /// Get or set whether the window ignores mouse events.
 ///
@@ -670,7 +664,7 @@ static int window_styleMask(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:title([title]) -> windowObject | currentValue
+/// hs._asm.uitk.window:title([title]) -> windowObject | string
 /// Method
 /// Get or set the window's title.
 ///
@@ -693,7 +687,7 @@ static int window_title(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:titlebarAppearsTransparent([state]) -> windowObject | currentValue
+/// hs._asm.uitk.window:titlebarAppearsTransparent([state]) -> windowObject | boolean
 /// Method
 /// Get or set whether the window's title bar draws its background.
 ///
@@ -716,47 +710,33 @@ static int window_titlebarAppearsTransparent(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:titleVisibility([state]) -> windowObject | currentValue
+/// hs._asm.uitk.window:titleVisibility([state]) -> windowObject | boolean
 /// Method
 /// Get or set whether or not the title is displayed in the window titlebar.
 ///
 /// Parameters:
-///  * `state` - an optional string containing the text "visible" or "hidden", specifying whether or not the window's title text appears.
+///  * `state` - an optional boolean specifying whether or not the window's title text appears in the window titlebar area, if present.
 ///
 /// Returns:
 ///  * If an argument is provided, the window object; otherwise the current value.
 ///
 /// Notes:
-///  * When a toolbar is attached to the window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title ("visible") or in the window's title bar itself, as seen in applications like Safari ("hidden").
+///  * When a toolbar is attached to the window (see the `hs.webview.toolbar` module documentation), this function can be used to specify whether the Toolbar appears underneath the window's title (true) or in the window's title bar itself, as seen in applications like Safari (false).
 static int window_titleVisibility(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
-// ??? should we switch this to true/false?
-
     if (lua_gettop(L) == 1) {
-        NSNumber *titleVisibility = @(window.titleVisibility) ;
-        NSString *value = [[TITLE_VISIBILITY allKeysForObject:titleVisibility] firstObject] ;
-        if (value) {
-            [skin pushNSObject:value] ;
-        } else {
-            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized titleVisibility %@ -- notify developers", USERDATA_TAG, titleVisibility]] ;
-            lua_pushnil(L) ;
-        }
+        lua_pushboolean(L, (window.titleVisibility == NSWindowTitleVisible)) ;
     } else {
-        NSNumber *value = TITLE_VISIBILITY[[skin toNSObjectAtIndex:2]] ;
-        if (value) {
-            window.titleVisibility = [value intValue] ;
-            lua_pushvalue(L, 1) ;
-        } else {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [TITLE_VISIBILITY.allKeys componentsJoinedByString:@"', '"]] UTF8String]) ;
-        }
+        window.titleVisibility = lua_toboolean(L, 2) ? NSWindowTitleVisible : NSWindowTitleHidden ;
+        lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-/// hs._asm.uitk.window:toolbar([toolbar]) -> windowObject | currentValue
+/// hs._asm.uitk.window:toolbar([toolbar]) -> windowObject | toolbarObject | nil
 /// Method
 /// Get or set the toolbar for the window.
 ///
@@ -822,7 +802,7 @@ static int window_toggleToolbarShown(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:toolbarStyle([style]) -> windowObject | currentValue
+/// hs._asm.uitk.window:toolbarStyle([style]) -> windowObject | string
 /// Method
 /// Get or set the window's toolbar style.
 ///
@@ -877,7 +857,7 @@ static int window_toolbarStyle(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:appearance([appearance]) -> windowObject | currentValue
+/// hs._asm.uitk.window:appearance([appearance]) -> windowObject | string
 /// Method
 /// Get or set the appearance name applied to the window decorations for the window.
 ///
@@ -927,7 +907,7 @@ static int appearanceCustomization_appearance(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:closeOnEscape([flag]) -> windowObject | currentValue
+/// hs._asm.uitk.window:closeOnEscape([flag]) -> windowObject | boolean
 /// Method
 /// If the window is titled and closable, this will get or set whether or not the Escape key is allowed to close the window.
 ///
@@ -1054,7 +1034,7 @@ static int window_size(lua_State *L) {
     return 1;
 }
 
-/// hs._asm.uitk.window:animationBehavior([behavior]) -> windowObject | currentValue
+/// hs._asm.uitk.window:animationBehavior([behavior]) -> windowObject | string
 /// Method
 /// Get or set the macOS animation behavior used when the window is shown or hidden.
 ///
@@ -1326,7 +1306,7 @@ static int window_notificationCallback(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:passthroughCallback([fn | nil]) -> windowObject | currentValue
+/// hs._asm.uitk.window:passthroughCallback([fn | nil]) -> windowObject | function | nil
 /// Method
 /// Get or set the passthrough callback for the window.
 ///
@@ -1364,7 +1344,7 @@ static int window_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.window:notificationMessages([notifications, [replace]]) -> windowObject | currentValue
+/// hs._asm.uitk.window:notificationMessages([notifications, [replace]]) -> windowObject | table
 /// Method
 /// Get or set the specific notifications which should trigger a callback set with [hs._asm.uitk.window:notificationCallback](#notificationCallback).
 ///
@@ -1391,21 +1371,23 @@ static int window_notificationWatchFor(lua_State *L) {
             watchingFor = @[ [skin toNSObjectAtIndex:2] ] ;
         } else {
             watchingFor = [skin toNSObjectAtIndex:2] ;
-            BOOL isGood = YES ;
-            if ([watchingFor isKindOfClass:[NSArray class]]) {
-                for (NSString *item in watchingFor) {
-                    if (![item isKindOfClass:[NSString class]]) {
-                        isGood = NO ;
-                        break ;
-                    }
-                }
-            } else {
-                isGood = NO ;
-            }
-            if (!isGood) {
-                return luaL_argerror(L, 2, "expected a string or an array of strings") ;
-            }
         }
+
+        BOOL isGood = YES ;
+        if ([watchingFor isKindOfClass:[NSArray class]]) {
+            for (NSString *item in watchingFor) {
+                if (![item isKindOfClass:[NSString class]]) {
+                    isGood = NO ;
+                    break ;
+                }
+            }
+        } else {
+            isGood = NO ;
+        }
+        if (!isGood) {
+            return luaL_argerror(L, 2, "expected a string or an array of strings") ;
+        }
+
         BOOL willAdd = (lua_gettop(L) == 2) ? YES : (BOOL)(lua_toboolean(L, 3)) ;
         for (NSString *item in watchingFor) {
             if (![windowNotifications containsObject:item]) {
