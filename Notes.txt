@@ -1,0 +1,129 @@
+NSTextField and NSTextView should implement this instead of performKeyEquivalent: or cancelOperation:, etc.
+
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+
+Escape            - cancelOperation:
+                  - capitalizeWord:
+C-l               - centerSelectionInVisibleArea:
+                  - changeCaseOfLetter:
+O-Escape          - complete:
+Delete/C-h        - deleteBackward:
+                  - deleteBackwardByDecomposingPreviousCharacter:
+fDelete           - deleteForward:
+                  - deleteToBeginningOfLine:
+                  - deleteToBeginningOfParagraph:
+                  - deleteToEndOfLine:
+C-k               - deleteToEndOfParagraph:
+                  - deleteToMark:
+O-Delete          - deleteWordBackward:
+O-fDelete/C-d     - deleteWordForward:
+                  - doCommandBySelector:
+                  - indent:
+S-Tab             - insertBacktab:
+                  - insertContainerBreak:
+                  - insertDoubleQuoteIgnoringSubstitution:
+                  - insertLineBreak:
+Return            - insertNewline:
+O-Return/C-o      - insertNewlineIgnoringFieldEditor:
+                  - insertParagraphSeparator:
+                  - insertSingleQuoteIgnoringSubstitution:
+Tab               - insertTab:
+O-Tab             - insertTabIgnoringFieldEditor:
+                  - insertText:
+                  - lowercaseWord:
+                  - makeBaseWritingDirectionLeftToRight:
+                  - makeBaseWritingDirectionNatural:
+                  - makeBaseWritingDirectionRightToLeft:
+                  - makeTextWritingDirectionLeftToRight:
+                  - makeTextWritingDirectionNatural:
+                  - makeTextWritingDirectionRightToLeft:
+C-b/C-o           - moveBackward:
+C-S-b             - moveBackwardAndModifySelection:
+Down/C-n          - moveDown:
+S-Down/C-S-n      - moveDownAndModifySelection:
+C-f               - moveForward:
+C-S-f             - moveForwardAndModifySelection:
+Left              - moveLeft:
+S-Left            - moveLeftAndModifySelection:
+S-O-Up            - moveParagraphBackwardAndModifySelection:
+S-O-Down          - moveParagraphForwardAndModifySelection:
+Right             - moveRight:
+S-Right           - moveRightAndModifySelection:
+                  - moveToBeginningOfDocument:
+                  - moveToBeginningOfDocumentAndModifySelection:
+                  - moveToBeginningOfLine:
+                  - moveToBeginningOfLineAndModifySelection:
+O-Up/C-a          - moveToBeginningOfParagraph:
+C-S-a             - moveToBeginningOfParagraphAndModifySelection:
+                  - moveToEndOfDocument:
+                  - moveToEndOfDocumentAndModifySelection:
+                  - moveToEndOfLine:
+                  - moveToEndOfLineAndModifySelection:
+O-Down/C-e        - moveToEndOfParagraph:
+C-S-e             - moveToEndOfParagraphAndModifySelection:
+                  - moveToLeftEndOfLine:
+                  - moveToLeftEndOfLineAndModifySelection:
+                  - moveToRightEndOfLine:
+                  - moveToRightEndOfLineAndModifySelection:
+Up/C-p            - moveUp:
+S-Up/C-S-p        - moveUpAndModifySelection:
+                  - moveWordBackward:
+                  - moveWordBackwardAndModifySelection:
+                  - moveWordForward:
+                  - moveWordForwardAndModifySelection:
+O-Left            - moveWordLeft:
+S-O-Left          - moveWordLeftAndModifySelection:
+O-Right           - moveWordRight:
+S-O-Right         - moveWordRightAndModifySelection:
+S-O-PageDown/C-v  - pageDown:
+S-PageDown/C-S-v  - pageDownAndModifySelection:
+S-O-PageUp        - pageUp:
+S-PageUp          - pageUpAndModifySelection:
+                  - quickLookPreviewItems:
+                  - scrollLineDown:
+                  - scrollLineUp:
+PageDown          - scrollPageDown:
+PageUp            - scrollPageUp:
+Home              - scrollToBeginningOfDocument:
+End               - scrollToEndOfDocument:
+                  - selectAll:
+                  - selectLine:
+                  - selectParagraph:
+                  - selectToMark:
+                  - selectWord:
+                  - setMark:
+                  - swapWithMark:
+C-t               - transpose:
+                  - transposeWords:
+                  - uppercaseWord:
+C-y               - yank:
+
+}
+
+
+e.g. to make Return and Tap always insert and not move focus:
+
+- (BOOL)control:(NSControl*)control textView:(NSTextView*)textView doCommandBySelector:(SEL)commandSelector
+{
+    BOOL result = NO;
+
+    if (commandSelector == @selector(insertNewline:))
+    {
+        // new line action:
+        // always insert a line-break character and don’t cause the receiver to end editing
+        [textView insertNewlineIgnoringFieldEditor:self];
+        result = YES;
+    }
+    else if (commandSelector == @selector(insertTab:))
+    {
+        // tab action:
+        // always insert a tab character and don’t cause the receiver to end editing
+        [textView insertTabIgnoringFieldEditor:self];
+        result = YES;
+    }
+
+    return result;
+}
+
+i.e. return YES if we handled it; otherwise NO.
+do not invoke super
