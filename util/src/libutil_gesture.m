@@ -111,7 +111,11 @@ static void defineInternalDictionaries(void) {
     BOOL answer = NO ;
 
     if ([self isEqualTo:gestureRecognizer] && [otherGestureRecognizer isKindOfClass:[NSClickGestureRecognizer class]]) {
-        answer = (self.numberOfClicksRequired < ((NSClickGestureRecognizer *)otherGestureRecognizer).numberOfClicksRequired) ;
+        NSClickGestureRecognizer *other = (NSClickGestureRecognizer *)otherGestureRecognizer ;
+
+        answer = [self.view isEqualTo:other.view] &&
+                 (self.buttonMask == other.buttonMask) &&
+                 (self.numberOfClicksRequired < other.numberOfClicksRequired) ;
     }
 
     return answer ;
@@ -288,7 +292,11 @@ static void defineInternalDictionaries(void) {
     BOOL answer = NO ;
 
     if ([self isEqualTo:gestureRecognizer] && [otherGestureRecognizer isKindOfClass:[NSPressGestureRecognizer class]]) {
-        answer = (self.minimumPressDuration < ((NSPressGestureRecognizer *)otherGestureRecognizer).minimumPressDuration) ;
+        NSPressGestureRecognizer *other = (NSPressGestureRecognizer *)otherGestureRecognizer ;
+
+        answer = [self.view isEqualTo:other.view] &&
+                 (self.buttonMask == other.buttonMask) &&
+                 (self.minimumPressDuration < other.minimumPressDuration) ;
     }
 
     return answer ;
@@ -374,6 +382,8 @@ static BOOL oneOfOurGestureObjects(NSGestureRecognizer *gesture) {
 ///
 /// Notes:
 ///  * a click gesture is triggered when the specified mouse button is clicked a specific number of times in a short period without dragging.
+///
+///  * if more than one click gesture recognizer with identical settings for [hs._asm.uitk.util.gesture:buttons](#buttons) but differing [hs._asm.uitk.util.gesture:clicks](#clicks) are assigned to the same `hs._asm.uitk.element` object, the one with fewer clicks will delay being triggered (i.e. sending "begin" to its callback, if defined) long enough to make sure that the other gesture has failed -- this is to ensure that only the correct gesture recognizer is triggered and reduce false positives.
 static int gesture_newClick(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TBREAK] ;
@@ -446,6 +456,8 @@ static int gesture_newPan(lua_State *L) {
 ///
 /// Notes:
 ///  * a press gesture is triggered when the specified mouse button or buttons are pressed and held for the specified amount of time without dragging.
+///
+///  * if more than one press gesture recognizer with identical settings for [hs._asm.uitk.util.gesture:buttons](#buttons) but differing [hs._asm.uitk.util.gesture:duration](#duration) valuesare assigned to the same `hs._asm.uitk.element` object, the one with the shorter duration will delay being triggered (i.e. sending "begin" to its callback, if defined) long enough to make sure that the other gesture has failed -- this is to ensure that only the correct gesture recognizer is triggered and reduce false positives.
 static int gesture_newPress(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TBREAK] ;
@@ -808,7 +820,8 @@ static int gesture_click_numberOfClicksRequired(lua_State *L) {
 /// Notes:
 ///  * this method is only valid for the Magnification gesture type.
 ///
-///  * When the gesture is not active, it will return 0.0
+///  * When the gesture is not active, this method will return 0.0
+///  * the magnification is the cumulative amount of magnification or shrinking that has occurred since the gesture was recognized (i.e. since "begin" was received by the callback function, if defined)
 ///  * While the gesture recognizer is active and callbacks are being performed, a number less than 1.0 indicates a shrinking motion while a number greater than 1.0 indicates a magnification or spreading motion.
 static int gesture_magnification_magnification(lua_State *L) {
 //NOTE:  technically a read-write property, but since we're limiting ourselves to only the built-in gesture types
@@ -817,7 +830,7 @@ static int gesture_magnification_magnification(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, UD_MAGNIFICATION_TAG, LS_TBREAK] ;
     HSUITKUtilGestureMagnification *gesture = [skin toNSObjectAtIndex:1] ;
 
-    lua_pushnumber(L, gesture.magnification) ;
+    lua_pushnumber(L, 1.0 + gesture.magnification) ;
     return 1 ;
 }
 
@@ -947,8 +960,9 @@ static int gesture_press_minimumPressDuration(lua_State *L) {
 /// Notes:
 ///  * this method is only valid for the Rotation gesture type.
 ///
-///  * When the gesture is not active, it will return 0.0
-///  * While the gesture recognizer is active and callbacks are being performed, a number less than 0.0 indicates a clockwise rotation while a number greater than 0.0 indicates a counter-clockwise rotation.
+///  * When the gesture is not active, this method will return 0.0
+///  * the rotation is the cumulative amount of rotation that has occurred since the gesture was recognized (i.e. since "begin" was received by the callback function, if defined)
+///  * While the gesture recognizer is active and callbacks are being performed, a number greater than 0.0 indicates a clockwise rotation while a number less than 0.0 indicates a counter-clockwise rotation.
 static int gesture_rotation_rotation(lua_State *L) {
 //NOTE:  technically a read-write property, but since we're limiting ourselves to only the built-in gesture types
 // and not custom or combinations atm, there is no obvious benefit to being able to set it; wait until requested.
@@ -958,7 +972,7 @@ static int gesture_rotation_rotation(lua_State *L) {
 
     BOOL inDegrees = (lua_gettop(L) == 2) ? (BOOL)(lua_toboolean(L, 2)) : YES ;
 
-    lua_pushnumber(L, inDegrees ? gesture.rotationInDegrees : gesture.rotation) ;
+    lua_pushnumber(L, -(inDegrees ? gesture.rotationInDegrees : gesture.rotation)) ;
     return 1 ;
 }
 

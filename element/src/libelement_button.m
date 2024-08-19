@@ -1118,7 +1118,7 @@ static int button_keyEquivalentModifierMask(lua_State *L) {
     return 1 ;
 }
 
-#pragma message "Wrap keyEquivalent and keyEquivalentModifierMask in lua"
+#pragma message "Wrap keyEquivalent and keyModifiers in lua"
 
 // treat as separate properties for wrapper sake, but lua side, allow
 //     keyEquivalent("key")
@@ -1180,7 +1180,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"maxAcceleratorLevel",    button_maxAcceleratorLevel},
     {"periodicDelay",          button_periodicDelay},
     {"keyEquivalent",          button_keyEquivalent},
-    {"keyEquivalentModifiers", button_keyEquivalentModifierMask},
+    {"keyModifiers",           button_keyEquivalentModifierMask},
 
     {"value",               button_value},
     {"press",               button_performClick},
@@ -1232,7 +1232,7 @@ int luaopen_hs__asm_uitk_libelement_button(lua_State* L) {
         @"highlighted",
         @"maxAcceleratorLevel",
         @"keyEquivalent",
-        @"keyEquivalentModifier",
+        @"keyModifiers",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     // (all elements inherit from _view)
