@@ -81,6 +81,18 @@ moduleMT.__index = moduleMT
 moduleMT.__name  = USERDATA_TAG
 moduleMT.__type  = USERDATA_TAG
 
+--- hs._asm.uitk.panel.alert:showsHelp([state]) -> panelObject | boolean
+--- Method
+--- Get or set whether or not the alert shows a button to request help concerning the alert.
+---
+--- Parameters:
+---  * `state` - an optional boolean, default false, specifying whether or not the help button is displayed.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * when the Help button is clicked on by the user, the callback function, if defined with [hs._asm.uitk.panel.alert:callback](#callback), will be invoked with the arguments `object, "help"`. The alert will *not* be closed, so you should close it in the callback function with `object:window():hide()` if this is desired.
 moduleMT.showsHelp = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -100,6 +112,18 @@ moduleMT.showsHelp = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:showsSuppressionButton([state]) -> panelObject | boolean
+--- Method
+--- Get or set whether or not the alert shows a checkbox with the label "Don't ask again" at the bottom of the alert.
+---
+--- Parameters:
+---  * `state` - an optional boolean, default false, specifying whether or not the suppression checkbox should be displayed at the bottom of the alert panel.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * The suppression checkbox by itself does not ensure that the dialog is or is not shown in the future; see [hs._asm.uitk.panel.alert:suppressionButton](#suppressionButton) for more information.
 moduleMT.showsSuppressionButton = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -119,6 +143,18 @@ moduleMT.showsSuppressionButton = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:informativeText([text]) -> panelObject | string
+--- Method
+--- Get or set the informative text displayed in the alert panel.
+---
+--- Parameters:
+---  * `text` - an optional string, default the empty string "", specifying the informative text to display in the alert panel
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * The informative text is expected to contain a more detailed description than [hs._asm.uitk.panel.alert:messageText](#messageText) and can be multiple lines, wrapping on word boundaries within the alert panel if necessary.
 moduleMT.informativeText = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -138,6 +174,18 @@ moduleMT.informativeText = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:messageText([text]) -> panelObject | string
+--- Method
+--- Get or set the message text displayed in the alert panel.
+---
+--- Parameters:
+---  * `text` - an optional string, default "Alert", specifying the message text to display in the alert panel
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * The message text is expected to be short, a few words at most; a more descriptive message can be added with the [hs._asm.uitk.panel.alert:informativeText](#informativeText) method.
 moduleMT.messageText = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -157,6 +205,19 @@ moduleMT.messageText = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:icon([image]) -> panelObject | hs.image object
+--- Method
+--- Get or set the icon displayed in the alert panel
+---
+--- Parameters:
+---  * `image` - an optional hs.image object, or explicit nil to revert to the default Hammerspoon icon, specifying the icon to display in the alert panel.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * the default icon is the Hammerspoon application icon.
+---  * if [hs._asm.uitk.panel.alert:alertStyle](#alertStyle) is set to "critical", the icon set by this method will be displayed in the lower left corner of the macOS caution system image (`hs.image.imageFromName(hs.image.systemImageNames.Caution)`).
 moduleMT.icon = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -180,6 +241,20 @@ moduleMT.icon = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:accessory([element | nil]) -> panelObject | element | nil
+--- Method
+--- Get or set the accessory element displayed in the alert panel
+---
+--- Parameters:
+---  * `element` - an optional `hs._asm.uitk.element` object, or explicit nil to remove, displayed in the alert panel.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * the default is `nil`, specifying that no accessory is added to the panel.
+---
+---  * if an accessory is specified, it will appear between the [hs._asm.uitk.panel.alert:informativeText](#informativeText) and the buttons of the alert panel.
 moduleMT.accessory = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -199,6 +274,20 @@ moduleMT.accessory = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:alertStyle([style]) -> panelObject | string
+--- Method
+--- Get or set the alert style.
+---
+--- Parameters:
+---  * `style` - an optional string, default "warning", specifying the style of the alert.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * the accepted values for this method are "warning", "informational", and "critical"
+---  * "informational" is included for historical reasons, but currently does not differ in any way from the "warning" style.
+---  * "critical" style will cause the alert icon ([hs._asm.uitk.panel.alert:icon](#icon)) image to be displayed in the lower left corner of the macOS caution system image (`hs.image.imageFromName(hs.image.systemImageNames.Caution)`).
 moduleMT.alertStyle = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -230,6 +319,19 @@ moduleMT.alertStyle = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:callback([fn | nil]) -> panelObject | function | nil
+--- Method
+--- Get or set the callback function for the alert panel.
+---
+--- Parameters:
+---  * `fn` - an optional function, or explicit nil to remove, which will be called when the user clicks on one of the alert panels buttons.
+---
+--- Returns:
+---  * if an argument is provided, returns the panel object; otherwise returns the current value.
+---
+--- Notes:
+---  * the callback function should expect two arguments and return none. The arguments will be the alert object and a string containing the title of the button pressed.
+---  * if any button but the help button -- see [hs._asm.uitk.panel.alert:showsHelp](#showsHelp) -- is pressed, the alert will be closed before the callback is invoked.
 moduleMT.callback = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -249,6 +351,25 @@ moduleMT.callback = function(self, ...)
     end
 end
 
+--- hs._asm.uitk.panel.alert:buttons() -> table
+--- Method
+--- Returns an array of the buttons defined for the alert panel.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * a table containing zero or more `hs._asm.uitk.element.button` objects corresponding to the buttons defined for this alert.
+---
+--- Notes:
+---  * if no buttons are created with the [hs._asm.uitk.panel.alert:addButtonWithTitle](#addButtonWithTitle) method, one will be automatically created with the title of "OK" and added to this table when the [hs._asm.uitk.panel.alert:layout](#layout) or [hs._asm.uitk.panel.alert:run](#run) methods are invoked.
+---
+--- * the first button added to an alert panel is always assumed to be the default choice and will be given a key equivalent of the Return key (i.e. if the user taps the Return key, this button is acted upon as if the user had clicked on it.
+--- * If any subsequent button is titled "Cancel", it will be assigned the key equivalent of the Escape (ESC) key.
+--- * If any subsequent button is titled "Don't Save", it will be assigned the key equivalent of Cmd-D (⌘D).
+--- * You can change or remove the key equivalent of any button by use the `hs._asm.uitk.element.button:keyEquivalent` and `hs._asm.uitk.element.button:keyModifierMask` on members of the table returned by this method.
+---
+--- * if you wish to trigger a button based upon actions taken elsewhere, for example from an action taken within the accessory element, you can use this method to get the list of buttons and use the `hs._asm.uitk.element.button:press` method on the appropriate button.
 moduleMT.buttons = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -259,6 +380,22 @@ moduleMT.buttons = function(self, ...)
     return ls.makeConstantsTable(obj.buttons)
 end
 
+--- hs._asm.uitk.panel.alert:suppressionButton() -> buttonElement
+--- Method
+--- Returns an `hs._asm.uitk.element.button` object representing the suppression button for the alert panel.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * an `hs._asm.uitk.element.button` object representing the suppression button for the alert panel.
+---
+--- Notes:
+---  * the button will only be visible in the alert if the [hs._asm.uitk.panel.alert:showsSuppressionButton](#showsSuppressionButton) method is set to true.
+---
+---  * you can use this method to obtain the suppression button checkbox to change it's label with the `hs._asm.uitk.element.button:title` method or to check if the user has checked it in your callback with the `hs._asm.uitk.element.button:state` method.
+---
+---  * The suppression button is provided as a convenience and is not enforced by this module. If you wish to honor it's setting, you must include code of your own to check this value and store it, possibly with `hs.settings`, so that it can be checked in the future before showing triggering the alert again with your code.
 moduleMT.suppressionButton = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -269,6 +406,18 @@ moduleMT.suppressionButton = function(self, ...)
     return obj.suppressionButton
 end
 
+--- hs._asm.uitk.panel.alert:window() -> windowElement
+--- Method
+--- Returns an `hs._asm.uitk.window` object representing the alert panel.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * an `hs._asm.uitk.window` object representing the alert panel.
+---
+--- Notes:
+---  * The position and size of this window is determined when the [hs._asm.uitk.panel.alert:layout](#layout) or [hs._asm.uitk.panel.alert:run](#run) methods are invoked. Any change to these properties will be overwritten when these methods are invoked, so if you wish to reposition the alert, do so after it has been presented.
 moduleMT.window = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -279,6 +428,23 @@ moduleMT.window = function(self, ...)
     return obj.window
 end
 
+--- hs._asm.uitk.panel.alert:addButtonWithTitle(title) -> panelObject
+--- Method
+--- Add a button to the alert panel with the specified label.
+---
+--- Parameters:
+---  * `title` - the label to be displayed on the button added to the alert panel.
+---
+--- Returns:
+---  * the panel object.
+---
+--- Notes:
+---  * if no buttons are created with this method, one will be automatically created with the title of "OK" and added to this table when the [hs._asm.uitk.panel.alert:layout](#layout) or [hs._asm.uitk.panel.alert:run](#run) methods are invoked.
+---
+--- * the first button added to an alert panel is always assumed to be the default choice and will be given a key equivalent of the Return key (i.e. if the user taps the Return key, this button is acted upon as if the user had clicked on it.
+--- * If any subsequent button is titled "Cancel", it will be assigned the key equivalent of the Escape (ESC) key.
+--- * If any subsequent button is titled "Don't Save", it will be assigned the key equivalent of Cmd-D (⌘D).
+--- * See also [hs._asm.uitk.panel.alert:buttons](#buttons).
 moduleMT.addButtonWithTitle = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -307,6 +473,23 @@ moduleMT.addButtonWithTitle = function(self, ...)
     return self
 end
 
+--- hs._asm.uitk.panel.alert:layout() -> windowElement
+--- Method
+--- Position the alert elements and adjust the size and position of the alert panel.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * the alert object
+---
+--- Notes:
+---  * This method will position the elements within the alert panel, based upon its properties as specified by the other methods. It is invoked automatically by the [hs._asm.uitk.panel.alert:run](#run) method, but its included as its own method in case you make changes to the alert once it has been presented (perhaps based on actions taken by elements in the accessory element).
+---
+---  * this method will adjust the size and position of the alert so that it is about a third of the way down from the top of the currently active screen and sized appropriately for the buttons and properties specified by this module's methods. If you wish to position the alert in a different location, you can set the position using the [hs._asm.uitk.panel.alert:window](#window) object *after* invoking this method.
+---
+---  * if no buttons have been defined for this alert panel, a default one with the title of "OK" will be created and inserted into the [hs._asm.uitk.panel.alert:buttons](#buttons) array.
+---  * If only two buttons are defined and the[hs._asm.uitk.panel.alert:showsSuppressionButton](#showsSuppressionButton) is false, they will be displayed side by side with the first (default) button on the right. In all other cases, the buttons will be stacked, starting with the first (default) one at the top.
 moduleMT.layout = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)
@@ -316,8 +499,7 @@ moduleMT.layout = function(self, ...)
     )
 
     if #obj.buttons == 0 then
-        table.insert(obj.buttons, uitk.element.button.buttonWithTitle("OK"):bezelStyle("regularSquare")
-                                                                           :callback(actionCallback(self, "OK", true)))
+        self:addButtonWithTitle("OK")
     end
 
     -- start with a clean slate
@@ -487,6 +669,20 @@ moduleMT.layout = function(self, ...)
     return self
 end
 
+--- hs._asm.uitk.panel.alert:run() -> windowElement
+--- Method
+--- Position and display the alert panel
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * the alert object
+---
+--- Notes:
+---  * This method invokes [hs._asm.uitk.element.panel.alert:layout](#layout) to position and size the alert panel before showing it.
+---
+---  * this method will adjust the size and position of the alert so that it is about a third of the way down from the top of the currently active screen and sized appropriately for the buttons and properties specified by this module's methods. If you wish to position the alert in a different location, you can set the position using the [hs._asm.uitk.panel.alert:window](#window) object *after* invoking this method.
 moduleMT.run = function(self, ...)
     local obj   = moduleMT.__e[self]
     local args  = table.pack(...)

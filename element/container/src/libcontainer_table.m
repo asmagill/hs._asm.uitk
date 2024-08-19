@@ -73,7 +73,7 @@ static void defineInternalDictionaries(void) {
 
 }
 
-static BOOL oneOfOurs(NSView *obj) {
+static BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -291,7 +291,7 @@ static BOOL oneOfOurs(NSView *obj) {
             [skin logError:[NSString stringWithFormat:@"%s:dataSource callback error:%@", USERDATA_TAG, errorMessage]] ;
         } else if (lua_type(L, -1) == LUA_TUSERDATA) {
             viewAtCell = [skin toNSObjectAtIndex:-1] ;
-            if (!oneOfOurs(viewAtCell)) {
+            if (!oneOfOurElementObjects(viewAtCell)) {
                 viewAtCell = nil ;
                 [skin logError:[NSString stringWithFormat:@"%s:dataSource callback error:expected uitk element", USERDATA_TAG]] ;
             }
@@ -1159,7 +1159,7 @@ static int table_rowForElement(lua_State *L) {
 
     if (lua_type(L, 2) == LUA_TUSERDATA) {
         NSView *view = [skin toNSObjectAtIndex:2] ;
-        if (oneOfOurs(view)) {
+        if (oneOfOurElementObjects(view)) {
             lua_pushinteger(L, [table rowForView:view] + 1) ;
             return 1 ;
         }
@@ -1175,7 +1175,7 @@ static int table_columnForElement(lua_State *L) {
 
     if (lua_type(L, 2) == LUA_TUSERDATA) {
         NSView *view = [skin toNSObjectAtIndex:2] ;
-        if (oneOfOurs(view)) {
+        if (oneOfOurElementObjects(view)) {
             lua_pushinteger(L, [table columnForView:view] + 1) ;
             return 1 ;
         }

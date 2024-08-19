@@ -55,7 +55,7 @@ static void defineInternalDictionaries(void) {
 @property            BOOL       documentTracksWidth ;
 @end
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -103,7 +103,7 @@ BOOL oneOfOurs(NSView *obj) {
 // NOTE: support for _documentTracksWidth
 
 - (void)updateDocumentFrameMinimums {
-    if (self.documentView && oneOfOurs(self.documentView)) {
+    if (self.documentView && oneOfOurElementObjects(self.documentView)) {
         NSSize documentSize = self.documentView.frame.size ;
         NSSize contentSize  = self.contentSize ;
         // width is more obvious because it impacts line wrapping... document height will always be larger if
@@ -859,7 +859,7 @@ static int scroller_documentView(lua_State *L) {
             element.documentView = nil ;
         } else {
             NSView *document = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!document || !oneOfOurs(document)) {
+            if (!document || !oneOfOurElementObjects(document)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             [skin luaRelease:refTable forNSObject:element.documentView] ;

@@ -13,7 +13,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 #pragma mark - Support Functions and Classes -
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -148,6 +148,15 @@ BOOL oneOfOurs(NSView *obj) {
 
 #pragma mark - Module Functions -
 
+/// hs._asm.uitk.panel.save.new() -> panelObject
+/// Constructor
+/// Create a new save panel.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a new save panel object
 static int save_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TBREAK] ;
@@ -161,6 +170,15 @@ static int save_new(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.open.new() -> panelObject
+/// Constructor
+/// Create a new open panel.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a new open panel object
 static int open_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TBREAK] ;
@@ -176,6 +194,25 @@ static int open_new(lua_State *L) {
 
 #pragma mark - Shared Methods -
 
+/// hs._asm.uitk.panel.save:isVisible() -> boolean
+/// Method
+/// Return whether or not the save panel is currently being presented.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a boolean value indicating whether the save panel is visible (true) or not (false).
+
+/// hs._asm.uitk.panel.open:isVisible() -> boolean
+/// Method
+/// Return whether or not the open panel is currently being presented.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a boolean value indicating whether the open panel is visible (true) or not (false).
 static int saveOpen_isVisible(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -190,6 +227,25 @@ static int saveOpen_isVisible(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:canCreateDirectories([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the user is allowed to create new directories from within the save panel when it is presented.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, specifying whether or not the user can create new directories from within the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+
+/// hs._asm.uitk.panel.open:canCreateDirectories([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the user is allowed to create new directories from within the open panel when it is presented.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether or not the user can create new directories from within the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
 static int saveOpen_canCreateDirectories(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -209,6 +265,31 @@ static int saveOpen_canCreateDirectories(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:showHiddenFiles([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether hidden files are displayed within the save panel when it is presented.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether hidden files are displayed in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * Hidden files include files with the hidden attribute set and files that begin with a period.
+
+/// hs._asm.uitk.panel.open:showHiddenFiles([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether hidden files are displayed within the open panel when it is presented.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether hidden files are displayed in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * Hidden files include files with the hidden attribute set and files that begin with a period.
 static int saveOpen_showsHiddenFiles(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -228,6 +309,31 @@ static int saveOpen_showsHiddenFiles(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:packagesAsDirectories([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether file packages are treated as a single file or as a directory of files.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether packages are treated as a directory of files (true) or as a single file (false) in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * File packages are folders that are treated by the system as a single file object. MacOS Applications are file packages, as are Hammerspoon Spoons, just to name a couple of examples.
+
+/// hs._asm.uitk.panel.open:packagesAsDirectories([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether file packages are treated as a single file or as a directory of files.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether packages are treated as a directory of files (true) or as a single file (false) in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * File packages are folders that are treated by the system as a single file object. MacOS Applications are file packages, as are Hammerspoon Spoons, just to name a couple of examples.
 static int saveOpen_treatsFilePackagesAsDirectories(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -247,6 +353,25 @@ static int saveOpen_treatsFilePackagesAsDirectories(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:message([message]) -> panelObject | string
+/// Method
+/// Get or set the message displayed at the top of the save panel.
+///
+/// Parameters:
+///  * `message` - an optional string, default the empty string, specifying a message to show at the top of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+
+/// hs._asm.uitk.panel.open:message([message]) -> panelObject | string
+/// Method
+/// Get or set the message displayed at the top of the open panel.
+///
+/// Parameters:
+///  * `message` - an optional string, default the empty string, specifying a message to show at the top of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
 static int saveOpen_message(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -266,6 +391,28 @@ static int saveOpen_message(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:title([title]) -> panelObject | string
+/// Method
+/// Get or set the title of the save panel.
+///
+/// Parameters:
+///  * `title` - an optional string, default "Save", specifying the title of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+
+/// hs._asm.uitk.panel.open:title([title]) -> panelObject | string
+/// Method
+/// Get or set the title of the open panel.
+///
+/// Parameters:
+///  * `title` - an optional string, default "Open", specifying the title of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * in macOS 14, the titlebar for Open panels is not visible and this method has no visible effect.
 static int saveOpen_title(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -285,6 +432,31 @@ static int saveOpen_title(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:prompt([prompt]) -> panelObject | string
+/// Method
+/// Get or set the label for the prompt button of the save panel.
+///
+/// Parameters:
+///  * `prompt` - an optional string, default "Save", specifying the label for the prompt (default) button of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * Keep this relatively short as the button doesn't resize.
+
+/// hs._asm.uitk.panel.open:prompt([prompt]) -> panelObject | string
+/// Method
+/// Get or set the label for the prompt button of the open panel.
+///
+/// Parameters:
+///  * `prompt` - an optional string, default "Open", specifying the label for the prompt (default) button of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * Keep this relatively short as the button doesn't resize.
 static int saveOpen_prompt(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -304,6 +476,33 @@ static int saveOpen_prompt(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:accessory([element]) -> panelObject | elementObject | nil
+/// Method
+/// Get or set the accessory view for the save panel
+///
+/// Parameters:
+///  * `element` - an optional uitk element, or explicit nil to remove, specifying an additional set of user controls in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * the accessory element appears above the Cancel and Save buttons at the bottom of the panel and will resize the panel if necessary.
+
+/// hs._asm.uitk.panel.open:accessory([element]) -> panelObject | elementObject | nil
+/// Method
+/// Get or set the accessory view for the open panel
+///
+/// Parameters:
+///  * `element` - an optional uitk element, or explicit nil to remove, specifying an additional set of user controls in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * The accessory element is not visible by default -- see [hs._asm.uitk.panel.open:accessoryVisible](#accessoryVisible)
+///
+///  * If an accessory element has been set with this method, a "Show Options" button will be shown in the open panel so that the user can choose to display the accessory element if they wish.
 static int saveOpen_accessoryView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -325,7 +524,7 @@ static int saveOpen_accessoryView(lua_State *L) {
             panel.panel.accessoryView = nil ;
         } else {
             NSView *container = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!container || !oneOfOurs(container)) {
+            if (!container || !oneOfOurElementObjects(container)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             if (panel.panel.accessoryView) {
@@ -340,6 +539,31 @@ static int saveOpen_accessoryView(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:validateColumns() -> panelObject
+/// Method
+/// Validate the contents of the save panel based on any changes that have been made to it since it was presented.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the panelObject
+///
+/// Notes:
+///  * This method may be necessary if, for example, an accessory view offers controls to change panel settings.
+
+/// hs._asm.uitk.panel.open:validateColumns() -> panelObject
+/// Method
+/// Validate the contents of the open panel based on any changes that have been made to it since it was presented.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the panelObject
+///
+/// Notes:
+///  * This method may be necessary if, for example, an accessory view offers controls to change panel settings.
 static int saveOpen_validateVisibleColumns(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -356,6 +580,7 @@ static int saveOpen_validateVisibleColumns(lua_State *L) {
     return 1 ;
 }
 
+// documented in panel_save.lua and panel_open.lua
 static int saveOpen_allowedContentTypes(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TTABLE | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -427,6 +652,28 @@ static int saveOpen_allowedContentTypes(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:path() -> string
+/// Method
+/// Get the full path for the filename specified in the save panel.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a string containing the full path to the name specified in the save panel, or nil if the filename field is empty.
+
+/// hs._asm.uitk.panel.open:paths() -> table
+/// Method
+/// Get the full path for the items selected in the open panel.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a table containing one or more strings containing the full path to all of the files selected in the open panel. If no file is currently selected, returns an empty table.
+///
+/// Notes:
+///  * To be able to select more than one file in the panel, see [hs._asm.uitk.panel.open:multipleSelection](#multipleSelection).
 static int saveOpen_url(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -461,6 +708,35 @@ static int saveOpen_url(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:directory([path]) -> panelObject | string
+/// Method
+/// Set the initial directory for the save panel or get the current directory once it has been presented.
+///
+/// Parameters:
+///  * `path` - an optional string specifying the initial path the save panel starts in.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * When called without an argument, this method returns the directory currently displayed in the panel.
+///
+///  * Once the panel has been presented, setting a new value has no effect.
+
+/// hs._asm.uitk.panel.open:directory([path]) -> panelObject | string
+/// Method
+/// Set the initial directory for the open panel or get the current directory once it has been presented.
+///
+/// Parameters:
+///  * `path` - an optional string specifying the initial path the open panel starts in.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * When called without an argument, this method returns the directory currently displayed in the panel.
+///
+///  * Once the panel has been presented, setting a new value has no effect.
 static int saveOpen_directoryURL(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -496,6 +772,31 @@ static int saveOpen_directoryURL(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:present([window]) -> panelObject
+/// Method
+/// Displays the panel.
+///
+/// Parameters:
+///  * `window` - an optional `hs._asm.uitk.window` object to display the panel in as a modal sheet.
+///
+/// Returns:
+///  * the panel object
+///
+/// Notes:
+///  * if a `window` object is provided, the window will not allow further editing or modification by the user until the panel is closed by using its Save or Cancel buttons.
+
+/// hs._asm.uitk.panel.open:present([window]) -> panelObject
+/// Method
+/// Displays the panel.
+///
+/// Parameters:
+///  * `window` - an optional `hs._asm.uitk.window` object to display the panel in as a modal sheet.
+///
+/// Returns:
+///  * the panel object
+///
+/// Notes:
+///  * if a `window` object is provided, the window will not allow further editing or modification by the user until the panel is closed by using its Open or Cancel buttons.
 static int saveOpen_presentDialog(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -529,6 +830,76 @@ static int saveOpen_presentDialog(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:present() -> panelObject
+/// Method
+/// Close the panel if it is currently being displayed.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the panel object
+///
+/// Notes:
+///  * if the panel is currently visible and a callback has been set with [hs._asm.uitk.panel.save:callback](#callback), the callback will be triggered as if the user had clicked on the Cancel button.
+
+/// hs._asm.uitk.panel.open:present() -> panelObject
+/// Method
+/// Close the panel if it is currently being displayed.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the panel object
+///
+/// Notes:
+///  * if the panel is currently visible and a callback has been set with [hs._asm.uitk.panel.open:callback](#callback), the callback will be triggered as if the user had clicked on the Cancel button.
+static int saveOpen_cancel(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK] ;
+
+    HSUITKPanelSave *panel = nil ;
+    if (luaL_testudata(L, 1, USERDATA_TAG) || luaL_testudata(L, 1, UD_OPEN_TAG)) {
+        panel = [skin toNSObjectAtIndex:1] ;
+    } else {
+        return luaL_argerror(L, 1, "expected open or save panel userdata") ;
+    }
+
+    [panel.panel cancel:panel] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+/// hs._asm.uitk.panel.save:callback([fn | nil]) -> panelObject | function | nil
+/// Method
+/// Get or set the save panel callback function.
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, that will be called when the user clicks on the Save or Cancel button of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * The function should expect 2 arguments and return none. The arguments will be one of the following:
+///    * `panelObject`, "OK"     - the user clicked on the Save button
+///    * `panelObject`, "Cancel" - the user clicked on the Cancel button
+
+/// hs._asm.uitk.panel.open:callback([fn | nil]) -> panelObject | function | nil
+/// Method
+/// Get or set the open panel callback function.
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, that will be called when the user clicks on the Open or Cancel button of the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * The function should expect 2 arguments and return none. The arguments will be one of the following:
+///    * `panelObject`, "OK"     - the user clicked on the Save button
+///    * `panelObject`, "Cancel" - the user clicked on the Cancel button
 static int saveOpen_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -559,6 +930,18 @@ static int saveOpen_callback(lua_State *L) {
 
 #pragma mark - Save Only Methods -
 
+/// hs._asm.uitk.panel.save:canToggleHiddenExtensions([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the save panel allows toggling the display of file extensions in the panel.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, indicating whether the user is allowed to toggle the display of filename extensions in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if the Finder setting "Show all filename extensions" has been enabled, this method has no effect -- filename extensions will always be visible.
 static int save_canSelectHiddenExtension(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -573,6 +956,18 @@ static int save_canSelectHiddenExtension(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:extensionHidden([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the save panel shows file extensions in the panel.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, indicating whether the user shows filename extensions in the panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if the Finder setting "Show all filename extensions" has been enabled, this method has no effect -- filename extensions will always be visible.
 static int save_extensionHidden(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -587,6 +982,15 @@ static int save_extensionHidden(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:isExpanded() -> boolean
+/// Method
+/// Get whether or not the save panel is in its expanded form.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a boolean indicating whether the save panel is in its expanded form (true) or its compressed form (false)
 static int save_isExpanded(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -596,6 +1000,19 @@ static int save_isExpanded(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:allowsOtherFileTypes([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the save panel allows the user to specify a file with an extension other than those set in [hs._asm.uitk.panel.save:contentTypes](#contentTypes)
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, indicating whether the user is allowed to specify a file extension not explicitely allowed by the types specified in [hs._asm.uitk.panel.save:contentTypes](#contentTypes)
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * If this is set to `false`, the user will be prompted to use an allowed extension, or to append an allowed extension to the one in the proposed file name.
+///  * If this is set to `true`, the user will be prompted to use an allowed extension, or confirm the use of the unspecified extension.
 static int save_allowsOtherFileTypes(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -610,6 +1027,15 @@ static int save_allowsOtherFileTypes(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:filenameLabel([label]) -> panelObject | string
+/// Method
+/// Get or set the label displayed before the field where the user can type in a filename
+///
+/// Parameters:
+///  * `label` - an optional string, default "Save As:", specifying the label that precedes the textfield where the user can type in a file name.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
 static int save_nameFieldLabel(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -624,6 +1050,18 @@ static int save_nameFieldLabel(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:filename([name]) -> panelObject | string
+/// Method
+/// Get or set the filename currently displayed in the panel's filename field
+///
+/// Parameters:
+///  * `name` - an optional string, default "Untitled", specifying the name of the file to be saved.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * This value may or may not include a file extension; check [hs._asm.uitk.panel.save:path](#path) if you want a fully proper name and path.
 static int save_nameFieldStringValue(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -638,6 +1076,15 @@ static int save_nameFieldStringValue(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:showsTagField([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the save panel displays the Tags field
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, indicating whether the save panel displays the Tags field
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
 static int save_showsTagField(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -652,6 +1099,19 @@ static int save_showsTagField(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.save:tagNames([tags | nil]) -> panelObject | table | nil
+/// Method
+/// Get or set the tags displayed in the Tags field of the save panel
+///
+/// Parameters:
+///  * `tags` - an optional table, or explicit nil to clear, the Tags field of the save panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if [hs._asm.uitk.panel.save:showsTagField](#showsTagField) is false, this method will return nil and does not allow the setting of any tags (i.e. it will be silently ignored).
+///  * if [hs._asm.uitk.panel.save:showsTagField](#showsTagField) is true, then this method can be used to get or set the tags the user has selected for this file. Specifying an explicit `nil` is equivalent to specifying an empty table.
 static int save_tagNames(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -684,6 +1144,18 @@ static int save_tagNames(lua_State *L) {
 
 #pragma mark - Open Only Methods -
 
+/// hs._asm.uitk.panel.open:multipleSelection([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the open panel allows the user to select more than one file.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, indicating whether the user is allowed to select more than one file with the open panel.
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if this method is set to true, the user can select more than one file to open by using the Shift or Command keys to make multiple selections.
 static int open_allowsMultipleSelection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -698,6 +1170,18 @@ static int open_allowsMultipleSelection(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.open:selectDirectories([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the open panel allows the user to select a directory as the item to be opened.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether the user is allowed to select a directory as an item to be opened (true) or not (false).
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if both this method and [hs._asm.uitk.panel.open:selectFiles](#selectFiles) are set to false, the user will not be able to select anything with the open panel and only the Cancel button will be choosable by the user.
 static int open_canChooseDirectories(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -712,6 +1196,18 @@ static int open_canChooseDirectories(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.open:selectFiles([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the open panel allows the user to select a file as the item to be opened.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, specifying whether the user is allowed to select a file as an item to be opened (true) or not (false).
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if both this method and [hs._asm.uitk.panel.open:selectDirectories](#selectDirectories) are set to false, the user will not be able to select anything with the open panel and only the Cancel button will be choosable by the user.
 static int open_canChooseFiles(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -754,6 +1250,15 @@ static int open_canChooseFiles(lua_State *L) {
 //     return 1 ;
 // }
 
+/// hs._asm.uitk.panel.open:resolveAliases([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the open panel allows the selection of the item an alias refers to or the alias itself.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, specifying whether selecting an alias selects the file the alias refers to (true) or the alias itself (false)
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
 static int open_resolvesAliases(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -768,6 +1273,18 @@ static int open_resolvesAliases(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.open:accessoryVisible([state]) -> panelObject | boolean
+/// Method
+/// Get or set whether the accessory element in the open panel is currently visible or not.
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether an accessory element, if one is provided, is visible (true) or not (false).
+///
+/// Returns:
+///  * if an argument is provided, returns the panel object; otherwise returns the current value.
+///
+/// Notes:
+///  * if no accessory has been set with [hs._asm.uitk.panel.open:accessory](#accessory) then this method has no effect.
 static int open_accessoryViewDisclosed(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -885,34 +1402,36 @@ static int userdata_gc(lua_State* L) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"canCreateDirectories",     saveOpen_canCreateDirectories},
-    {"showHiddenFiles",          saveOpen_showsHiddenFiles},
-    {"packagesAsDirectories",    saveOpen_treatsFilePackagesAsDirectories},
-    {"message",                  saveOpen_message},
-    {"title",                    saveOpen_title},
-    {"prompt",                   saveOpen_prompt},
-    {"accessory",                saveOpen_accessoryView},
-    {"contentTypes",             saveOpen_allowedContentTypes},
-    {"directory",                saveOpen_directoryURL},
-    {"callback",                 saveOpen_callback},
+    {"canCreateDirectories",      saveOpen_canCreateDirectories},
+    {"showHiddenFiles",           saveOpen_showsHiddenFiles},
+    {"packagesAsDirectories",     saveOpen_treatsFilePackagesAsDirectories},
+    {"message",                   saveOpen_message},
+    {"title",                     saveOpen_title},
+    {"prompt",                    saveOpen_prompt},
+    {"accessory",                 saveOpen_accessoryView},
+    {"contentTypes",              saveOpen_allowedContentTypes},
+    {"directory",                 saveOpen_directoryURL},
+    {"callback",                  saveOpen_callback},
 
-    {"allowsOtherFileTypes",     save_allowsOtherFileTypes},
-    {"canSelectHiddenExtension", save_canSelectHiddenExtension},
-    {"extensionHidden",          save_extensionHidden},
-    {"filenameLabel",            save_nameFieldLabel},
-    {"filenameValue",            save_nameFieldStringValue},
-    {"showsTagField",            save_showsTagField},
-    {"tagNames",                 save_tagNames},
+    {"allowsOtherFileTypes",      save_allowsOtherFileTypes},
+    {"canToggleHiddenExtensions", save_canSelectHiddenExtension},
+    {"extensionHidden",           save_extensionHidden},
+    {"filenameLabel",             save_nameFieldLabel},
+    {"filename",                  save_nameFieldStringValue},
+    {"showsTagField",             save_showsTagField},
+    {"tagNames",                  save_tagNames},
 
-    {"isExpanded",               save_isExpanded},
-    {"isVisible",                saveOpen_isVisible},
-    {"validateColumns",          saveOpen_validateVisibleColumns},
-    {"path",                     saveOpen_url},
-    {"present",                  saveOpen_presentDialog},
+    {"isExpanded",                save_isExpanded},
 
-    {"__tostring",               userdata_tostring},
-    {"__eq",                     userdata_eq},
-    {"__gc",                     userdata_gc},
+    {"cancel",                    saveOpen_cancel},
+    {"isVisible",                 saveOpen_isVisible},
+    {"validateColumns",           saveOpen_validateVisibleColumns},
+    {"path",                      saveOpen_url},
+    {"present",                   saveOpen_presentDialog},
+
+    {"__tostring",                userdata_tostring},
+    {"__eq",                      userdata_eq},
+    {"__gc",                      userdata_gc},
     {NULL, NULL}
 };
 
@@ -936,6 +1455,7 @@ static const luaL_Reg ud_open_metaLib[] = {
 //     {"canDownloadUbiquitousContents", open_canDownloadUbiquitousContents},
 //     {"canResolveUbiquitousConflicts", open_canResolveUbiquitousConflicts},
 
+    {"cancel",                        saveOpen_cancel},
     {"isVisible",                     saveOpen_isVisible},
     {"validateColumns",               saveOpen_validateVisibleColumns},
     {"paths",                         saveOpen_url},
@@ -987,21 +1507,22 @@ int luaopen_hs__asm_uitk_libpanel_save(lua_State* L) {
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
-        @"allowsOtherFileTypes",
         @"canCreateDirectories",
-        @"canSelectHiddenExtension",
         @"showHiddenFiles",
         @"packagesAsDirectories",
-        @"extensionHidden",
         @"message",
-        @"filenameLabel",
-        @"filenameValue",
         @"title",
         @"prompt",
         @"accessory",
         @"contentTypes",
         @"directory",
         @"callback",
+
+        @"allowsOtherFileTypes",
+        @"canToggleHiddenExtensions",
+        @"extensionHidden",
+        @"filenameLabel",
+        @"filenameValue",
         @"showsTagField",
         @"tagNames",
     ]] ;
@@ -1020,6 +1541,7 @@ int luaopen_hs__asm_uitk_libpanel_save(lua_State* L) {
         @"contentTypes",
         @"directory",
         @"callback",
+
         @"multipleSelection",
         @"selectDirectories",
         @"selectFiles",

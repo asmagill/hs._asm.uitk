@@ -5,6 +5,8 @@
 ///
 /// This module is currently unimplemented
 
+#pragma message "Implement me"
+
 static const char * const USERDATA_TAG = "hs._asm.uitk.panel.font" ;
 static LSRefTable         refTable     = LUA_NOREF ;
 

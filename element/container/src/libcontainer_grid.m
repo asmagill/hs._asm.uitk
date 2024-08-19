@@ -44,7 +44,7 @@ static void defineInternalDictionaries(void) {
                                               // checked in _view for the common methods
 @end
 
-static BOOL oneOfOurs(NSView *obj) {
+static BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -71,7 +71,7 @@ static NSArray *makeGridElementArray(NSArray *array) {
             if (([view isKindOfClass:[NSNumber class]] && !((NSNumber *)view).boolValue) || [view isKindOfClass:[NSNull class]]) {
                 [newArray addObject:NSGridCell.emptyContentView] ;
             } else {
-                isGood = oneOfOurs(view) ;
+                isGood = oneOfOurElementObjects(view) ;
                 if (isGood) {
                     [newArray addObject:view] ;
                 } else {
@@ -285,7 +285,7 @@ static int grid_cellForView(lua_State *L) {
     HSUITKElementContainerGridView *grid = [skin toNSObjectAtIndex:1] ;
 
     NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-    if (view && oneOfOurs(view)) {
+    if (view && oneOfOurElementObjects(view)) {
         NSGridCell *cell = [grid cellForView:view] ;
         if (cell) {
             [skin pushNSObject:cell] ;
@@ -1211,7 +1211,7 @@ static int gridCell_element(lua_State *L) {
         if (!grid || lua_type(L, 2) == LUA_TNIL || (lua_type(L, 2) == LUA_TBOOLEAN && !lua_toboolean(L, 2))) {
             cell.contentView = nil ;
         } else if (view) {
-            if (oneOfOurs(view) && ![view isDescendantOf:grid]) {
+            if (oneOfOurElementObjects(view) && ![view isDescendantOf:grid]) {
                 [skin luaRetain:refTable forNSObject:view] ;
                 cell.contentView = view ;
             } else if ([view isDescendantOf:grid]) {

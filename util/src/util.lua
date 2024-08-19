@@ -26,7 +26,7 @@
 
 --- === hs._asm.uitk.util ===
 ---
---- Stuff about the module
+--- This module contains some utility functions that are used within `hs._asm.uitk`. They may also prove useful in other contexts, so they are collected and exposed here and in the attached submodules.
 
 local USERDATA_TAG = "hs._asm.uitk.util"
 local uitk         = require("hs._asm.uitk")
@@ -61,6 +61,20 @@ end
 
 -- Public interface ------------------------------------------------------
 
+--- hs._asm.uitk.util.masksToInt(stringTable, masksTable) -> integer | nil, string
+--- Function
+--- Return an integer representing the value of the masks specified for the given `masksTable`
+---
+--- Parameters:
+---  * `stringTable` - a table of string values representing the human readable form of a list of masks to be logically or'ed together.
+---  * `masksTable`  - a table of key-value pairs where the key represents the human readble version of a specific value, and the value is an integer to be combined with the other masks to create a combined integer value representing all of the masks combined.
+---
+--- Returns:
+---  * an integer, if all of the strings in the `stringTable` correspond to mask values in the `masksTable`; otherwise nil and an error message string detailing which mask value was unrecognized.
+---
+--- Notes:
+---  * this function is used internally to allow the user to provide a table of strings using human readable names and convert them into an integer mask used by many internal macOS methods and functions.
+---    * as a couple of examples, see the documentation for `hs._asm.uitk.window:styleMask` and `hs._asm.uitk.window:collectionBehavior`.
 module.masksToInt = function(stringTable, masksTable)
     local result = 0
 
@@ -74,6 +88,22 @@ module.masksToInt = function(stringTable, masksTable)
     return result
 end
 
+--- hs._asm.uitk.util.intToMasks(maskValue, masksTable) -> table
+--- Function
+--- Convert an integer mask value into a table of strings containing human readable labels for the different values that make up the combined mask value.
+---
+--- Parameters:
+---  * `mask` - an integer created by logically or'ing one or more mask values.
+---  * `masksTable`  - a table of key-value pairs where the key represents the human readble version of a specific value, and the value is an integer to be combined with the other masks to create a combined integer value representing all of the masks combined.
+---
+--- Returns:
+---  * a table of string values representing the human readable labels of the masks used to combine and create the `mask` value.
+---
+--- Notes:
+---  * the original integer value will be added to the table with the key `_value`.
+---  * if there is any unrecognized portion of the `mask` value once all of the keys in the `masksTable` have been accounted for, it will be returned in the table with the `_remainder` key. If this key is not present, then the `mask` value is completely accounted for by the masks represented by the strings found in the returned table.
+---
+---  * you can use this function to convert the results of methods like `hs._asm.uitk.window:styleMask` and `hs._asm.uitk.window:collectionBehavior` (when invoked with no paramters) into a more human readable form.
 module.intToMasks = function(intValue, masksTable)
     local result = { _value = intValue }
 
@@ -96,8 +126,10 @@ end
 return setmetatable(module, {
     __index = function(self, key)
         if type(subModules[key]) ~= "nil" then
-            module[key] = require(USERDATA_TAG .. "." ..key)
-            return module[key]
+            local mod = require(USERDATA_TAG .. "." ..key)
+            -- this should probably remain hidden
+            if key ~= "_properties" then module[key] = mod end
+            return mod
         else
             return nil
         end

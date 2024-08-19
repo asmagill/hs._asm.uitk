@@ -35,7 +35,7 @@ static NSDictionary *TEXT_LINEBREAK ;
 - (void)       setCallbackRef:(int)value ;
 @end
 
-BOOL oneOfOurs(NSControl *obj) {
+BOOL oneOfOurControlObjects(NSControl *obj) {
     return [obj isKindOfClass:[NSControl class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -98,7 +98,7 @@ static int control_textAlignment(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -145,7 +145,7 @@ static int control_controlSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -188,7 +188,7 @@ static int control_tag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -217,7 +217,7 @@ static int control_highlighted(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -243,7 +243,7 @@ static int control_enabled(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -272,7 +272,7 @@ static int control_font(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -304,7 +304,7 @@ static int control_lineBreakMode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -347,7 +347,7 @@ static int control_continuous(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -376,7 +376,7 @@ static int control_usesSingleLineMode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -405,7 +405,7 @@ static int control_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -430,7 +430,7 @@ static int control_sizeToFit(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSControl *control = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!control || !oneOfOurs(control)) {
+    if (!control || !oneOfOurControlObjects(control)) {
         return luaL_argerror(L, 1, "expected userdata representing a control element") ;
     }
 
@@ -444,7 +444,7 @@ static int control_sizeToFit(lua_State *L) {
 static int userdata_gc(lua_State* L) {
     NSControl *obj  = get_objectFromUserdata(__bridge_transfer NSControl, L, 1) ;
 
-    if (obj && oneOfOurs(obj)) {
+    if (obj && oneOfOurControlObjects(obj)) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;

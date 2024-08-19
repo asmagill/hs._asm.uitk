@@ -396,7 +396,7 @@ static id toHSUITKElementColorWell(lua_State *L, int idx) {
 
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
-// handled in uitk.panel.colorPanel now
+// handled in uitk.panel.color now
 // static int meta_gc(lua_State* __unused L) {
 //     [[NSColorPanel sharedColorPanel] close] ;
 //     return 0 ;

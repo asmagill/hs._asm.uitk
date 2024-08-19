@@ -45,7 +45,7 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -1441,7 +1441,7 @@ static int window_contentView(lua_State *L) {
             window.contentView = [[NSView alloc] initWithFrame:window.contentView.bounds] ;
         } else {
             NSView *container = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!container || !oneOfOurs(container)) {
+            if (!container || !oneOfOurElementObjects(container)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             [skin luaRelease:refTable forNSObject:window.contentView] ;
@@ -1483,7 +1483,7 @@ static int window_firstResponder(lua_State *L) {
             lua_pushboolean(L, [window makeFirstResponder:nil]) ;
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!view || !oneOfOurs(view)) {
+            if (!view || !oneOfOurElementObjects(view)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             lua_pushboolean(L, [window makeFirstResponder:view]) ;

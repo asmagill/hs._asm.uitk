@@ -47,7 +47,7 @@
 ---   * alpha - the color transparency from 0.0 (completely transparent) to 1.0 (completely opaque)
 ---
 --- * From the system or Hammerspoon color lists:
----   * list - the name of a system color list or a collection list defined in `hs.drawing.color`
+---   * list - the name of a system color list or a collection list defined in `hs._asm.uitk.util.color`
 ---   * name - the color name within the specified color list
 ---
 --- * As an HTML style hex color specification:
@@ -66,6 +66,12 @@
 ---
 --- Except where specified above to indicate the color model being used, any key which is not provided defaults to a value of 0.0, except for `alpha`, which defaults to 1.0.  This means that specifying an empty table as the color will result in an opaque black color.
 
+--- === hs._asm.uitk.util.color.list ===
+---
+--- Provides support for color lists. Color lists are a collection of colors that can be saved and loaded as needed. In addition, you can create lists which you wish to make available to the color panel and outside of Hammerspoon by saving your created lists in the users custom color directory. See [hs._asm.uitk.util.color.list:saveList](#saveList) for more information.
+---
+--- The users personal colorlist directory is located at `~/Library/Colors`; colorlists saved here can be used by all macOS applications, not just Hammerspoon. See [hs._asm.uitk.util.color.lists:saveList](#saveList) for more information.
+
 local USERDATA_TAG = "hs._asm.uitk.util.color"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libutil_"))
@@ -80,7 +86,7 @@ local _colorList_index = colorlistMT.__index
 colorlistMT.__index = function(self, key)
     local result = _colorList_index[key]
     if not result and type(key) == "string" then
-        result = self:colorWithKey(key)
+        result = self:colorNamed(key)
     end
     return result
 end
@@ -88,7 +94,7 @@ end
 colorlistMT.__newindex = function(self, key, value)
     if not _colorList_index[key] then
         if type(key) == "string" and (type(value) == "table" or type(value) == "nil") then
-            self:colorWithKey(key, value)
+            self:colorNamed(key, value)
         end
     end
 end
@@ -96,7 +102,7 @@ end
 colorlistMT.__len = function(self) return 0 end
 
 colorlistMT.__pairs = function(self)
-    local keys = self:allKeys()
+    local keys = self:colorNames()
 
     return function(_, k)
         local v = nil
@@ -106,15 +112,16 @@ colorlistMT.__pairs = function(self)
     end, self, nil
 end
 
---- hs.drawing.color.ansiTerminalColors
+--- hs._asm.uitk.util.color.ansiTerminalColors
 --- Variable
 --- A collection of colors representing the ANSI Terminal color sequences.  The color definitions are based upon code found at https://github.com/balthamos/geektool-3 in the /NerdTool/classes/ANSIEscapeHelper.m file.
 ---
 --- Notes:
 ---  * This is not a constant, so you can adjust the colors at run time for your installation if desired.
-local ansiTerminalColors = module.listNamed("ansiTerminalColors")
+---  * This is actually an `hs._asm.uitk.util.color.list` object, but you can access it as if it were a table of key-value pairs.
+local ansiTerminalColors = module.list.listNamed("ansiTerminalColors")
 if not ansiTerminalColors then
-    ansiTerminalColors = module.listNamed("ansiTerminalColors", true)
+    ansiTerminalColors = module.list.listNamed("ansiTerminalColors", true)
     for k, v in pairs({
         fgBlack         = { list = "Apple", name = "Black" },
         fgRed           = { list = "Apple", name = "Red" },
@@ -152,15 +159,16 @@ if not ansiTerminalColors then
 end
 module.ansiTerminalColors = ansiTerminalColors
 
---- hs.drawing.color.x11
+--- hs._asm.uitk.util.color.x11
 --- Variable
 --- A collection of colors representing the X11 color names as defined at  https://en.wikipedia.org/wiki/Web_colors#X11_color_names (names in lowercase)
 ---
 --- Notes:
 ---  * This is not a constant, so you can adjust the colors at run time for your installation if desired.
-local x11 = module.listNamed("x11")
+---  * This is actually an `hs._asm.uitk.util.color.list` object, but you can access it as if it were a table of key-value pairs.
+local x11 = module.list.listNamed("x11")
 if not x11 then
-    x11 = module.listNamed("x11", true)
+    x11 = module.list.listNamed("x11", true)
     for k, v in pairs({
     -- Pink colors
         ["pink"]              = { ["red"]=1.000,["green"]=0.753,["blue"]=0.796,["alpha"]=1 },
@@ -317,7 +325,7 @@ if not x11 then
 end
 module.x11 = x11
 
---- hs.drawing.color.hammerspoon
+--- hs._asm.uitk.util.color.hammerspoon
 --- Variable
 --- This table contains a collection of various useful pre-defined colors:
 ---  * osx_red - The same red used for OS X window close buttons
@@ -326,11 +334,10 @@ module.x11 = x11
 ---
 --- Notes:
 ---  * This is not a constant, so you can adjust the colors at run time for your installation if desired.
----
----  * Previous versions of Hammerspoon included these colors at the `hs.drawing.color` path; for backwards compatibility, the keys of this table are replicated at that path as long as they do not conflict with any other color collection or function within the `hs.drawing.color` module.  You really should adjust your code to use the collection, as this may change in the future.
-local hammerspoon = module.listNamed("hammerspoon")
+---  * This is actually an `hs._asm.uitk.util.color.list` object, but you can access it as if it were a table of key-value pairs.
+local hammerspoon = module.list.listNamed("hammerspoon")
 if not hammerspoon then
-    hammerspoon = module.listNamed("hammerspoon", true)
+    hammerspoon = module.list.listNamed("hammerspoon", true)
     for k, v in pairs({
         ["osx_green"]   = { ["red"]=0.153,["green"]=0.788,["blue"]=0.251,["alpha"]=1 },
         ["osx_red"]     = { ["red"]=0.996,["green"]=0.329,["blue"]=0.302,["alpha"]=1 },
@@ -344,12 +351,12 @@ if not hammerspoon then
 end
 module.hammerspoon = hammerspoon
 
---- hs.drawing.color.definedCollections
+--- hs._asm.uitk.util.color.definedCollections
 --- Constant
---- This table contains this list of defined color collections provided by the `hs.drawing.color` module.  Collections differ from the system color lists in that you can modify the color values their members contain by modifying the table at `hs.drawing.color.<collection>.<color>` and future references to that color will reflect the new changes, thus allowing you to customize the palettes for your installation.
+--- This table contains this list of defined color collections provided by the `hs._asm.uitk.util.color` module.  Collections differ from the system color lists in that you can modify the color values their members contain by modifying the table at `hs._asm.uitk.util.color.<collection>.<color>` and future references to that color will reflect the new changes, thus allowing you to customize the palettes for your installation.
 module.definedCollections = {
 
--- NOTE: to allow hs.drawing.color.lists, hs.drawing.color.colorsFor, and the
+-- NOTE: to allow hs._asm.uitk.util.color.lists, hs._asm.uitk.util.color.colorsFor, and the
 -- LuaSkin convertor for NSColor to support collections, keep this up to date
 -- with any collection additions
 
@@ -358,8 +365,20 @@ module.definedCollections = {
     x11                = module.x11,
 }
 
+--- hs._asm.uitk.util.color.lists() -> table
+--- Function
+--- Returns a table of key-value pairs for the colorlists known or defined for Hammerspoon.
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * a key-value table where the keys are strings specifying the names of known lists, and the objects are `hs._asm.uitk.util.color.list` objects.
+---
+--- Notes:
+---  * this table will contain the standard system color lists, any colorlists in the users colorlist directory (see `hs._asm.uitk.util.color.list` documentation), and the legacy `hammerspoon`, `ansiTerminalColors`, and `x11` lists originally found in the `hs.drawing.color` module.
 module.lists = function(...)
-    local availableLists = module.availableLists(...)
+    local availableLists = module.list.availableLists(...)
     local results = {}
     for _, v in ipairs(availableLists) do results[v:name()] = v end
 
@@ -376,9 +395,9 @@ module.lists = function(...)
 end
 
 
---- hs.drawing.color.colorsFor(list) -> table
+--- hs._asm.uitk.util.color.colorsFor(list) -> table
 --- Function
---- Returns a table containing the colors for the specified system color list or hs.drawing.color collection.
+--- Returns a table containing the colors for the specified system color list or hs._asm.uitk.util.color collection.
 ---
 --- Parameters:
 ---  * list - the name of the list to provide colors for
@@ -387,13 +406,13 @@ end
 ---  * a table whose keys are made from the colors provided by the color list or nil if the list does not exist.
 ---
 --- Notes:
----  * Where possible, each color node is provided as its RGB color representation.  Where this is not possible, the color node contains the keys `list` and `name` which identify the indicated color.  This means that you can use the following wherever a color parameter is expected: `hs.drawing.color.colorsFor(list)["color-name"]`
----  * This function provides a tostring metatable method which allows listing the defined colors in the list in the Hammerspoon console with: `hs.drawing.colorsFor(list)`
----  * See also `hs.drawing.color.lists`
+---  * Where possible, each color node is provided as its RGB color representation.  Where this is not possible, the color node contains the keys `list` and `name` which identify the indicated color.  This means that you can use the following wherever a color parameter is expected: `hs._asm.uitk.util.color.colorsFor(list)["color-name"]`
+---  * This function provides a tostring metatable method which allows listing the defined colors in the list in the Hammerspoon console with: `hs._asm.uitk.util.colorsFor(list)`
+---  * See also `hs._asm.uitk.util.color.lists`
 module.colorsFor = function(...)
     local args = table.pack(...)
     if args.n == 1 and type(args[1]) == "string" then
-        local cl = module.listNamed(args[1])
+        local cl = module.list.listNamed(args[1])
         if cl then
             local result = {}
             for k,v in pairs(cl) do result[k] = v end

@@ -24,9 +24,13 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- --- hs._asm.uitk.panel.color ---
+--- === hs._asm.uitk.panel.color ===
 ---
---- Provides access to the macOS Color Panel for the UI Toolkit.
+--- Provides access to the macOS Color Panel for UTIK.
+---
+--- Display and control a color panel allowing the user to select a color object for use within `hs._asm.uitk` and other places where Hammerspoon allows the user to select or specify a color.
+---
+--- Note that the Hamemrspoon application shares one color panel for all uses -- make sure to set any properties or accessory views you require *each-and-every* time you present it for a new use to ensure that it shows the appropriate options required for your current usage.
 ---
 --- Heavily influenced by the `hs.dialog` module.
 

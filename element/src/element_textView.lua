@@ -64,10 +64,7 @@ moduleMT.enabledCheckingTypes = function(self, ...)
     if args.n == 1 and type(args[1]) == "table" then args = table.pack(table.unpack(args[1])) end
 
     if args.n == 0 then
-        local answer = { _raw = value }
-        for k, v in pairs(module.textCheckingTypes) do
-            if value & v == v then table.insert(answer, k) end
-        end
+        local answer = uitk.util.intToMasks(value, module.textCheckingTypes)
         return answer
     else
         -- initialize with any flags set that we don't know about -- see comment above
@@ -77,25 +74,15 @@ moduleMT.enabledCheckingTypes = function(self, ...)
             newValue = args[1]
         else
             local err = false
-            for i = 1, args.n, 1 do
-                local flag = args[i]
-                if type(flag) == "string" then
-                    flag = module.textCheckingTypes[flag]
-                    if flag == 0 then
-                        err = true
-                        break
-                    end
-                end
-                if math.type(flag) == "integer" then
-                    newValue = newValue | flag
-                else
-                    err = true
-                    break
-                end
+            local value, errMsg = uitk.util.masksToInt(args, module.textCheckingTypes)
+            if value then
+                newValue = newValue | value
+            else
+                err = errMsg
             end
 
             if err then
-                return error(string.format("expected integer or string from %s.textCheckingTypes", USERDATA_TAG), 3)
+                return error(err, 3)
             end
         end
         return core_enabledCheckingTypes(self, newValue)

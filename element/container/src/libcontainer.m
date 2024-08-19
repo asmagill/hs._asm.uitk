@@ -27,7 +27,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 @end
 
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -702,7 +702,7 @@ static int container_insertElement(lua_State *L) {
     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
-    if (!item || !oneOfOurs(item)) {
+    if (!item || !oneOfOurElementObjects(item)) {
         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
     }
     if ([item isDescendantOf:container]) {
@@ -1114,7 +1114,7 @@ static int container_elements(lua_State *L) {
 //     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
 //     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 //
-//     if (!item || !oneOfOurs(item)) {
+//     if (!item || !oneOfOurElementObjects(item)) {
 //         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
 //     }
 //     if (![container.subviews containsObject:item]) {
@@ -1146,7 +1146,7 @@ static int container_elementFittingSize(lua_State *L) {
 //     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
-    if (!item || !oneOfOurs(item)) {
+    if (!item || !oneOfOurElementObjects(item)) {
         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
     }
     [skin pushNSSize:item.fittingSize] ;
@@ -1187,7 +1187,7 @@ static int container_elementFrame(lua_State *L) {
     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 
-    if (!item || !oneOfOurs(item)) {
+    if (!item || !oneOfOurElementObjects(item)) {
         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
     }
     if (![container.subviews containsObject:item]) {
@@ -1247,14 +1247,14 @@ static int container_moveElement(lua_State *L) {
     CGFloat            padding   = ((lua_gettop(L) > 4) && (lua_type(L, 5) == LUA_TNUMBER)) ? lua_tonumber(L, 5) : 0.0 ;
     NSString           *align    = (lua_type(L, -1) == LUA_TSTRING) ? [skin toNSObjectAtIndex:-1] : @"center" ;
 
-    if (!element1 || !oneOfOurs(element1)) {
+    if (!element1 || !oneOfOurElementObjects(element1)) {
         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
     }
     if (![container.subviews containsObject:element1]) {
         return luaL_argerror(L, 2, "element not managed by this container element") ;
     }
 
-    if (!element2 || !oneOfOurs(element2)) {
+    if (!element2 || !oneOfOurElementObjects(element2)) {
         return luaL_argerror(L, 4, "expected userdata representing a uitk element") ;
     }
     if (![container.subviews containsObject:element2]) {

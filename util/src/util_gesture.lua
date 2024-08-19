@@ -26,7 +26,9 @@
 
 --- === hs._asm.uitk.util.gesture ===
 ---
---- Gesture recognizers for UITK elements
+--- Basic gesture recognizers for UITK elements.
+---
+--- You can add gestures created by this module to any `hs._asm.uitk.element`, using the element's `gestures` property or `addGesture` method. Likewise, gestures can be removed from an element using the `gestures` property or the `removeGesture` method. See the shared element documentation for more information.
 
 local USERDATA_TAG         = "hs._asm.uitk.util.gesture"
 local UD_CLICK_TAG         = USERDATA_TAG .. ".click"
@@ -40,8 +42,37 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 
 -- private variables and methods -----------------------------------------
 
+local clickMT         = hs.getObjectMetatable(UD_CLICK_TAG)
+local magnificationMT = hs.getObjectMetatable(UD_MAGNIFICATION_TAG)
+local panMT           = hs.getObjectMetatable(UD_PAN_TAG)
+local pressMT         = hs.getObjectMetatable(UD_PRESS_TAG)
+local rotationMT      = hs.getObjectMetatable(UD_ROTATION_TAG)
+
+local cancelFn = function(self, ...)
+    local args = table.pack(...)
+    assert(args.n == 0, "expected 0 arguments")
+
+    local originalState = self:enabled()
+    self:enabled(not originalState)
+    self:enabled(originalState)
+
+    return self
+end
+
+clickMT.cancel         = cancelFn
+magnificationMT.cancel = cancelFn
+panMT.cancel           = cancelFn
+pressMT.cancel         = cancelFn
+rotationMT.cancel      = cancelFn
+
 -- Public interface ------------------------------------------------------
 
 -- Return Module Object --------------------------------------------------
+
+uitk.util._properties.addPropertiesWrapper(clickMT)
+uitk.util._properties.addPropertiesWrapper(magnificationMT)
+uitk.util._properties.addPropertiesWrapper(panMT)
+uitk.util._properties.addPropertiesWrapper(pressMT)
+uitk.util._properties.addPropertiesWrapper(rotationMT)
 
 return module

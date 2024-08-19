@@ -37,18 +37,18 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - NSColor Functions -
 
-/// hs.drawing.color.asRGB(color) -> table | string
+/// hs._asm.uitk.util.color.asRGB(color) -> table | string
 /// Function
 /// Returns a table containing the RGB representation of the specified color.
 ///
 /// Parameters:
-///  * color - a table specifying a color as described in the module definition (see `hs.drawing.color` in the online help or Dash documentation)
+///  * color - a table specifying a color as described in the module definition (see `hs._asm.uitk.util.color` in the online help or Dash documentation)
 ///
 /// Returns:
 ///  * a table containing the red, blue, green, and alpha keys representing the specified color as RGB or a string describing the color's colorspace if conversion is not possible.
 ///
 /// Notes:
-///  * See also `hs.drawing.color.asHSB`
+///  * See also `hs._asm.uitk.util.color.asHSB`
 static int color_asRGB(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TBREAK] ;
@@ -69,18 +69,18 @@ static int color_asRGB(lua_State *L) {
     return 1 ;
 }
 
-/// hs.drawing.color.asHSB(color) -> table | string
+/// hs._asm.uitk.util.color.asHSB(color) -> table | string
 /// Function
 /// Returns a table containing the HSB representation of the specified color.
 ///
 /// Parameters:
-///  * color - a table specifying a color as described in the module definition (see `hs.drawing.color` in the online help or Dash documentation)
+///  * color - a table specifying a color as described in the module definition (see `hs._asm.uitk.util.color` in the online help or Dash documentation)
 ///
 /// Returns:
 ///  * a table containing the hue, saturation, brightness, and alpha keys representing the specified color as HSB or a string describing the color's colorspace if conversion is not possible.
 ///
 /// Notes:
-///  * See also `hs.drawing.color.asRGB`
+///  * See also `hs._asm.uitk.util.color.asRGB`
 static int color_asHSB(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TBREAK] ;
@@ -103,6 +103,21 @@ static int color_asHSB(lua_State *L) {
 
 #pragma mark - NSColorList Functions -
 
+/// hs._asm.uitk.util.color.loadList(name, path) -> colorListObject | nil
+/// Constructor
+/// Loads the colorlist from the specified path and creates a colorlist object with the specified name.
+///
+/// Parameters:
+///  * `name` - the name to assign to the loaded list.
+///  * `path` - the path where the colorlist data is saved. By convention, colorlist files are given a file extension of "clr".
+///
+/// Returns:
+///  * a colorlist object, or nil if no colorlist was found at the specified path.
+///
+/// Notes:
+///  * by convention, the list name and the filename portion (minus a file extension of "clr", should match, but this is not enforced.
+///
+///  * if a colorlist is saved into the users colorlist directory (see the [hs._asm.uitk.util.color.list:saveList](#saveList) method), you do not need to load it -- it will be available automatically.
 static int colorList_loadList(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING, LS_TSTRING, LS_TBREAK] ;
@@ -119,6 +134,19 @@ static int colorList_loadList(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list.listNamed(name, [create]) -> colorListObject | nil
+/// Constructor
+/// Return a colorlist object for an existing list, or create a new empty list.
+///
+/// Parameters:
+///  * `name`   - the name of the list.
+///  * `create` - an optional boolean, default false, indicating whether or not a new empty list should be created
+///
+/// Returns:
+///  * a colorlist object, or nil if no colorlist with that name exists.
+///
+/// Notes:
+///  * You can use this to get a colorlist object for existing colorlists, or to create a new empty list.
 static int colorList_listNamed(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -141,6 +169,20 @@ static int colorList_listNamed(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list.availableLists() -> table
+/// Constructor
+/// Get a table containing all of the defined colorlists located in the standard colorlist directories.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a table objects representing the colorlists.
+///
+/// Notes:
+///  * you can use this method to get all of the colorlists defined by the macOS system, as well as user specific lists that have been saved in the users personal colorlist directory. See [hs._asm.uitk.util.color.list:saveList](#saveList) for more information.
+///
+///  * this will not include named colorlists created with the other constructors of this submodule unless they have been saved in the users personal colorlist directory.
 static int colorList_availableColorLists(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TBREAK] ;
@@ -151,6 +193,15 @@ static int colorList_availableColorLists(lua_State *L) {
 
 #pragma mark - NSColorList Methods -
 
+/// hs._asm.uitk.util.color.list:name() -> string
+/// Method
+/// Returns the name of the colorlist.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a string specifying the name of the colorlist.
 static int colorList_name(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TBREAK] ;
@@ -160,6 +211,18 @@ static int colorList_name(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list:editable() -> boolean
+/// Method
+/// Returns a boolean value indicating whether or not the colorlist is editable.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a boolean indicating whether the colorlist is editable (true) or not (false).
+///
+/// Notes:
+///  * only new lists created by the user with [hs._asm.uitk.util.color.list.listNamed](#listNamed) or found in the users colorlist directory and owned by the user can be edited.
 static int colorList_editable(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TBREAK] ;
@@ -169,6 +232,15 @@ static int colorList_editable(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list:colorNames() -> table
+/// Method
+/// Returns a table containing the names of all of the colors defined within the colorlist
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a table containing the names of all of the colors defined within the color list
 static int colorList_allKeys(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TBREAK] ;
@@ -178,6 +250,16 @@ static int colorList_allKeys(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list:colorNamed(name, [color]) -> colorlistObject | table | nil
+/// Method
+/// Get or set the color associated with the specified name in the colorlist
+///
+/// Parameters:
+///  * `name`  - a string specifying the name of the color in the colorlist
+///  * `color` - an optional color table as described in the documentation for `hs._asm.uitk.util.color`
+///
+/// Returns:
+///  * if `color` is specified, returns the colorlist object, or an error if the colorlist is not editable. If only `name` is specified, returns a table representing the color stored for `name`, or nil if no color is defined for the name.
 static int colorList_colorWithKey(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TSTRING, LS_TTABLE | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -200,15 +282,31 @@ static int colorList_colorWithKey(lua_State *L) {
                 [list removeColorWithKey:key] ;
             }
         } else {
-            return luaL_argerror(L, 3, "color list is not editable") ;
+            return luaL_argerror(L, 3, "colorlist is not editable") ;
         }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list:saveList([path | true]) -> colorlistObject
+/// Method
+/// Saves the color list.
+///
+/// Parameters:
+///  * `path` - the full path where the colorlist is to be saved, or an explicit true to specify that it should be saved in the users personal colorlist directory.
+///
+/// Returns:
+///  * the colorlistObject, or an error if there is a problem saving the file.
+///
+/// Notes:
+///  * The user's personal colorlist directory is located at `~/Library/Colors` and the file will be saved as `name.clr`, where `name` is the colorlist name, in this directory if true is specified as the path.
+///  * a color saved to the users personal colorlist directory becomes available for selection by the color panel when in list mode across all macOS applications, not just Hammerspoon.
+///
+///  * By convention, colorlist filenames are `name.clr` where `name` is the colorlist name, but this is not enforced and the list will be saved in the filename specified in the `path` argument to this method.
 static int colorList_writeToFile(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    // second argument is optional so that if the method is called without an argument, we generate our own error msg
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TSTRING | LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSColorList *list = [skin toNSObjectAtIndex:1] ;
 
@@ -227,6 +325,21 @@ static int colorList_writeToFile(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.util.color.list:removeFile() -> colorlistObject
+/// Method
+/// Removes the colorlist file if it has been previously saved in the users personal colorlist directory.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the colorlistObject
+///
+/// Notes:
+///  * This will only delete colorlist files found in the users personal colorlist directory that are also owned by the user.
+///  * No error will be generated if this method fails; if you need to check if the file has actually been deleted, use the `hs.fs` module.
+///
+///  * You can also use the `hs.fs` module to remove colorlist files that have been saved in other locations.
 static int colorList_removeFile(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_LIST_TAG, LS_TBREAK] ;
@@ -270,7 +383,7 @@ static id toNSColorList(lua_State *L, int idx) {
 
 // [skin pushNSObject:NSColor]
 // C-API
-// Pushes the provided NSColor onto the Lua Stack as an array meeting the color table description provided in `hs.drawing.color`
+// Pushes the provided NSColor onto the Lua Stack as an array meeting the color table description provided in `hs._asm.uitk.util.color`
 static int pushNSColor(lua_State *L, id obj) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     NSColor *theColor = obj ;
@@ -304,7 +417,7 @@ static int pushNSColor(lua_State *L, id obj) {
 
 // [skin luaObjectAtIndex:idx toClass:"NSColor"]
 // C-API
-// Converts the table at the specified index on the Lua Stack into an NSColor and returns the NSColor.  A description of how the table should be defined can be found in `hs.drawing.color`
+// Converts the table at the specified index on the Lua Stack into an NSColor and returns the NSColor.  A description of how the table should be defined can be found in `hs._asm.uitk.util.color`
 static id table_toNSColor(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     CGFloat red = 0.0, green = 0.0, blue = 0.0, alpha = 1.0 ;
@@ -452,11 +565,13 @@ static int userdata_gc(lua_State* L) {
 static luaL_Reg moduleLib[] = {
     {"asRGB",          color_asRGB},
     {"asHSB",          color_asHSB},
+    {NULL, NULL}
+};
 
+static luaL_Reg list_moduleLib[] = {
     {"loadList",       colorList_loadList},
     {"listNamed",      colorList_listNamed},
     {"availableLists", colorList_availableColorLists},
-
     {NULL, NULL}
 };
 
@@ -464,8 +579,8 @@ static luaL_Reg moduleLib[] = {
 static const luaL_Reg ud_list_metaLib[] = {
     {"name",         colorList_name},
     {"editable",     colorList_editable},
-    {"allKeys",      colorList_allKeys},
-    {"colorWithKey", colorList_colorWithKey},
+    {"colorNames",   colorList_allKeys},
+    {"colorNamed",   colorList_colorWithKey},
     {"saveList",     colorList_writeToFile},
     {"removeFile",   colorList_removeFile},
 
@@ -481,7 +596,11 @@ int luaopen_hs__asm_uitk_libutil_color(lua_State* L) {
                            functions:moduleLib
                        metaFunctions:NULL] ; // or module_metaLib
 
-    [skin registerObject:UD_LIST_TAG  objectFunctions:ud_list_metaLib] ;
+    [skin registerLibraryWithObject:UD_LIST_TAG
+                          functions:list_moduleLib
+                      metaFunctions:nil
+                    objectFunctions:ud_list_metaLib];
+    lua_setfield(L, -2, "list") ;
 
     // since they're identical, don't add conversions if drawing.color not being wrapped and already loaded
     // Reduces one point for spurious unnecessary warnings at least...

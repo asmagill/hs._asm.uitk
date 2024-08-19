@@ -94,13 +94,11 @@ windowMT.styleMask = function(self, ...) -- add nice wrapper version
                 return error("unrecognized style specified: "..arg[1])
             end
         elseif type(arg[1]) == "table" then
-            theMask = 0
-            for i,v in ipairs(arg[1]) do
-                if module.masks[v] then
-                    theMask = theMask | module.masks[v]
-                else
-                    return error("unrecognized style specified: "..v)
-                end
+            local mask, errMsg = uitk.util.masksToInt(arg[1], module.masks)
+            if mask then
+                theMask = mask
+            else
+                return error(errMsg)
             end
         else
             return error("integer, string, or table expected, got "..type(arg[1]))
@@ -141,13 +139,11 @@ windowMT.collectionBehavior = function(self, ...)          -- add nice wrapper v
                 return error("unrecognized behavior specified: "..arg[1])
             end
         elseif type(arg[1]) == "table" then
-            theBehavior = 0
-            for i,v in ipairs(arg[1]) do
-                if module.behaviors[v] then
-                    theBehavior = theBehavior | ((type(v) == "string") and module.behaviors[v] or v)
-                else
-                    return error("unrecognized behavior specified: "..v)
-                end
+            local behavior, errMsg = uitk.util.masksToInt(arg[1], module.behaviors)
+            if behavior then
+                theBehavior = behavior
+            else
+                return error(errMsg)
             end
         else
             return error("integer, string, or table expected, got "..type(arg[1]))

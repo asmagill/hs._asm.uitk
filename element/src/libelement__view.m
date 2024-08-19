@@ -33,7 +33,7 @@ static NSDictionary *VIEW_FOCUSRINGTYPE ;
 - (void)       setCallbackRef:(int)value ;
 @end
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -71,7 +71,7 @@ static int view_fittingSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -98,7 +98,7 @@ static int view_frameSize(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -136,7 +136,7 @@ static int view_toolTip(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -172,7 +172,7 @@ static int view_frameCenterRotation(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -198,7 +198,7 @@ static int view_frameCenterRotation(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
 //     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-//     if (!view || !oneOfOurs(view)) {
+//     if (!view || !oneOfOurElementObjects(view)) {
 //         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
 //     }
 //
@@ -215,7 +215,7 @@ static int view_frameCenterRotation(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
 //     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-//     if (!view || !oneOfOurs(view)) {
+//     if (!view || !oneOfOurElementObjects(view)) {
 //         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
 //     }
 //
@@ -244,7 +244,7 @@ static int view_hidden(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -272,7 +272,7 @@ static int view_alphaValue(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -306,7 +306,7 @@ static int view_focusRingType(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -337,7 +337,7 @@ static int view_needsDisplay(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -350,7 +350,7 @@ static int view__nextResponder(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -362,7 +362,7 @@ static int view__window(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
@@ -372,13 +372,42 @@ static int view__window(lua_State *L) {
 
 static int view_gestureRecognizers(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TANY, LS_TBREAK] ;
+    [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
-    [skin pushNSObject:view.gestureRecognizers withOptions:LS_NSDescribeUnknownTypes] ;
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:view.gestureRecognizers withOptions:LS_NSDescribeUnknownTypes] ;
+    } else {
+        NSArray *gestureArray = [skin toNSObjectAtIndex:2] ;
+        BOOL isGood = [gestureArray isKindOfClass:[NSArray class]] ;
+        if (isGood) {
+            for (NSGestureRecognizer *gesture in gestureArray) {
+                if (![gesture isKindOfClass:[NSGestureRecognizer class]]) {
+                    isGood = NO ;
+                    break ;
+                }
+            }
+
+            if (isGood) {
+                NSArray *oldGestures = view.gestureRecognizers ;
+                if (oldGestures) {
+                    for (NSGestureRecognizer *gesture in oldGestures) {
+                        [skin luaRelease:view.refTable forNSObject:gesture] ;
+                    }
+                }
+                for (NSGestureRecognizer *gesture in gestureArray) {
+                    [skin luaRetain:view.refTable forNSObject:gesture] ;
+                }
+                view.gestureRecognizers = gestureArray ;
+            } else {
+                return luaL_argerror(L, 2, "expected array of userdata objects representing gestures") ;
+            }
+        }
+        lua_pushvalue(L, 1) ;
+    }
     return 1 ;
 }
 
@@ -386,13 +415,16 @@ static int view_addGestureRecognizer(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
     NSGestureRecognizer *gesture = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-    if ([gesture isKindOfClass:[NSGestureRecognizer class]]) {
+    if (gesture && [gesture isKindOfClass:[NSGestureRecognizer class]]) {
         if (![view.gestureRecognizers containsObject:gesture]) {
+            if (gesture.view && oneOfOurElementObjects(gesture.view)) {
+                [skin luaRelease:gesture.view.refTable forNSObject:gesture] ;
+            }
             [view addGestureRecognizer:gesture] ;
             [skin luaRetain:view.refTable forNSObject:gesture] ;
         }
@@ -407,12 +439,12 @@ static int view_removeGestureRecognizer(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY, LS_TBREAK] ;
     NSView *view = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!view || !oneOfOurs(view)) {
+    if (!view || !oneOfOurElementObjects(view)) {
         return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
     }
 
     NSGestureRecognizer *gesture = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-    if ([gesture isKindOfClass:[NSGestureRecognizer class]]) {
+    if (gesture && [gesture isKindOfClass:[NSGestureRecognizer class]]) {
         if (![view.gestureRecognizers containsObject:gesture]) {
             [view removeGestureRecognizer:gesture] ;
             [skin luaRelease:view.refTable forNSObject:gesture] ;
@@ -457,7 +489,7 @@ static int userdata_eq(lua_State* L) {
 static int userdata_gc(lua_State* L) {
     NSView  *obj  = get_objectFromUserdata(__bridge_transfer NSView, L, 1) ;
 
-    if (obj && oneOfOurs(obj)) {
+    if (obj && oneOfOurElementObjects(obj)) {
         obj.selfRefCount-- ;
         if (obj.selfRefCount == 0) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -517,6 +549,7 @@ int luaopen_hs__asm_uitk_libelement__view(lua_State* L) {
         @"alphaValue",
         @"focusRingType",
         @"frameSize",
+        @"gestures",
 
 //         @"frameRotation",
 //         @"boundsRotation",

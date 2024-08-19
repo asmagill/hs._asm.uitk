@@ -6,7 +6,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 #pragma mark - Support Functions and Classes -
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -23,7 +23,7 @@ static int element_isElementType(lua_State *L) {
 
     if (lua_type(L, 1) == LUA_TUSERDATA) {
         NSView *view = [skin toNSObjectAtIndex:1] ;
-        lua_pushboolean(L, oneOfOurs(view)) ;
+        lua_pushboolean(L, oneOfOurElementObjects(view)) ;
     } else {
         lua_pushboolean(L, NO) ;
     }

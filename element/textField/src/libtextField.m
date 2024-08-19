@@ -52,7 +52,7 @@ static void defineInternalDictionaries(void) {
 - (void)       setTestingControls ;
 @end
 
-BOOL oneOfOurs(NSTextField *obj) {
+BOOL oneOfOurTextfieldObjects(NSTextField *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -437,7 +437,7 @@ static int textField_allowsEditingTextAttributes(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -463,7 +463,7 @@ static int textField_allowsCharacterPickerTouchBarItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -489,7 +489,7 @@ static int textField_allowsDefaultTighteningForTruncation(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -515,7 +515,7 @@ static int textField_drawsBackground(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -544,7 +544,7 @@ static int textField_importsGraphics(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -573,7 +573,7 @@ static int textField_bezeled(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -602,7 +602,7 @@ static int textField_bordered(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -631,7 +631,7 @@ static int textField_editable(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -671,7 +671,7 @@ static int textField_testingControls(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -700,7 +700,7 @@ static int textField_selectable(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -729,7 +729,7 @@ static int textField_allowsExpansionToolTips(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -755,7 +755,7 @@ static int textField_automaticTextCompletionEnabled(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -772,7 +772,7 @@ static int textField_truncatesLastVisibleLine(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -798,7 +798,7 @@ static int textField_preferredMaxLayoutWidth(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -830,7 +830,7 @@ static int textField_maximumNumberOfLines(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -861,7 +861,7 @@ static int textField_backgroundColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -894,7 +894,7 @@ static int textField_textColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -927,7 +927,7 @@ static int textField_selectText(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -966,7 +966,7 @@ static int textField_editingCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -1003,7 +1003,7 @@ static int textField_bezelStyle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -1034,7 +1034,7 @@ static int textField_lineBreakStrategy(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -1074,7 +1074,7 @@ static int textField_placeholder(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 
@@ -1112,7 +1112,7 @@ static int textField_value(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
     NSTextField *element = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!element || !oneOfOurs(element)) {
+    if (!element || !oneOfOurTextfieldObjects(element)) {
         return luaL_argerror(L, 1, "expected userdata representing a textField element") ;
     }
 

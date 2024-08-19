@@ -61,7 +61,7 @@ static NSDictionary *GROUP_REPRESENTATION ;
 
 #pragma mark - Support Functions and Classes -
 
-static BOOL oneOfOurs(NSView *obj) {
+static BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -490,7 +490,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                 }
             } else if ([keyName isEqualToString:@"element"]) {
                 NSView *view = (lua_type(L, -1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:-1] : nil ;
-                if (view && oneOfOurs(view)) {
+                if (view && oneOfOurElementObjects(view)) {
                     value = view ;
                     [skin luaRetain:refTable forNSObject:value] ;
                 } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
@@ -2109,7 +2109,7 @@ static int item_view(lua_State *L) {
             item.view = nil ;
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!(view && oneOfOurs(view))) {
+            if (!(view && oneOfOurElementObjects(view))) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;

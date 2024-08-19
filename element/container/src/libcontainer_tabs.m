@@ -45,7 +45,7 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
-static BOOL oneOfOurs(NSView *obj) {
+static BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -666,7 +666,7 @@ static int tabs_item_view(lua_State *L) {
             item.view = nil ;
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!view || !oneOfOurs(view)) {
+            if (!view || !oneOfOurElementObjects(view)) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
 

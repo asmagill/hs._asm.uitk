@@ -153,7 +153,7 @@ end
 
 -- Public interface ------------------------------------------------------
 
--- separate legacy canvas and do for new canvas?
+-- ??? separate legacy canvas and do for new canvas?
 
 module.addPropertiesWrapper = function(objMT, readonlyAdditions)
     local readonlyAdditions = readonlyAdditions or {}

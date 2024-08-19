@@ -10,7 +10,7 @@ static NSDictionary *COLORPANEL_MODES ;
 
 #pragma mark - Support Functions and Classes -
 
-BOOL oneOfOurs(NSView *obj) {
+BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -276,6 +276,19 @@ static int color_hide(lua_State *L) {
     return 0 ;
 }
 
+/// hs._asm.uitk.panel.color.accessory([element | nil]) -> element | nil
+/// Function
+/// Get or set an accessory element to be displayed within the color panel.
+///
+/// Parameters:
+///  * `element` - an `hs._asm.uitk.element` object, or explicit nil to clear` that will be displayed within the color panel when it is visible.
+///
+/// Returns:
+///  * the current element, or nil if one has not been assigned, assigned to the color panel.
+///
+/// Notes:
+///  * through experimentation, the maximum width of the accessory seems to be around 220 pixels wide, but it may be taller.
+///  * when the color panel is closed, to ensure future use of the color panel doesn't display the incorrect accessory, this property should be set to nil. Failure to do so may result in unexpected changes or callbacks having nothing to do with the later intended usage of the color panel.
 static int color_accessoryView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -288,7 +301,7 @@ static int color_accessoryView(lua_State *L) {
             colorPanel.accessoryView = nil ;
         } else {
             NSView *container = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-            if (!container || !oneOfOurs(container)) {
+            if (!container || !oneOfOurElementObjects(container)) {
                 return luaL_argerror(L, 1, "expected userdata representing a uitk element") ;
             }
             if (colorPanel.accessoryView) {
@@ -308,6 +321,22 @@ static int color_accessoryView(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.color.callback([fn | nil]) -> function | nil
+/// Function
+/// Get or set the callback function invoked as the user interacts with the color panel.
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, which will be called as the user interacts with the color panel.
+///
+/// Returns:
+///  * the currently assigned callback function, or nil if no callback function is currently assigned.
+///
+/// Notes:
+///  * the callback function will receive two arguments:
+///    * the current color value selected in the color panel as an `hs.drawing.color` table
+///    * a boolean value indicating whether or not the color panel is being closed.
+///
+///  * Because a single color panel is shared across all uses of the panel within Hammerspoon, the callback function should clean up when the second argument is true; e.g. the callback function should be set back to nil and the accessory element, if one was assigned, should be removed. This will prevent an accidental call or change if the panel is reopened but the new usage hasn't yet set these properties for its new usage.
 static int color_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -329,6 +358,18 @@ static int color_callback(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.panel.color.attachColorList(list) -> None
+/// Function
+/// Attach a new color list to the color panel.
+///
+/// Parameters:
+///  * `list` - a list defined by the `hs._asm.uitk.util.color.list` module to add to the color panel.
+///
+/// Returns:
+///  * None
+///
+/// Notes:
+///  * the new color list will be selectable from the color panel when the user has selected the "list" mode.
 static int color_attachColorList(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.util.color.list", LS_TBREAK] ;
@@ -338,6 +379,18 @@ static int color_attachColorList(lua_State *L) {
     return 0 ;
 }
 
+/// hs._asm.uitk.panel.color.detachColorList(list) -> None
+/// Function
+/// Detach a color list from the color panel.
+///
+/// Parameters:
+///  * `list` - a list defined by the `hs._asm.uitk.util.color.list` module to add to the color panel.
+///
+/// Returns:
+///  * None
+///
+/// Notes:
+///  * only color lists defined by the `hs._asm.uitk.util.color.list` module can be removed; system lists are not removable.
 static int color_detachColorList(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.util.color.list", LS_TBREAK] ;

@@ -21,7 +21,7 @@ static NSDictionary *MENU_ITEM_STATES ;
 
 #pragma mark - Support Functions and Classes -
 
-static BOOL oneOfOurs(NSView *obj) {
+static BOOL oneOfOurElementObjects(NSView *obj) {
     return [obj isKindOfClass:[NSView class]]  &&
            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
@@ -512,7 +512,7 @@ static int menuitem_view(lua_State *L) {
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
 //             if (!view || ![view isKindOfClass:[NSView class]]) {
-            if (!(view && oneOfOurs(view))) {
+            if (!(view && oneOfOurElementObjects(view))) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
