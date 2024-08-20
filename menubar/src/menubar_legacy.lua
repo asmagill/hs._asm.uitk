@@ -296,6 +296,36 @@ legacyMT.isInMenubar = function(self)
     return obj._menubar and true or false
 end
 
+local imagePositionLookup = {
+    [0] = "none",
+    [1] = "only",
+    [2] = "left",
+    [3] = "right",
+    [4] = "below",
+    [5] = "above",
+    [6] = "overlaps",
+    [7] = "leading",
+    [8] = "trailing",
+}
+
+legacyMT.imagePosition = function(self, ...)
+    local obj = internalData[self]
+    local args = table.pack(...)
+
+    if args.n == 0 then
+        local pos = obj._menubar:imagePosition()
+        for k, v in pairs(imagePositionLookup) do
+            if pos == v then return k end
+        end
+        return -1
+    else
+        local pos = args[1]
+        if type(pos) ~= "string" then pos = imagePositionLookup[pos] end
+        obj._menubar:imagePosition(pos)
+        return self
+    end
+end
+
 legacyMT.returnToMenuBar = function(self)
     local obj = internalData[self]
     if not obj._menubar then
@@ -329,6 +359,15 @@ legacyMT.delete = function(self)
     obj._menu          = nil
     obj._clickCallback = nil
     internalData[self] = nil
+end
+
+legacyMT.autosaveName = function(self, ...)
+    local obj = internalData[self]
+    if obj._menubar then
+        local response = obj._menubar:autosaveName(...)
+        return (response == obj._menubar) and self or response
+    end
+    return self
 end
 
 legacyMT._frame   = legacyMT.frame
