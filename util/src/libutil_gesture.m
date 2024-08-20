@@ -667,7 +667,15 @@ static int gesture_locationInView(lua_State *L) {
         return luaL_argerror(L, 1, "expected userdata representing a gesture element") ;
     }
 
-    [skin pushNSPoint:[gesture locationInView:gesture.view]] ;
+    NSView *view = gesture.view ;
+    if (view) {
+        NSPoint loc = [gesture locationInView:view] ;
+        if (!view.isFlipped) loc.y = view.frame.size.height - loc.y ;
+        [skin pushNSPoint:loc] ;
+    } else {
+        [skin pushNSPoint:NSZeroPoint] ;
+    }
+
     return 1 ;
 }
 
@@ -849,7 +857,7 @@ static int gesture_magnification_magnification(lua_State *L) {
 /// Notes:
 ///  * this method is only valid for the Pan gesture type.
 ///
-///  * you can get the gesture's origin point by storing the [hs._asm.uitk.util.gesture:location](#location) value when the Pan gesture's callback is called with the "begin" state.
+///  * you can get the gesture's origin point within the view it is assigned to by storing the [hs._asm.uitk.util.gesture:location](#location) value when the Pan gesture's callback is called with the "begin" state.
 static int gesture_pan_translationInView(lua_State *L) {
 //NOTE:  technically a read-write property, but since we're limiting ourselves to only the built-in gesture types
 // and not custom or combinations atm, there is no obvious benefit to being able to set it; wait until requested.
@@ -857,7 +865,14 @@ static int gesture_pan_translationInView(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, UD_PAN_TAG, LS_TBREAK] ;
     HSUITKUtilGesturePan *gesture = [skin toNSObjectAtIndex:1] ;
 
-    [skin pushNSPoint:[gesture translationInView:gesture.view]] ;
+    NSView *view = gesture.view ;
+    if (view) {
+        NSPoint offset = [gesture translationInView:view] ;
+        if (!view.isFlipped) offset.y = -offset.y ;
+        [skin pushNSPoint:offset] ;
+    } else {
+        [skin pushNSPoint:NSZeroPoint] ;
+    }
     return 1 ;
 }
 
@@ -877,6 +892,15 @@ static int gesture_pan_velocityInView(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_PAN_TAG, LS_TBREAK] ;
     HSUITKUtilGesturePan *gesture = [skin toNSObjectAtIndex:1] ;
+
+    NSView *view = gesture.view ;
+    if (view) {
+        NSPoint velocity = [gesture velocityInView:view] ;
+        if (!view.isFlipped) velocity.y = -velocity.y ;
+        [skin pushNSPoint:velocity] ;
+    } else {
+        [skin pushNSPoint:NSZeroPoint] ;
+    }
 
     [skin pushNSPoint:[gesture velocityInView:gesture.view]] ;
     return 1 ;
