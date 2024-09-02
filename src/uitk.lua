@@ -48,13 +48,13 @@ local settings = require("hs.settings")
 local legacyWrappers = { "canvas", "webview", "color", "menubar", "toolbar" }
 
 local subModules = {
-    element = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
-    menu    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menu",
-    menubar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menubar",
-    window  = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
-    panel   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
-    util    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".util",
-    toolbar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".toolbar",
+    element   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".element",
+    menu      = USERDATA_TAG:match("^([%w%._]+%.)") .. ".menu",
+    statusbar = USERDATA_TAG:match("^([%w%._]+%.)") .. ".statusbar",
+    window    = USERDATA_TAG:match("^([%w%._]+%.)") .. ".window",
+    panel     = USERDATA_TAG:match("^([%w%._]+%.)") .. ".panel",
+    util      = USERDATA_TAG:match("^([%w%._]+%.)") .. ".util",
+    toolbar   = USERDATA_TAG:match("^([%w%._]+%.)") .. ".toolbar",
 }
 
 -- private variables and methods -----------------------------------------

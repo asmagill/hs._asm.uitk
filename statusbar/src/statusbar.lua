@@ -24,14 +24,11 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
--- ok, technically it's an NSStatusItem, but since we're aiming to replace hs.menubar,
--- and menubar *is* clearer, since that's where they go...
-
---- === hs._asm.uitk.menubar ===
+--- === hs._asm.uitk.statusbar ===
 ---
---- Stuff about the module
+--- Create and manage items in the status bar area of the macOS menubar.
 
-local USERDATA_TAG = "hs._asm.uitk.menubar"
+local USERDATA_TAG = "hs._asm.uitk.statusbar"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
 module._legacy     = require(USERDATA_TAG .. "_legacy")

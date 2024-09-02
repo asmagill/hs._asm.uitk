@@ -12,7 +12,6 @@ local log = require("hs.logger").new(USERDATA_TAG, require"hs.settings".get(USER
 
 local legacyMT = {}
 -- we're not using weak keys since an explicit delete was part of the legacy module
--- and menubar requires it anyways
 local internalData = {}
 
 local parseMenuTable
@@ -43,8 +42,8 @@ parseMenuTable = function(self, menuTable, targetMenu)
                 end
                 if type(v.fn) ~= "nil" then
                     if type(v.fn) == "function" or (type(v.fn) == "table" and (getmetatable(v.fn) or {}).__call) then
-                        item:callback(function(itemObj, msg)
-                            if msg == "select" then v.fn(eventtap.checkKeyboardModifiers()) end
+                        item:callback(function(itemObj)
+                            v.fn(eventtap.checkKeyboardModifiers())
                         end)
                     else
                         log.f("expected table for fn key of entry %d", i)
@@ -329,11 +328,13 @@ end
 legacyMT.returnToMenuBar = function(self)
     local obj = internalData[self]
     if not obj._menubar then
-        obj._menubar = uitk.menubar(true):title(obj._title)
-                                         :tooltip(obj._tooltip)
-                                         :menu(obj._menu)
+        obj._menubar = uitk.statusbar(true):title(obj._title)
+                                           :tooltip(obj._tooltip)
+                                           :menu(obj._menu)
 
         if obj._icon then obj._menubar:image(obj._icon) end
+        if obj._autosavename then obj._menubar(obj._autosavename) end
+
         obj._frame = nil
     end
     return self
@@ -342,19 +343,20 @@ end
 legacyMT.removeFromMenuBar = function(self)
     local obj = internalData[self]
     if obj._menubar then
-        obj._title      = obj._menubar:title()
-        obj._icon       = obj._menubar:image()
-        obj._tooltip    = obj._menubar:tooltip()
-        obj._frame      = obj._menubar:frame()
-        obj._menubar:delete()
-        obj._menubar    = nil
+        obj._title        = obj._menubar:title()
+        obj._icon         = obj._menubar:image()
+        obj._tooltip      = obj._menubar:tooltip()
+        obj._frame        = obj._menubar:frame()
+        obj._autosavename = obj._menubar:autosaveName()
+        obj._menubar:remove()
+        obj._menubar      = nil
     end
     return self
 end
 
 legacyMT.delete = function(self)
     local obj = internalData[self]
-    if obj._menubar then obj._menubar:delete() end
+    if obj._menubar then obj._menubar:remove() end
     obj._menubar       = nil
     obj._menu          = nil
     obj._clickCallback = nil
@@ -374,12 +376,13 @@ legacyMT._frame   = legacyMT.frame
 legacyMT._setIcon = legacyMT.setIcon
 legacyMT.__gc     = legacyMT.delete
 
-module.new = function(inMenuBar)
+module.new = function(inMenuBar, autosavename)
     inMenuBar = type(inMenuBar) == "nil" and true or inMenuBar
+    assert(type(autosavename) == "nil" or type(autosavename) == "string", "if autosavename is specified, it must be a string")
 
     local newMenu = {}
     internalData[newMenu] = {
-        _menubar    = uitk.menubar(true):callback(function(_, msg, ...)
+        _menubar    = uitk.statusbar(true):callback(function(_, msg, ...)
             if msg == "mouseClick" then menubarClick(newMenu) end
         end),
         _menu          = uitk.menu.new("HammerspoonPlaceholderMenu"):callback(function(_, msg, ...)
@@ -390,6 +393,7 @@ module.new = function(inMenuBar)
         _stateImageSize = { h = styledtext.defaultFonts.menu.size, w = styledtext.defaultFonts.menu.size }
     }
     newMenu = setmetatable(newMenu, legacyMT)
+    if autosavename then newMenu:autosaveName(autosavename) end
 
     -- mimics approach used in original module; frame will match the legacy behavior as well
     if not inMenuBar then newMenu:removeFromMenuBar() end

@@ -63,7 +63,7 @@ everything: all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu all
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar all
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas all
@@ -75,7 +75,7 @@ universal-everything: universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas universal
@@ -87,7 +87,7 @@ clean-everything: clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu clean
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar clean
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas clean
@@ -100,7 +100,7 @@ install-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas install
@@ -113,7 +113,7 @@ install-universal-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu install-universal
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar install-universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas install-universal
@@ -129,7 +129,7 @@ docs-everything: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu docs
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar docs
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas docs
@@ -141,7 +141,7 @@ markdown-everything: markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdown
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdown
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas markdown
@@ -153,7 +153,7 @@ markdownWithTOC-everything: markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C panel markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C util markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menu markdownWithTOC
-	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C menubar markdownWithTOC
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C statusbar markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C toolbar markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas markdownWithTOC
