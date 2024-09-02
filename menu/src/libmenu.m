@@ -145,15 +145,15 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
     if (_callbackRef != LUA_NOREF) {
         LuaSkin   *skin = [LuaSkin sharedWithState:NULL] ;
         lua_State *L    = skin.L ;
-        int       count = 2 ;
         [skin pushLuaRef:refTable ref:_callbackRef] ;
         [skin pushNSObject:self] ;
         [skin pushNSObject:message] ;
         if (data) {
-            count++ ;
             [skin pushNSObject:data] ;
+        } else {
+            lua_pushnil(L) ;
         }
-        if (![skin protectedCallAndTraceback:count nresults:0]) {
+        if (![skin protectedCallAndTraceback:3 nresults:0]) {
             [skin logError:[NSString stringWithFormat:@"%s:callback error - %s", USERDATA_TAG, lua_tostring(L, -1)]] ;
             lua_pop(L, 1) ;
         }
@@ -185,6 +185,20 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 
 #pragma mark - Module Functions -
 
+/// hs._asm.uitk.menu.new([title]) -> menuObject
+/// Constructor
+/// Create a new menu with the specified title
+///
+/// Parameters:
+///  * `title` - an optional string specifying the new menu's title.
+///
+/// Returns:
+///  * a new menuObject
+///
+/// Notes:
+///  * id you do not specify a title, one will be generated from a new uuid, similar to `hs.host.uuid()`.
+///
+///  * most of the elements which use menuObjects will not actually display the menu title, so the name is usually unimportant. There are exceptions, though, so check the relevant element documentation to be certain.
 static int menu_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -199,10 +213,51 @@ static int menu_new(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.menubarVisible([state]) -> boolean
+/// Function
+/// Get or set whether the menubar should be visible when Hammerspoon has focus
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, specifying whether the menubar should be visible or not when Hammerspoon has focus.
+///
+/// Returns:
+///  * a boolean indicating whether the menubar is currently visible or not when Hammerspoon has focus
+///
+/// Notes:
+///  * this function only affects the menubar when Hammerspoon is the active application (i.e. has focus) *and* the Hammerspoon preferences are set to show the Hammerspoon Dock icon. (see `hs.dockIcon`)
+static int menu_menubarVisible(lua_State *L) {
+// we may allow the creation of actual hammerspoon specific menus at some point, so go ahead and include this
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+
+    if (lua_gettop(L) == 1) {
+        NSMenu.menuBarVisible = (BOOL)(lua_toboolean(L, 1)) ;
+    }
+
+    lua_pushboolean(L, NSMenu.menuBarVisible) ;
+    return 1 ;
+}
+
+
 #pragma mark - Module Methods -
 
-// make sure to document that for a dynamically generated menu, the menu structure should be rebuilt
-// during the update callback, not the open one (which is why update is the first flag)
+/// hs._asm.uitk.menu:callbackFlags([update], [open], [close], [highlight]) -> menuObject | boolean, boolean, boolean, boolean
+/// Method
+/// Get or set what menu events trigger a callback.
+///
+/// Parameters:
+///  * `update`    - an optional boolean, or nil to leave unchanged, indicating whether or not to generate a callback when the menu requires updating because it is about to be displayed or otherwise traversed. Defaults to true.
+///  * `open`      - an optional boolean, or nil to leave unchanged, indicating whether or not to generate a callback when the menu is about to be opened. Defaults to false.
+///  * `close`     - an optional boolean, or nil to leave unchanged, indicating whether or not to generate a callback when the menu has been closed. Defaults to false.
+///  * `highlight` - an optional boolean, or nil to leave unchanged, indicating whether or not to generate a callback when the highlighted item in the menu is about to change. Defaults to false.
+///
+/// Returns:
+///  * if one or more arguments are provided, returns the menu object; otherwise returns the current values
+///
+/// Notes:
+///  * `update` callbacks are enabled by default because this is when you should make any changes to a dynamicly generated menu. Do not make changes to the menu itself during any other callback phase (though changing any specific item's properties in the menu is still allowed).
+///
+///  * you only need to include arguments up to the callback type you wish to set; for example, if you want to enable callbacks for `open`, but don't want to change any of the other flags, the arguments would be `(nil, true)`.
 static int menu_callbackFlags(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
@@ -230,6 +285,30 @@ static int menu_callbackFlags(lua_State *L) {
     }
 }
 
+/// hs._asm.uitk.menu:callback([fn | nil]) -> menuObject | function | nil
+/// Method
+/// Get or set the menu's callback function.
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, that will be called back during menu events.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * see also [hs._asm.uitk.menu:callbackFlags](#callbackFlags)
+///
+///  * an update callback should expect two arguments and return none:
+///    * `menuObject`, "update"
+///    * during this callback, you can make any changes to the menu that you wish, including regenerating all of it's items
+///  * an open callback should expect two arguments and return none:
+///    * `menuObject`, "open"
+///    * changes to the menu itself should not be made during this callback (see update)
+///  * a close callback should expect two arguments and return none:
+///    * `menuObject`, "close"
+///  * an highlight callback should expect three arguments and return none:
+///    * `menuObject`, "highlight", `menuItemObject`
+///    *  if `menuItemObject` then all items are about to become unhighlighted (i.e. no item will be highlighted).
 static int menu_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -252,6 +331,21 @@ static int menu_callback(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:passthroughCallback([fn | nil]) -> menuObject | function | nil
+/// Method
+/// Get or set the menu's passthrough callback function.
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, that will be called back during menu events.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * The passthrough callback will catch the callback generated by selecting any menu item that doesn't have an explicit callback assigned -- see `hs._asm.uitk.menu.item`
+///  * the passthrough callback will receive two arguments:
+///    * `menuObject`, table
+///    * `table` will be a table containing all of the arguments that would normally be sent to the `menuItemObject` callback. See `hs._asm.uitk.menu.item:callback` for further details.
 static int menu_passthroughCallback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -274,6 +368,18 @@ static int menu_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:passthroughCallback([state]) -> menuObject | boolean
+/// Method
+/// Get or set whether the menu displays the state image next to each menu item
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, indicating whether or not the menu displays the state image next to each menu item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * see `hs._asm.uitk.menu.item:state`
 static int menu_showsStateColumn(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -288,6 +394,18 @@ static int menu_showsStateColumn(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:highlightedItem() -> menuItemObject | nil
+/// Method
+/// Get the currently highlighted item in the menu
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * if a menu item is currently highlighted, returns that item; otherwise returns nil
+///
+/// Notes:
+///  * see `hs._asm.uitk.menu.item`
 static int menu_highlightedItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -301,6 +419,18 @@ static int menu_highlightedItem(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:size() -> sizeTable
+/// Method
+/// Get the size of the menu
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * returns a sizeTable representing the size of the menu.
+///
+/// Notes:
+///  * a size table is a table with key-value pairs for `h` (height) and `w` (width).
 static int menu_size(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -310,6 +440,18 @@ static int menu_size(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:update() -> menuObject
+/// Method
+/// Force the menu to validate that all of it's items are enabled or disabled as defined by their properties.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * returns the menuObject
+///
+/// Notes:
+///  * In general, this method should not be necessary, as the menu will auto-validate its items before the menu opens. However, it may be necessary to invoke directly if the enable status of your menu items change while the menu is being displayed (i.e. open).
 static int menu_update(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -321,6 +463,22 @@ static int menu_update(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:popUpMenu(loc, [dark], [item]) -> boolean
+/// Method
+/// Displays the menu as a pop-up menu at the specified location
+///
+/// Parameters:
+///  * `loc`  - a pointTable specifying the location to display the pop-up menu.
+///  * `dark` - an optional boolean or nil, default nil, specifying whether or not the menu should be shown with a Dark appearance (true) or Light appearance (false). `nil`, or leaving this argument out, indicates that the system appearance should be followed.
+///  * `item` - an optional integer or menuItem object specifying the menu item that should be highlighted in the popup menu. No item will be highlighted if this argument is left out.
+///
+/// Returns:
+///  * returns true if the user selected an item from the popup menu; otherwise false
+///
+/// Notes:
+///  * a pointTable is a key-value table with `x` and `y` keys specifying the location in screen coordinates.
+///  * this method will block the Hammerspoon main thread which may delay the callback functions for some activites, e.g. timers, etc.
+///    * this includes the callback for the item selected; you should end your currently running code quickly to allow the callback function to run.
 static int menu_popupMenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK | LS_TVARARG] ;
@@ -328,18 +486,15 @@ static int menu_popupMenu(lua_State *L) {
     NSPoint    location = PointWithFlippedYCoordinate([skin tableToPointAtIndex:2]) ;
     NSMenuItem *item    = nil ;
 
-    BOOL darkMode = false ;
+    NSString *ifStyle = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"] ;
+    BOOL darkMode = (ifStyle && [ifStyle isEqualToString:@"Dark"]) ;
     int itemIdx = 3 ;
 
     if (lua_gettop(L) > 2) {
         if ((lua_type(L, 3) == LUA_TBOOLEAN) || (lua_type(L, 3) == LUA_TNIL)) {
             if (lua_type(L, 3) == LUA_TBOOLEAN) {
                 darkMode = (BOOL)(lua_toboolean(L, 3)) ;
-            } else {
-                NSString *ifStyle = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"] ;
-                darkMode = (ifStyle && [ifStyle isEqualToString:@"Dark"]) ;
             }
-            lua_remove(L, 3) ;
             itemIdx++ ;
         }
     }
@@ -371,12 +526,6 @@ static int menu_popupMenu(lua_State *L) {
     }
     if (item && ![menu isEqualTo:item.menu]) return luaL_argerror(L, itemIdx, "specified item is not in this menu") ;
 
-// TODO: test put in background thread so no blocking? Actually only blocks things in default
-//       runloop mode -- console, timer, few other things... want to to move timers at least
-//       out of default and into common modes and see what breaks; should check other stuff as well.
-
-//     [menu popUpMenuPositioningItem:item atLocation:location inView:nil] ;
-
     // support darkMode for popup menus
     NSRect contentRect = NSMakeRect(location.x, location.y, 0, 0) ;
     NSWindow *tmpWindow = [[NSWindow alloc] initWithContentRect:contentRect
@@ -386,13 +535,25 @@ static int menu_popupMenu(lua_State *L) {
     tmpWindow.releasedWhenClosed = NO ;
     tmpWindow.appearance = [NSAppearance appearanceNamed:(darkMode ? NSAppearanceNameVibrantDark : NSAppearanceNameVibrantLight)] ;
     [tmpWindow orderFront:nil] ;
-    [menu popUpMenuPositioningItem:item atLocation:NSMakePoint(0, 0) inView:tmpWindow.contentView] ;
+    BOOL didSelect = [menu popUpMenuPositioningItem:item atLocation:NSMakePoint(0, 0) inView:tmpWindow.contentView] ;
     [tmpWindow close] ;
 
-    lua_pushvalue(L, 1) ;
+    lua_pushboolean(L, didSelect) ;
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:minimumWidth([width]) -> menuObject | number
+/// Method
+/// Get or set the minimum width of the menu
+///
+/// Parameters:
+///  * `width` - an optional number, default 0, specifying the minimum width of the menu when it is being displayed.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * The menu may draw wider than this, depending upon item lengths, location on screen, etc. This is just the minimum allowed.
 static int menu_minimumWidth(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -408,6 +569,18 @@ static int menu_minimumWidth(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:title([title]) -> menuObject | string
+/// Method
+/// Get or set the title of the menu
+///
+/// Parameters:
+///  * `title` - an optional string indicating the new title for the menu.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * The title is generally set with the [hs._asm.uitk.menu.new](#new) constructor, but you can use this to change it at a later point.
 static int menu_title(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -422,6 +595,20 @@ static int menu_title(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:font([font]) -> menuObject | fontTable
+/// Method
+/// Get or set the default font for the menu and its submenus.
+///
+/// Parameters:
+///  * `font` - an optional fontTable specifying the default font for the menu items and submenus
+///
+/// Returns:
+///  * if an argument is provided, returns the menuObject; otherwise returns the current value
+///
+/// Notes:
+///  * the font will be used for all items in the menu that don't explicitly set their own font.
+///
+///  * a `fontTable` - is a tabel with key-value pairs specifying a font. The table should contain a `name` key, specifying the font name, and a `size` key, specifying the font size. See `hs.styledtext` for more information about what fonts are available.
 static int menu_font(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -436,6 +623,15 @@ static int menu_font(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:supermenu() -> menuObject | nil
+/// Method
+/// Get the supermenu for this object
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the menuObject for the supermenu of this menoObject, or nil if this menu has no supermenu
 static int menu_supermenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -449,6 +645,18 @@ static int menu_supermenu(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:itemCount() -> integer
+/// Method
+/// Get the number of items assigned to the menu
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * an integer specifying the number of items assigned to the menu.
+///
+/// Notes:
+///  * the number of items in the menu may not be the number of items that the menu will show at any given time -- see `hs._asm.uitk.menu.item:alternate`.
 static int menu_numberOfItems(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -458,7 +666,17 @@ static int menu_numberOfItems(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:items() -> table
+/// Method
+/// Get the items of the menu and return them in a table
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a table containing the menu items as individual menuItemObjects in index order
 static int menu_itemArray(lua_State *L) {
+// ??? technically read-write; should we allow setting them all at once?
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
@@ -471,6 +689,19 @@ static int menu_itemArray(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:insert(item, [idx]) -> menuObject
+/// Method
+/// Insert a menu item into the menu at the specified index
+///
+/// Parameters:
+///  * `item` - an `hs._asm.uitk.menu.item` object that you wish to insert into the menu
+///  * `idx`  - an optional integer, default one greater than the number of items currently in the menu, specifying where you wish the item inserted.
+///
+/// Returns:
+///  * the menuObject
+///
+/// Notes:
+///  * returns an error if the index is out of bounds (i.e. not between 1 and the current number of items + 1 inclusive).
 static int menu_insertItemAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
@@ -492,6 +723,15 @@ static int menu_insertItemAtIndex(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:itemAtIndex(idx) -> menuItemObject | nil
+/// Method
+/// Returns the item at the specified index or nil if no item at that index exists
+///
+/// Parameters:
+///  * `idx`  - an integer specifying the index of the menu item you want
+///
+/// Returns:
+///  * the menuItemObject or nil if no item exists at that index
 static int menu_itemAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
@@ -509,6 +749,18 @@ static int menu_itemAtIndex(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:remove([idx]) -> menuObject
+/// Method
+/// Remove the meun item at the specified index from the menu
+///
+/// Parameters:
+///  * `idx`  - an optional integer, default the number of items in the menu, specifying the index of the menu item to remove
+///
+/// Returns:
+///  * the menuObject
+///
+/// Notes:
+///  * returns an error if the index is out of bounds (i.e. not between 1 and the current number of items inclusive).
 static int menu_removeItemAtIndex(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -523,6 +775,15 @@ static int menu_removeItemAtIndex(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:removeAll() -> menuObject
+/// Method
+/// Remove all items from the menu
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the menuObject
 static int menu_removeAll(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -536,6 +797,15 @@ static int menu_removeAll(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:indexOfItem(item) -> integer | nil
+/// Method
+/// Get the index of the specified item within the menu.
+///
+/// Paramters:
+///  * `item` - the item to find in the menu and return the index of
+///
+/// Returns:
+///  * if the item is currently in the menu, returns its index; otherwise returns nil
 static int menu_indexOfItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
@@ -551,6 +821,18 @@ static int menu_indexOfItem(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:indexWithID(identifier) -> integer | nil
+/// Method
+/// Get the index of the item with the specified id
+///
+/// Paramters:
+///  * `identifier` - a string that has been assigned as the items identifier
+///
+/// Returns:
+///  * if an item with the specified identifier is in the menu, returns its index; otherwise returns nil
+///
+/// Notes:
+///  * if multiple items in the menu share the identifier, this method will only return the first one (i.e. the one with the lowest index number)
 static int menu_indexOfItemWithRepresentedObject(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL, LS_TBREAK] ;
@@ -566,6 +848,15 @@ static int menu_indexOfItemWithRepresentedObject(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:indexWithSubmenu(submenu) -> integer | nil
+/// Method
+/// Get the index of the item with the specified menu as a submenu
+///
+/// Paramters:
+///  * `submenu` - a menuObject representing a submenu of the menu object
+///
+/// Returns:
+///  * if an item with the specified submenu is in the menu, returns its index; otherwise returns nil
 static int menu_indexOfItemWithSubmenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -581,6 +872,18 @@ static int menu_indexOfItemWithSubmenu(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:indexWithTag(tag) -> integer | nil
+/// Method
+/// Get the index of the item with the specified tag value
+///
+/// Paramters:
+///  * `tag` - an integer specifying the tag value
+///
+/// Returns:
+///  * if an item with the specified tag value is in the menu, returns its index; otherwise returns nil
+///
+/// Notes:
+///  * if multiple items in the menu share the same tag value, this method will only return the first one (i.e. the one with the lowest index number)
 static int menu_indexOfItemWithTag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
@@ -596,6 +899,18 @@ static int menu_indexOfItemWithTag(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu:indexWithTitle(title) -> integer | nil
+/// Method
+/// Get the index of the item with the specified title
+///
+/// Paramters:
+///  * `title` - a string specifying the title of the item to locate
+///
+/// Returns:
+///  * if an item with the specified title is in the menu, returns its index; otherwise returns nil
+///
+/// Notes:
+///  * if multiple items in the menu share the same title, this method will only return the first one (i.e. the one with the lowest index number)
 static int menu_indexOfItemWithTitle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING, LS_TBREAK] ;
@@ -611,7 +926,31 @@ static int menu_indexOfItemWithTitle(lua_State *L) {
     return 1 ;
 }
 
-// // ?? - (void)performActionForItemAtIndex:(NSInteger)index;
+/// hs._asm.uitk.menu:chooseItem(idx) -> menuObject
+/// Method
+/// Simulate the user selecting the item in the menu at the specified index.
+///
+/// Parameters:
+///  * `idx` - the index of the item to be selected
+///
+/// Returns:
+///  * the menuObject
+///
+/// Notes:
+///  * returns an error if the index is out of bounds (i.e. not between 1 and the current number of items + 1 inclusive).
+///
+///  * this method will trigger the callback, if defined, for the specified item.
+static int menu_performActionForItemAtIndex(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+    HSUITKMenu *menu = [skin toNSObjectAtIndex:1] ;
+    NSInteger idx = lua_tointeger(L, 2) - 1 ;
+    if ((idx < 0) || (idx >= menu.numberOfItems)) return luaL_argerror(L, lua_gettop(L), "index out of bounds") ;
+
+    [menu performActionForItemAtIndex:idx] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
 
 #pragma mark - Module Constants -
 
@@ -717,6 +1056,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"callbackFlags",       menu_callbackFlags},
     {"passthroughCallback", menu_passthroughCallback},
     {"update",              menu_update},
+    {"chooseItem",          menu_performActionForItemAtIndex},
 
     {"__tostring",          userdata_tostring},
     {"__eq",                userdata_eq},
@@ -726,8 +1066,9 @@ static const luaL_Reg userdata_metaLib[] = {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"new", menu_new},
-    {NULL,  NULL}
+    {"new",            menu_new},
+    {"menubarVisible", menu_menubarVisible},
+    {NULL,             NULL}
 };
 
 // // Metatable for module, if needed

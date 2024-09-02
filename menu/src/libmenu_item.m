@@ -1,7 +1,7 @@
 // Uses associated objects to "add" callback and selfRef -- this is done instead of
 // subclassing so we don't have to add special code in menu.m to deal with regular
 // menu items and separator items; forcing an NSMenuItem for a separator into an
-// HSUITKMenuItem object seems... disingenuous at best.
+// HSUITKMenuItem object seems... dangerous at best.
 
 @import Cocoa ;
 @import LuaSkin ;
@@ -137,6 +137,7 @@ static void defineInternalDictionaries(void) {
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+    // ??? Paranoia? I don't do this kind of checking elsewhere...
     if (self != menuItem) {
         [LuaSkin logVerbose:[NSString stringWithFormat:@"%s:validateMenuItem - message for menuItem which is not self: %@ != %@", USERDATA_TAG, menuItem, self]] ;
     }
@@ -159,19 +160,25 @@ static void defineInternalDictionaries(void) {
     }
 }
 
-- (void) itemSelected:(__unused id)sender { [self performCallbackMessage:@"select" with:nil] ; }
+- (void) itemSelected:(__unused id)sender { [self performCallbackWith:nil] ; }
 
-- (void)performCallbackMessage:(NSString *)message with:(id)data {
+- (void)performCallbackWith:(NSObject *)data {
     if (self.callbackRef != LUA_NOREF) {
         LuaSkin   *skin = [LuaSkin sharedWithState:NULL] ;
         lua_State *L    = skin.L ;
-        int       count = 2 ;
+        int       count = 1 ;
         [skin pushLuaRef:refTable ref:self.callbackRef] ;
         [skin pushNSObject:self] ;
-        [skin pushNSObject:message] ;
         if (data) {
-            count++ ;
-            [skin pushNSObject:data] ;
+            if ([data isKindOfClass:[NSArray class]]) {
+                for (NSObject *item in (NSArray *)data) {
+                    [skin pushNSObject:item] ;
+                    count++ ;
+                }
+            } else {
+                [skin pushNSObject:data] ;
+                count++ ;
+            }
         }
         if (![skin protectedCallAndTraceback:count nresults:0]) {
             [skin logError:[NSString stringWithFormat:@"%s:callback error - %s", USERDATA_TAG, lua_tostring(L, -1)]] ;
@@ -183,9 +190,13 @@ static void defineInternalDictionaries(void) {
         if ([parent respondsToSelector:passthroughCallback]) {
             NSArray *arguments = nil ;
             if (data) {
-                arguments = @[ self, message, data] ;
+                if ([data isKindOfClass:[NSArray class]]) {
+                    arguments = [@[ self ] arrayByAddingObjectsFromArray:(NSArray *)data] ;
+                } else {
+                    arguments = @[ self, data] ;
+                }
             } else {
-                arguments = @[ self, message ] ;
+                arguments = @[ self ] ;
             }
             [parent performSelectorOnMainThread:passthroughCallback
                                      withObject:arguments
@@ -197,6 +208,15 @@ static void defineInternalDictionaries(void) {
 
 #pragma mark - Module Functions -
 
+/// hs._asm.uitk.menu.item.new(title) -> menuItemObject
+/// Constructor
+/// Create a new menu item with the specified title
+///
+/// Parameters:
+///  * `title` - the title of the new menu item, specified as a string or as an `hs.styledtext` object
+///
+/// Returns:
+///  * a new menuItemObject
 static int menuitem_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TANY, LS_TBREAK] ;
@@ -225,6 +245,21 @@ static int menuitem_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
+/// hs._asm.uitk.menu.item:state([state]) -> menuItemObject | string
+/// Method
+/// Get or set the state to display for the menu item.
+///
+/// Parameters:
+///  * `state` - an optional string, default "off", specifying the state to display for the menu item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * the state may be one of the following: "on", "off", "mixed"
+///  * the state determines which image is displayed to the left of the menu item in the menu; see [hs._asm.uitk.menu.item:offStateImage](#offStateImage), [hs._asm.uitk.menu.item:onStateImage](#onStateImage), and [hs._asm.uitk.menu.item:mixedStateImage](#mixedStateImage)
+///
+///  * if the menu the item belongs to has it's `hs._asm.uitk.menu:showsState()` set to false, no image will be displayed, no matter what state is specified.
 static int menuitem_state(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
@@ -262,6 +297,18 @@ static int menuitem_state(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:indentLevel([indent]) -> menuItemObject | integer
+/// Method
+/// Get or set the indent level of the menu item.
+///
+/// Parameters:
+///  * `indent` - an optional integer, default 0, specifying the indent level of the menu item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * The minimum indent level is 0 and the maximum is 15; if you specify an integer outside this range, the number will be coerced to whichever endpoint is closest
 static int menuitem_indentationLevel(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -286,6 +333,15 @@ static int menuitem_indentationLevel(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:tooltip([tooltip]) -> menuItemObject | string | nil
+/// Method
+/// Get or set the tooltip for the menu item.
+///
+/// Parameters:
+///  * `tooltip` - an optional string, or explicit nil to remove, specifying the tooltip to display if the user hovers the mouse over the menu item. Defaults to nil.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
 static int menuitem_toolTip(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -313,6 +369,15 @@ static int menuitem_toolTip(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:image([image]) -> menuItemObject | hs.image object | nil
+/// Method
+/// Get or set the image for the menu item.
+///
+/// Parameters:
+///  * `image` - an optional hs.image object, or explicit nil to remove, specifying the image for the menu item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
 static int menuitem_image(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,  LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -341,6 +406,18 @@ static int menuitem_image(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:mixedStateImage([image]) -> menuItemObject | hs.image object | nil
+/// Method
+/// Get or set the image used when the menu state is set to mixed for the menu item.
+///
+/// Parameters:
+///  * `image` - an optional hs.image object, or explicit nil to remove, specifying the image to display for the mixed state. Defaults to an image that looks like a dash.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * see also [hs._asm.uitk.menu.item:state](#state)
 static int menuitem_mixedStateImage(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,  LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -369,6 +446,18 @@ static int menuitem_mixedStateImage(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:offStateImage([image]) -> menuItemObject | hs.image object | nil
+/// Method
+/// Get or set the image used when the menu state is set to off for the menu item.
+///
+/// Parameters:
+///  * `image` - an optional hs.image object, or explicit nil to remove, specifying the image to display for the off state. Defaults to nil.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * see also [hs._asm.uitk.menu.item:state](#state)
 static int menuitem_offStateImage(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,  LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -397,6 +486,18 @@ static int menuitem_offStateImage(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:onStateImage([image]) -> menuItemObject | hs.image object | nil
+/// Method
+/// Get or set the image used when the menu state is set to on for the menu item.
+///
+/// Parameters:
+///  * `image` - an optional hs.image object, or explicit nil to remove, specifying the image to display for the on state. Defaults to an image that looks like a checkmark.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * see also [hs._asm.uitk.menu.item:state](#state)
 static int menuitem_onStateImage(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,  LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -425,6 +526,20 @@ static int menuitem_onStateImage(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:title([title | style]) -> menuItemObject | string | hs.styledtext object | nil
+/// Method
+/// Get or set the menu title
+///
+/// Parameters:
+///  * `title` - an optional string or `hs.styledtext` object specifying the title for the menu item. You cannot specify this argument and `style` at the same time.
+///  * `style` - an optional boolean, default false, specifying whether or not the value returned should be as an `hs.styledtext` object (true) or as a string (false). You cannot specify this argument and `title` at the same time.
+///
+/// Returns:
+///  * if the argument is a string or an `hs.styledtext` object, returns the menuItemObject; if no arguments are specified returns a string; otherwise returns an `hs.styledtext` object if `style` is true, or a string if `style` is false. If the title was previously set with a string, and `style` is falseor not specified, may return nil.
+///
+/// Notes:
+///  * if you do not specify an `hs.styledtext` object, the title will inherit the font defined for the menu with `hs._asm.uitk.menu:font` when displayed.
+///  * if you wish to clear the style from a previous title that was added as an `hs.styledtext` object, but retain the same text, you can do something like `item:title(item:title(true):getString())`
 static int menuitem_title(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -441,7 +556,7 @@ static int menuitem_title(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:item.title] ;
-    } else if (lua_type(L, 1) == LUA_TBOOLEAN) {
+    } else if (lua_type(L, 2) == LUA_TBOOLEAN) {
         [skin pushNSObject:(lua_toboolean(L, 1) ? item.attributedTitle : item.title)] ;
     } else {
         if (lua_type(L, 2) == LUA_TUSERDATA) {
@@ -462,6 +577,15 @@ static int menuitem_title(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:hidden([state]) -> menuItemObject | boolean
+/// Method
+/// Get or set whether the menu item is hidden or not when the menu is displayed
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether or not the menu item should be hidden
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
 static int menuitem_hidden(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -485,6 +609,18 @@ static int menuitem_hidden(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:element([element]) -> menuItemObject | uitk element | nil
+/// Method
+/// Get or set the element assigned to the menu item
+///
+/// Parameters:
+///  * `element` - an optional uitk element object, or explicit nil to clear, specifying a uitk element the menu item should display in the menu
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * if you assign an element to the menu item, it will not display its title, state, or other visual attributes defined by these methods.
 static int menuitem_view(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -511,7 +647,6 @@ static int menuitem_view(lua_State *L) {
             item.view = nil ;
         } else {
             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-//             if (!view || ![view isKindOfClass:[NSView class]]) {
             if (!(view && oneOfOurElementObjects(view))) {
                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
             }
@@ -524,6 +659,18 @@ static int menuitem_view(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:submenu([menu | nil]) -> menuItemObject | menuObject | nil
+/// Method
+/// Get or set the submenu for this menu item
+///
+/// Parameters:
+///  * `menu` - an optional `hs._asm.uitk.menu` object, or explicit nil to remove, specifying the menu to attach as a submenu to this item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * you cannot create loops - an error will be generated if you specify the item's menu or a menu that is already a submenu somewhere else.
 static int menuitem_submenu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
@@ -549,8 +696,10 @@ static int menuitem_submenu(lua_State *L) {
             NSMenu *newMenu = [skin toNSObjectAtIndex:2] ;
             if (newMenu.supermenu) {
                 return luaL_argerror(L, 2, "menu is already assigned somewhere else") ;
+            } else if (item.menu && [item.menu isEqualTo:newMenu]) {
+                return luaL_argerror(L, 2, "can't assign the item's menu as a submenu") ;
             }
-            if (item.submenu && [skin canPushNSObject:item.submenu]) [skin luaRelease:refTable forNSObject:item.submenu] ;
+            if (item.submenu) [skin luaRelease:refTable forNSObject:item.submenu] ;
             [skin luaRetain:refTable forNSObject:newMenu] ;
             item.submenu = newMenu ;
         }
@@ -559,6 +708,18 @@ static int menuitem_submenu(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:callback([fn | nil]) -> menuItemObject | function | nil
+/// Method
+/// Get or set the callback function for the menu item
+///
+/// Parameters:
+///  * `fn` - an optional function, or explicit nil to remove, specifying the callback function to be invoked when the user selects this menu item.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * the callback function should expect one argument (the menu item)
 static int menuitem_callback(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -590,6 +751,22 @@ static int menuitem_callback(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:enabled([state | fn]) -> menuItemObject | boolean | function
+/// Method
+/// Get or set whether or not the menu item is enabled
+///
+/// Parameters:
+///  * `state` - an optional boolean, default true, specifying whether the menu item is enabled or not.
+///  * `fn` - an optional function, instead of a boolean, specifying a callback function to be invoked to determine if the item is enabled or not.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * A disabled item appears greyed out in the menu. See also [hs._asm.uitk.menu.item:hidden](#hidden).
+///
+///  * you can only specify `state` or `fn`, not both, to determine how the enabled status of the item is determined.
+///  * if you specify a callback function, it should expect 1 argument (the menu item) and return a boolean value indicating whether the item should be considered enabled (true) or not (false).
 static int menuitem_enabled(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -623,7 +800,18 @@ static int menuitem_enabled(lua_State *L) {
     return 1 ;
 }
 
-
+/// hs._asm.uitk.menu.item:tag([tag]) -> menuItemObject | integer
+/// Method
+/// Get or set the tag associated with this menu item
+///
+/// Parameters:
+///  * `tag` - an optional integer, default 0, specifying a value for the menu item's tag
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * This is for storing your own information only and has no effect on how the menu is represented or treated by the macOS.
 static int menuitem_tag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -647,6 +835,19 @@ static int menuitem_tag(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:id([identifier | nil]) -> menuItemObject | string | nil
+/// Method
+/// Get or set the id associated with this menu item
+///
+/// Parameters:
+///  * `identifier` - an optional string, or explicit nil to clear, specifying an identifier for this menu item
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * This is for storing your own information only and has no effect on how the menu is represented or treated by the macOS.
+///  * The metamethods of this module and `hs._asm.uitk.menu` use this identifier as an optional way to refer to a specific menu item without knowing their index value; if you do use these metamethods, it is recommended that each item have a unique identifier as otherwise, referring to an item by it's id will only affect the first item with that identifier.
 static int menuitem_representedObject(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -674,6 +875,18 @@ static int menuitem_representedObject(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:allowedWhenHidden([state]) -> menuItemObject | boolean
+/// Method
+/// Get or set whether the menu item can be triggered by its key equivalent when hidden
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether or not the menu item can be triggered by its key equivalent when it is hidden
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * see also [hs._asm.uitk.menu.item:hidden](#hidden)
 static int menuitem_allowsKeyEquivalentWhenHidden(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -697,8 +910,21 @@ static int menuitem_allowsKeyEquivalentWhenHidden(lua_State *L) {
     return 1 ;
 }
 
-// see https://stackoverflow.com/questions/33764644/option-context-menu-in-cocoa
+/// hs._asm.uitk.menu.item:alternate([state]) -> menuItemObject | boolean
+/// Method
+/// Get or set whether the menu item is an alternate to the nearest non-alternate menu item that precedes it
+///
+/// Parameters:
+///  * `state` - an optional boolean, default false, specifying whether or not this item is an alternate to the nearest non-alternate menu item that precedes it
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * Alternate items specify menu items that should replace another item when different keyboard modifiers are pressed. The alternate items must appear sequentially and have identical key assignments, but different keyboard modifiers. See [hs._asm.uitk.menu.item:keyEquivalent](#keyEquivalent) and [hs._asm.uitk.menu.item:keyModifiers](#keyModifiers.
+///  * When an item is marked as an alternate but its key equivalent doesn't match its predecessor, the result is undefined -- it may be displayed, or it may not.
 static int menuitem_alternate(lua_State *L) {
+// see https://stackoverflow.com/questions/33764644/option-context-menu-in-cocoa
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     NSMenuItem *item = [skin toNSObjectAtIndex:1] ;
@@ -721,6 +947,22 @@ static int menuitem_alternate(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:keyEquivalent([key]) -> menuItemObject | string
+/// Method
+/// Get or set the key equivalent for the menu item
+///
+/// Parameters:
+///  * `key` - an optional string, or explicit nil to remove`, the key equivalent for the menu item
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * if you provide a string that is more than one character long, only the first character is used
+///  * see also [hs._asm.uitk.menu.item:keyModifiers](#keyModifiers)
+///  * see [hs._asm.uitk.menu.item._characterMap](#_characterMap) for specific values to use for some of the special keys found on the macOS keyboard.
+///
+///  * some key equivalent and modifier combinations do not seem to work, even when the menu is being presented and has key focus; this is being investigated and the documentation should evolve as my understanding of how and when these are checked for progress.
 static int menuitem_keyEquivalent(lua_State *L) {
 // do mapping to special characters in lua
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -749,6 +991,23 @@ static int menuitem_keyEquivalent(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:keyModifiers([modifiers]) -> menuItemObject | table
+/// Method
+/// Get or set the key modifiers used with the key equivalent assigned for this menu item
+///
+/// Parameters:
+///  * `modifiers` - an optional table of key-value pairs specifying the key modifiers for this menu item and its key equivalent.
+///
+/// Returns:
+///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * `modifiers` is a key-value table with zero or more of the following keys set to true: "cmd", "alt", "ctrl", and "shift"
+///  * the default value is `{ cmd = true }` indicating that only the command key modifier is combined with the key equivalent to trigger this menu item
+///
+///  * you can use this method to differentiate alternate menu items even when the value of [hs._asm.uitk.menu.item:keyEquivalent](#keyEquivalent) is not specified -- see [hs._asm.uitk.menu.item:alternate](#alternate) for more information
+///
+///  * some key equivalent and modifier combinations do not seem to work, even when the menu is being presented and has key focus; this is being investigated and the documentation should evolve as my understanding of how and when these are checked for progress.
 static int menuitem_keyEquivalentModifierMask(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -778,22 +1037,31 @@ static int menuitem_keyEquivalentModifierMask(lua_State *L) {
         if ((flags & NSEventModifierFlagCommand) == NSEventModifierFlagCommand) {
             lua_pushboolean(L, YES) ; lua_setfield(L, -2, "cmd") ;
         }
-        if ((flags & NSEventModifierFlagFunction) == NSEventModifierFlagFunction) {
-            lua_pushboolean(L, YES) ; lua_setfield(L, -2, "fn") ;
-        }
+//         if ((flags & NSEventModifierFlagFunction) == NSEventModifierFlagFunction) {
+//             lua_pushboolean(L, YES) ; lua_setfield(L, -2, "fn") ;
+//         }
     } else {
         NSEventModifierFlags flags = 0 ; //(NSEventModifierFlags)0 ;
         if ((lua_getfield(L, 2, "shift") != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagShift ;
         if ((lua_getfield(L, 2, "ctrl")  != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagControl ;
         if ((lua_getfield(L, 2, "alt")   != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagOption ;
         if ((lua_getfield(L, 2, "cmd")   != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagCommand ;
-        if ((lua_getfield(L, 2, "fn")    != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagFunction ;
+//         if ((lua_getfield(L, 2, "fn")    != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagFunction ;
         item.keyEquivalentModifierMask = flags ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:menu() -> menuObject | nil
+/// Method
+/// Get the menu the item has been assigned to
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the menuObject this item belongs to, or nil if it is not currently assigned to a menu
 static int menuitem_menu(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -807,6 +1075,15 @@ static int menuitem_menu(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.item:parentItem() -> menuItemObject | nil
+/// Method
+/// Get the menu whose submenu contains this item
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the menuItemObject for the item whose submenu contains this item, or nil if this item is not in a submenu
 static int menuitem_parentItem(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -820,6 +1097,15 @@ static int menuitem_parentItem(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.isHidden:parentItem() -> boolean
+/// Method
+/// Get whether or not this item is hidden or has a hidden ancestor
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * true if this item is hidden -- see [hs._asm.uitk.menu.item:hidden](#hidden) -- or has a hidden ancestor (i.e. is in a submenu of a hidden item, however many layers deep that may be). Otherwise returns false.
 static int menuitem_hiddenOrHasHiddenAncestor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -829,6 +1115,15 @@ static int menuitem_hiddenOrHasHiddenAncestor(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.menu.isHidden:isHighlighted() -> boolean
+/// Method
+/// Get whether or not this item is currently highlighted in the menu
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * true if the item is currently highlighted in its menu; otherwise false
 static int menuitem_highlighted(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
@@ -839,6 +1134,26 @@ static int menuitem_highlighted(lua_State *L) {
 }
 
 #pragma mark - Module Constants -
+
+/// hs._asm.uitk.menu.item._characterMap[]
+/// Constant
+/// A table containing the key equivalent values to use for the special (i.e. non alpha-numeric) keys on your keyboard.
+///
+/// This table is a key-value table where the key refers to a human readable label while the value contains the "key" that should be supplied to the [hs._asm.uitk.menu.item:keyEquivalent](#keyEquivalent) method. This table currently contains values for the following:
+///
+///  * the function keys `f1` through `f20`
+///  * the arrow keys `left`, `right`, `up`, and `down`
+///  * `home` and `end`
+///  * `help`
+///  * `fn`
+///  * `enter`
+///  * `tab`
+///  * `return`
+///  * `escape`
+///  * `space`
+///  * `delete`
+///
+/// Some of the key equivalents don't seem to be triggering the corresponding menu item when they are assigned, even when the menu is presented and has key focus. This is being investigated and the table may change over time as this is refined. In the mean time, if you find that a menu item isn't being triggered by its key equivalent even when the menu is being presented, you may have better luck setting up a hotkey with `hs.hotkey` and thinking of the key equivalents here as more of a visual reminder.
 
 static int pushSpecialCharacters(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -888,7 +1203,7 @@ static int pushSpecialCharacters(lua_State *L) {
     c = NSLeftArrowFunctionKey    ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "left") ;   // should be thinner
     c = NSRightArrowFunctionKey   ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "right") ;  // should be thinner
 
-// unicode unknown char glyph
+// Renders in menu as unicode unknown char glyph
 //     c = NSBeginFunctionKey        ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "begin") ;
 //     c = NSBreakFunctionKey        ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "break") ;
 //     c = NSExecuteFunctionKey      ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "execute") ;
@@ -922,7 +1237,7 @@ static int pushSpecialCharacters(lua_State *L) {
 //     c = NSSystemFunctionKey       ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "system") ;
 //     c = NSUndoFunctionKey         ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "undo") ;
 
-// Render in menu as first letter of item title...
+// Renders in menu as first letter of item title...
 //     c = NSBackspaceCharacter      ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "backSpace") ;       // B
 //     c = NSBackTabCharacter        ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "backTab") ;         // B
 //     c = NSClearLineFunctionKey    ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "clearLine") ;       // C
@@ -1022,35 +1337,35 @@ static int userdata_gc(lua_State* L) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"state",            menuitem_state},
-    {"indentationLevel", menuitem_indentationLevel},
-    {"tooltip",          menuitem_toolTip},
-    {"image",            menuitem_image},
-    {"mixedStateImage",  menuitem_mixedStateImage},
-    {"offStateImage",    menuitem_offStateImage},
-    {"onStateImage",     menuitem_onStateImage},
-    {"title",            menuitem_title},
-    {"enabled",          menuitem_enabled},
-    {"hidden",           menuitem_hidden},
-    {"element",          menuitem_view},
-    {"submenu",          menuitem_submenu},
-    {"callback",         menuitem_callback},
-    {"tag",              menuitem_tag},
-    {"id",               menuitem_representedObject},
-    {"keyWhenHidden",    menuitem_allowsKeyEquivalentWhenHidden},
-    {"alternate",        menuitem_alternate},
-    {"keyEquivalent",    menuitem_keyEquivalent},
-    {"keyModifiers",     menuitem_keyEquivalentModifierMask},
+    {"state",             menuitem_state},
+    {"indentLevel",       menuitem_indentationLevel},
+    {"tooltip",           menuitem_toolTip},
+    {"image",             menuitem_image},
+    {"mixedStateImage",   menuitem_mixedStateImage},
+    {"offStateImage",     menuitem_offStateImage},
+    {"onStateImage",      menuitem_onStateImage},
+    {"title",             menuitem_title},
+    {"enabled",           menuitem_enabled},
+    {"hidden",            menuitem_hidden},
+    {"element",           menuitem_view},
+    {"submenu",           menuitem_submenu},
+    {"callback",          menuitem_callback},
+    {"tag",               menuitem_tag},
+    {"id",                menuitem_representedObject},
+    {"allowedWhenHidden", menuitem_allowsKeyEquivalentWhenHidden},
+    {"alternate",         menuitem_alternate},
+    {"keyEquivalent",     menuitem_keyEquivalent},
+    {"keyModifiers",      menuitem_keyEquivalentModifierMask},
 
-    {"menu",             menuitem_menu},
-    {"parentItem",       menuitem_parentItem},
-    {"isHidden",         menuitem_hiddenOrHasHiddenAncestor},
-    {"highlighted",      menuitem_highlighted},
+    {"menu",              menuitem_menu},
+    {"parentItem",        menuitem_parentItem},
+    {"isHidden",          menuitem_hiddenOrHasHiddenAncestor},
+    {"isHighlighted",     menuitem_highlighted},
 
-    {"__tostring",       userdata_tostring},
-    {"__eq",             userdata_eq},
-    {"__gc",             userdata_gc},
-    {NULL,               NULL}
+    {"__tostring",        userdata_tostring},
+    {"__eq",              userdata_eq},
+    {"__gc",              userdata_gc},
+    {NULL,                NULL}
 };
 
 // Functions for returned object when module loads
@@ -1083,7 +1398,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"state",
-        @"indentationLevel",
+        @"indentLevel",
         @"tooltip",
         @"image",
         @"mixedStateImage",
@@ -1100,7 +1415,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
         @"alternate",
         @"keyEquivalent",
         @"keyModifiers",
-        @"keyWhenHidden",
+        @"allowedWhenHidden",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;

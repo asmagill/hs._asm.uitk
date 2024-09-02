@@ -26,7 +26,11 @@
 
 --- === hs._asm.uitk.menu ===
 ---
---- Stuff about the module
+--- This submodule is used to create drop-down or pop-up menus which are usable by various `hs._asm.uitk.element` objects. Attaching these to the element is described in the documentation for the element.
+
+--- === hs._asm.uitk.menu.item ===
+---
+--- This submodule is used to create menu items for use with `hs._asm.uitk.menu`.
 
 local USERDATA_TAG = "hs._asm.uitk.menu"
 local uitk         = require("hs._asm.uitk")
