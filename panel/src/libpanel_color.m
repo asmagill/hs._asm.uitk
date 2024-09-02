@@ -112,9 +112,9 @@ static HSUITKPanelColor *colorReceiver ;
 /// hs._asm.uitk.panel.color.mode("RGB")`
 static int color_mode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L]  ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
 
-    if (lua_gettop(L) == 2) {
+    if (lua_gettop(L) == 1) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = COLORPANEL_MODES[key] ;
         if (value) {
@@ -122,18 +122,18 @@ static int color_mode(lua_State *L) {
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORPANEL_MODES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
-        lua_pushvalue(L, 1) ;
-    } else {
-        NSNumber *value = @(colorPanel.mode) ;
-        NSArray *temp = [COLORPANEL_MODES allKeysForObject:value];
-        NSString *answer = [temp firstObject] ;
-        if (answer) {
-            [skin pushNSObject:answer] ;
-        } else {
-            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized colo panel mode %@ -- notify developers", USERDATA_TAG, value]] ;
-            lua_pushnil(L) ;
-        }
     }
+
+    NSNumber *value = @(colorPanel.mode) ;
+    NSArray *temp = [COLORPANEL_MODES allKeysForObject:value];
+    NSString *answer = [temp firstObject] ;
+    if (answer) {
+        [skin pushNSObject:answer] ;
+    } else {
+        [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized colo panel mode %@ -- notify developers", USERDATA_TAG, value]] ;
+        lua_pushnil(L) ;
+    }
+
     return 1;
 }
 
@@ -390,7 +390,7 @@ static int color_attachColorList(lua_State *L) {
 ///  * None
 ///
 /// Notes:
-///  * only color lists defined by the `hs._asm.uitk.util.color.list` module can be removed; system lists are not removable.
+///  * only color lists defined by the `hs._asm.uitk.util.color.list` module that have been previously attached can be removed; system lists and lists defined by files in the users personal `~/Library/Colors` directory are not removable.
 static int color_detachColorList(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, "hs._asm.uitk.util.color.list", LS_TBREAK] ;
