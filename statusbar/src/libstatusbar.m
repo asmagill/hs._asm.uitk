@@ -89,9 +89,6 @@ static NSRect statusItemFrame(NSStatusItem *item) {
             [_item addObserver:self forKeyPath:@"visible"
                                        options:NSKeyValueObservingOptionNew
                                        context:myKVOContext] ;
-
-            LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//             [skin luaRetain:refTable forNSObject:self] ;
         } else {
             self = nil ;
         }
@@ -107,7 +104,6 @@ static NSRect statusItemFrame(NSStatusItem *item) {
         [self storeAutosaveData:_item.autosaveName] ;
 
         // now we can remove it from the statusbar
-//         [skin luaRelease:refTable forNSObject:_item] ;
         [[NSStatusBar systemStatusBar] removeStatusItem:_item] ;
         _installed = NO ;
     }
