@@ -26,7 +26,17 @@
 
 --- === hs._asm.uitk.toolbar ===
 ---
---- Stuff about the module
+--- Create and manage toolbars for use with hs._asm.uitk windows.
+
+--- === hs._asm.uitk.toolbar.dictionary ===
+---
+--- Create and manage a toolbar item dictionary that supplies items to one or more toolbars. Toolbars that that share the same dictionary will show the same items in the same order, but local changes can be made to the individual items once they have been added to the toolbar.
+---
+--- Item dictionary objects specify the items that can be displayed in a toolbar, the default items, and definitions for each of the allowed items. These items are then served to the toolbar as required.
+
+--- === hs._asm.uitk.toolbar.item ===
+---
+--- This module describes the methods and properties of the individual toolbar items. You do not create a toolbar item; instead it is created by the toolbar dictionary when the toolbar is about to add it to an existing toolbar. You can then use these methods on the individual items of the toolbar to reflect the local state of the window the toolbar is attached to.
 
 local USERDATA_TAG = "hs._asm.uitk.toolbar"
 
