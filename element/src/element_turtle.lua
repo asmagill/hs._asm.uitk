@@ -882,16 +882,16 @@ for i, v in ipairs(_wrappedCommands) do
                 moduleMT[cmdLabel] = function(self, ...)
                     local args = table.pack(...)
                     if type(args[1]) ~= "table" then args[1] = { args[1], args[1] } end
-                    local result = self:_appendCommand(cmdNumber, table.unpack(args))
-                    if type(result) == "string" then
+                    local status, result = pcall(self._appendCommand, self, cmdNumber, table.unpack(args))
+                    if not status or type(result) == "string" then
                         error(result, 3) ;
                     end
                     return result
                 end
             else
                 moduleMT[cmdLabel] = function(self, ...)
-                    local result = self:_appendCommand(cmdNumber, ...)
-                    if type(result) == "string" then
+                    local status, result = pcall(self._appendCommand, self, cmdNumber, ...)
+                    if not status or type(result) == "string" then
                         error(result, 3) ;
                     end
                     return result

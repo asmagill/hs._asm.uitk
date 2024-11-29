@@ -9,6 +9,9 @@ static int                fontMapRef   = LUA_NOREF ;
 
 // TODO:
 
+// * it works for scripts but not for interactive from the console. Why? What changed?
+// * I *think* it has something to do with the scaling between the offscreen image and the visible frame
+
 //   document -- always my bane
 
 //   savepict should allow for type -- raw (default), lua, logo
@@ -17,12 +20,13 @@ static int                fontMapRef   = LUA_NOREF ;
 //           skips very next command (which resets our penColor)
 //   loadpict only parses raw version; other two are for importing elsewhere
 
-//   rethink _background
-//       does it need a rename?
-//       no way to tell if _background function is active -- subsequent calls to _background are queued, but other turtle actions aren't
-//       queue other actions as well? queries are ok, but anything that changes state isn't safe during run
-//       no way to cancel running function or depth of queue
 //   revisit fill/filled
+//      need way to fill arc/circle
+
+static const CGFloat offScreenPadding = 0.01 ; // keep 1% space around actual content
+
+static NSArray *wrappedCommands ;
+static NSArray *defaultColorPalette ;
 
 // these two need to track, so I declare them here to keep them together to simplify
 // remembering to synchronize them
@@ -56,11 +60,6 @@ typedef NS_ENUM( NSUInteger, t_commandTypes ) {
   c_fillstart,
   c_fillend
 } ;
-
-static const CGFloat offScreenPadding = 0.01 ; // keep 1% space around actual content
-
-static NSArray *wrappedCommands ;
-static NSArray *defaultColorPalette ;
 
 #pragma mark - Support Functions and Classes -
 
@@ -167,19 +166,19 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
     NSSize                 _assignedSize ;
 
     // things clean doesn't reset -- this is where drawRect starts before rendering anything
-    CGFloat                _tInitX ;
-    CGFloat                _tInitY ;
-    CGFloat                _tInitHeading ;
-    BOOL                   _tInitPenDown ;
-    NSCompositingOperation _tInitPenMode ;
-    CGFloat                _tInitPenSize ;
-    CGFloat                _tInitScaleX ;
-    CGFloat                _tInitScaleY ;
-
-    CGFloat                _initLabelFontSize ;
-    NSString               *_initLabelFontName ;
-    NSColor                *_pInitColor ;
-    NSColor                *_bInitColor ;
+//     CGFloat                _tInitX ;
+//     CGFloat                _tInitY ;
+//     CGFloat                _tInitHeading ;
+//     BOOL                   _tInitPenDown ;
+//     NSCompositingOperation _tInitPenMode ;
+//     CGFloat                _tInitPenSize ;
+//     CGFloat                _tInitScaleX ;
+//     CGFloat                _tInitScaleY ;
+//
+//     CGFloat                _initLabelFontSize ;
+//     NSString               *_initLabelFontName ;
+//     NSColor                *_pInitColor ;
+//     NSColor                *_bInitColor ;
 
     NSImage                *_offScreen ;
     CGFloat                _offScreenWidth ;
@@ -248,7 +247,7 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
     [gc saveGraphicsState] ;
 
 // // Shows boundary of _offScreen image for debugging purposes
-//     [_pInitColor setStroke] ;
+//     [_pColor setStroke] ;
 //     [[NSBezierPath bezierPathWithRect:NSMakeRect(
 //         (self.frame.size.width - _offScreenWidth)   / 2.0 + _translateX,
 //         (self.frame.size.height - _offScreenHeight) / 2.0 + _translateY,
@@ -323,20 +322,20 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
 }
 
 - (void)resetForClean {
-    _tInitX       = _tX ;
-    _tInitY       = _tY ;
-    _tInitHeading = _tHeading ;
-    _tInitPenDown = _tPenDown ;
-    _tInitPenMode = _tPenMode ;
-    _tInitPenSize = _tPenSize ;
-    _tInitScaleX  = _tScaleX ;
-    _tInitScaleY  = _tScaleY ;
-
-    _initLabelFontSize = _labelFontSize ;
-    _initLabelFontName = _labelFontName ;
-
-    _pInitColor   = _pColor ;
-    _bInitColor   = _bColor ;
+//     _tInitX       = _tX ;
+//     _tInitY       = _tY ;
+//     _tInitHeading = _tHeading ;
+//     _tInitPenDown = _tPenDown ;
+//     _tInitPenMode = _tPenMode ;
+//     _tInitPenSize = _tPenSize ;
+//     _tInitScaleX  = _tScaleX ;
+//     _tInitScaleY  = _tScaleY ;
+//
+//     _initLabelFontSize = _labelFontSize ;
+//     _initLabelFontName = _labelFontName ;
+//
+//     _pInitColor   = _pColor ;
+//     _bInitColor   = _bColor ;
 
     _commandList  = [NSMutableArray array] ;
 
@@ -584,13 +583,13 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
                 [strokePath lineToPoint:NSMakePoint(_tX, _tY)] ;
                 stepAttributes[@"stroke"] = strokePath ;
 
-                NSRect strokeBounds = strokePath.bounds ;
+//                 [LuaSkin logWarn:@"strokeBounds: %@", NSStringFromRect(strokeBounds)] ;
                 _offScreenWidth  = fmax(
-                    (fabs(strokeBounds.origin.x) * 2 + strokeBounds.size.width) * withPadding,
+                    fmax(fabs(x), fabs(_tX)) * 2 * withPadding,
                     _offScreenWidth
                 ) ;
                 _offScreenHeight = fmax(
-                    (fabs(strokeBounds.origin.y) * 2 + strokeBounds.size.height) * withPadding,
+                    fmax(fabs(y), fabs(_tY)) * 2 * withPadding,
                     _offScreenHeight
                 ) ;
             }
@@ -620,11 +619,11 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
         case c_penpaint:
         case c_penerase:
         case c_penreverse: {
-            _tPenMode = (cmd == c_penreverse) ? NSCompositingOperationXOR :
-                        (cmd == c_penerase)   ? NSCompositingOperationDestinationOut :
-                                                NSCompositingOperationSourceOver ;
+            NSCompositingOperation penMode = (cmd == c_penreverse) ? NSCompositingOperationXOR :
+                                             (cmd == c_penerase)   ? NSCompositingOperationDestinationOut :
+                                                                     NSCompositingOperationSourceOver ;
             _tPenDown = YES ;
-            stepAttributes[@"penMode"] = @(_tPenMode) ;
+            stepAttributes[@"penMode"] = @(penMode) ;
         } break ;
         case c_setpensize: {
             NSArray<NSNumber *> *list = arguments[0] ;
@@ -648,11 +647,11 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
 
             NSRect strokeBounds = strokePath.bounds ;
             _offScreenWidth  = fmax(
-                (fabs(strokeBounds.origin.x) * 2 + strokeBounds.size.width) * withPadding,
+                (fabs(_tX) * 2 + strokeBounds.size.width) * withPadding,
                 _offScreenWidth
             ) ;
             _offScreenHeight = fmax(
-                (fabs(strokeBounds.origin.y) * 2 + strokeBounds.size.height) * withPadding,
+                (fabs(_tY) * 2 + strokeBounds.size.height) * withPadding,
                 _offScreenHeight
             ) ;
         } break ;
@@ -709,17 +708,17 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
 
             NSRect strokeBounds = strokePath.bounds ;
             _offScreenWidth  = fmax(
-                (fabs(strokeBounds.origin.x) * 2 + strokeBounds.size.width) * withPadding,
+                (fabs(_tX) * 2 + strokeBounds.size.width) * withPadding,
                 _offScreenWidth
             ) ;
             _offScreenHeight = fmax(
-                (fabs(strokeBounds.origin.y) * 2 + strokeBounds.size.height) * withPadding,
+                (fabs(_tY) * 2 + strokeBounds.size.height) * withPadding,
                 _offScreenHeight
             ) ;
         } break ;
         case c_setpencolor: {
-            _pColor = [self colorFromArgument:arguments[0] withState:L] ;
-            stepAttributes[@"penColor"] = _pColor ;
+            NSColor *color = [self colorFromArgument:arguments[0] withState:L] ;
+            stepAttributes[@"penColor"] = color ;
             if ([(NSObject *)arguments[0] isKindOfClass:[NSNumber class]]) {
                 _pPaletteIdx = argumentsAsNumbers[0].unsignedIntegerValue ;
             } else {
@@ -738,7 +737,7 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
         case c_setpalette: {
             NSUInteger paletteIdx = argumentsAsNumbers[0].unsignedIntegerValue ;
             if (paletteIdx > 7) { // we ignore changes to the first 8 colors
-                // it's eitehr this or switch to NSDictionary for a "sparse" array
+                // it's either this or switch to NSDictionary for a "sparse" array
                 while (paletteIdx > _colorPalette.count) _colorPalette[_colorPalette.count] = @[ @"", _colorPalette[0][1] ] ;
                 _colorPalette[paletteIdx] = @[ @"", [self colorFromArgument:arguments[1] withState:L]] ;
             }
@@ -890,8 +889,8 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
                                           yBy:(_offScreenHeight / 2.0)] ;
             [shiftOriginToCenter concat] ;
 
-            [_pInitColor setStroke] ;
-            [_pInitColor setFill] ;
+            [_pColor setStroke] ;
+            [_pColor setFill] ;
             gc.compositingOperation = _tPenMode ;
 
             for (NSUInteger i = _offScreenIdx ; i < _commandList.count ; i++) {
@@ -899,12 +898,16 @@ NSColor *NSColorFromHexColorString(NSString *colorString) {
                 NSMutableDictionary *properties = entry[1] ;
 
                 NSNumber *compositeMode = properties[@"penMode"] ;
-                if (compositeMode) gc.compositingOperation = compositeMode.unsignedIntegerValue ;
+                if (compositeMode) {
+                    gc.compositingOperation = compositeMode.unsignedIntegerValue ;
+                    _tPenMode = compositeMode.unsignedIntegerValue ;
+                }
 
                 NSColor *penColor = properties[@"penColor"] ;
                 if (penColor) {
                     [penColor setStroke] ;
                     [penColor setFill] ;
+                    _pColor = penColor ;
                 }
 
                 NSBezierPath *strokePath = properties[@"stroke"] ;
