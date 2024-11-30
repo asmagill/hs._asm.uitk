@@ -544,7 +544,7 @@ static int window_alphaValue(lua_State *L) {
 /// Get or set the color for the background of window.
 ///
 /// Parameters:
-/// * `color` - an optional table containing color keys as described in `hs.drawing.color`
+/// * `color` - an optional table containing color keys as described in `hs._asm.uitk.util.color`
 ///
 /// Returns:
 ///  * If an argument is provided, the window object; otherwise the current value.

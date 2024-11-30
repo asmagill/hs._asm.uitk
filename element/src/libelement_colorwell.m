@@ -341,7 +341,7 @@ static int colorwell_active(lua_State *L) {
 /// Get or set the color currently being displayed by the colorwell element
 ///
 /// Parameters:
-///  * an optional table defining a color as specified in the `hs.drawing.color` module to set the colorwell to.
+///  * an optional table defining a color as specified in the `hs._asm.uitk.util.color` module to set the colorwell to.
 ///
 /// Returns:
 ///  * if a value is provided, returns the colorwellObject ; otherwise returns the current value.

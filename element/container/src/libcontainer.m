@@ -621,7 +621,7 @@ static int container_new(lua_State *L) {
 /// Enable or disable visual rectangles around element frames in the container which can aid in identifying frame or positioning bugs.
 ///
 /// Parameters:
-///  * `color` - a color table (as defined in `hs.drawing.color`, boolean, or nil, specifying whether debugging frames should be displayed and if so in what color.
+///  * `color` - a color table (as defined in `hs._asm.uitk.util.color`, boolean, or nil, specifying whether debugging frames should be displayed and if so in what color.
 ///
 /// Returns:
 ///  * If an argument is provided, the container object; otherwise the current value.
@@ -629,7 +629,7 @@ static int container_new(lua_State *L) {
 /// Notes:
 ///  * Specifying `true` will enable the debugging frames with the current system color that represents the keyboard focus ring around controls.
 ///  * Specifying `false` or `nil` will disable the debugging frames (default).
-///  * Specifying a color as defined by `hs.drawing.color` will display the debugging frames in the specified color.
+///  * Specifying a color as defined by `hs._asm.uitk.util.color` will display the debugging frames in the specified color.
 ///
 ///  * Element frames which contain a height or width which is less than .5 points (effectively invisible) will draw an X at the center of the elements position instead of a rectangle.
 static int container__debugFrames(lua_State *L) {

@@ -264,7 +264,7 @@ end
 ---  * None
 ---
 --- Returns:
----  * if the background color was most recently set by palette index, returns the integer specifying the index; if it was set as a 3 or 4 value table representing RGB(A) values, the table is returned; otherwise returns a color table as defined in `hs.drawing.color`.
+---  * if the background color was most recently set by palette index, returns the integer specifying the index; if it was set as a 3 or 4 value table representing RGB(A) values, the table is returned; otherwise returns a color table as defined in `hs._asm.uitk.util.color`.
 ---
 --- Notes:
 ---  * Synonym: `hs._asm.uitk.element.turtle:pc()`
@@ -295,7 +295,7 @@ end
 ---  * None
 ---
 --- Returns:
----  * if the background color was most recently set by palette index, returns the integer specifying the index; if it was set as a 3 or 4 value table representing RGB(A) values, the table is returned; otherwise returns a color table as defined in `hs.drawing.color`.
+---  * if the background color was most recently set by palette index, returns the integer specifying the index; if it was set as a 3 or 4 value table representing RGB(A) values, the table is returned; otherwise returns a color table as defined in `hs._asm.uitk.util.color`.
 ---
 --- Notes:
 ---  * Synonym: `hs._asm.uitk.element.turtle:bg()`
@@ -326,7 +326,7 @@ end
 ---  * `index` - an integer between 0 and 255 specifying the index in the palette of the desired coloe
 ---
 --- Returns:
----  * a table specifying the color as a list of 3 or 4 numbers representing the intensity of the red, green, blue, and optionally alpha channels as a number between 0.0 and 100.0. If the color cannot be represented in RGB(A) format, then a table as described in `hs.drawing.color` is returned.
+---  * a table specifying the color as a list of 3 or 4 numbers representing the intensity of the red, green, blue, and optionally alpha channels as a number between 0.0 and 100.0. If the color cannot be represented in RGB(A) format, then a table as described in `hs._asm.uitk.util.color` is returned.
 local _palette = moduleMT.palette
 moduleMT.palette = function(...)
     local result = _palette(...)
@@ -751,7 +751,7 @@ end
 ---    * a string matching one of the names of the predefined colors as described in [hs._asm.uitk.element.turtle:setpalette](#setpalette).
 ---    * a string starting with "#" followed by 6 hexadecimal digits specifying a color in the HTML style.
 ---    * a table of 3 or 4 numbers between 0.0 and 100.0 specifying the percent saturation of red, green, blue, and optionally the alpha channel.
----    * a color as defined in `hs.drawing.color`
+---    * a color as defined in `hs._asm.uitk.util.color`
 ---
 --- Returns:
 ---  * the turtleViewObject
@@ -770,7 +770,7 @@ end
 ---    * a string matching one of the names of the predefined colors as described in the Notes.
 ---    * a string starting with "#" followed by 6 hexadecimal digits specifying a color in the HTML style.
 ---    * a table of 3 or 4 numbers between 0.0 and 100.0 specifying the percent saturation of red, green, blue, and optionally the alpha channel.
----    * a color as defined in `hs.drawing.color`
+---    * a color as defined in `hs._asm.uitk.util.color`
 ---
 --- Returns:
 ---  * the turtleViewObject
@@ -809,7 +809,7 @@ end
 ---    * a string matching one of the names of the predefined colors as described in [hs._asm.uitk.element.turtle:setpalette](#setpalette).
 ---    * a string starting with "#" followed by 6 hexadecimal digits specifying a color in the HTML style.
 ---    * a table of 3 or 4 numbers between 0.0 and 100.0 specifying the percent saturation of red, green, blue, and optionally the alpha channel.
----    * a color as defined in `hs.drawing.color`
+---    * a color as defined in `hs._asm.uitk.util.color`
 ---
 --- Returns:
 ---  * the turtleViewObject

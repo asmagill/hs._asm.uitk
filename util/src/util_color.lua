@@ -376,7 +376,7 @@ module.definedCollections = {
 ---  * a key-value table where the keys are strings specifying the names of known lists, and the objects are `hs._asm.uitk.util.color.list` objects.
 ---
 --- Notes:
----  * this table will contain the standard system color lists, any colorlists in the users colorlist directory (see `hs._asm.uitk.util.color.list` documentation), and the legacy `hammerspoon`, `ansiTerminalColors`, and `x11` lists originally found in the `hs.drawing.color` module.
+---  * this table will contain the standard system color lists, any colorlists in the users colorlist directory (see `hs._asm.uitk.util.color.list` documentation), and the legacy `hammerspoon`, `ansiTerminalColors`, and `x11` lists originally found in the `hs._asm.uitk.util.color` module.
 module.lists = function(...)
     local availableLists = module.list.availableLists(...)
     local results = {}

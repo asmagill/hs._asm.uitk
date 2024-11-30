@@ -453,7 +453,7 @@ static int progress_controlSize(lua_State *L) {
 /// Get or set the fill color for a progress indicator.
 ///
 /// Parameters:
-///  * `color` - an optional table specifying a color as defined in `hs.drawing.color` indicating the color to use for the progress indicator, or an explicit nil to reset the behavior to macOS default.
+///  * `color` - an optional table specifying a color as defined in `hs._asm.uitk.util.color` indicating the color to use for the progress indicator, or an explicit nil to reset the behavior to macOS default.
 ///
 /// Returns:
 ///  * the progress indicator object

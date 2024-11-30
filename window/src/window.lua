@@ -45,7 +45,7 @@ local windowMT     = hs.getObjectMetatable(USERDATA_TAG)
 -- local log          = require("hs.logger").new(USERDATA_TAG, settings.get(SETTINGS_TAG .. "_logLevel") or "warning")
 
 -- make sure support functions registered
-require("hs.drawing.color")
+local color = uitk.util.color
 require("hs.image")
 require("hs.window")
 

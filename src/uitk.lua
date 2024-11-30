@@ -91,7 +91,7 @@ local subModules = {
 
 --- hs._asm.uitk.wrapColor([state]) -> bool | nil
 --- Function
---- Get or set whether the built-in `hs.drawing.color` module is emulated by this module.
+--- Get or set whether the built-in `hs._asm.uitk.util.color` module is emulated by this module.
 ---
 --- Parameters:
 ---  * `state` - an optional boolean specifying whether or not the built-in module should be emulated.

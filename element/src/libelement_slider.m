@@ -355,7 +355,7 @@ static int slider_tickMarkPosition(lua_State *L) {
 /// Get or set the color of the slider track in appearances that support it.
 ///
 /// Parameters:
-///  * `color` - a color table as defined in `hs.drawing.color`, or explicit nil to reset to the default, specifying the color of the track for the slider.
+///  * `color` - a color table as defined in `hs._asm.uitk.util.color`, or explicit nil to reset to the default, specifying the color of the track for the slider.
 ///
 /// Returns:
 ///  * if a value is provided, returns the sliderObject ; otherwise returns the current value.

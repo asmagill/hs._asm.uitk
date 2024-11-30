@@ -142,14 +142,14 @@ static int color_mode(lua_State *L) {
 /// Set or display the currently selected color in a color wheel.
 ///
 /// Parameters:
-///  * [value] - The color values in a table (as described in `hs.drawing.color`).
+///  * [value] - The color values in a table (as described in `hs._asm.uitk.util.color`).
 ///
 /// Returns:
-///  * A table of the currently selected color in the form of `hs.drawing.color`.
+///  * A table of the currently selected color in the form of `hs._asm.uitk.util.color`.
 ///
 /// Notes:
 ///  * Example:
-///      `hs._asm.uitk.panel.color.color(hs.drawing.color.blue)`
+///      `hs._asm.uitk.panel.color.color(hs._asm.uitk.util.color.blue)`
 static int color_color(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -333,7 +333,7 @@ static int color_accessoryView(lua_State *L) {
 ///
 /// Notes:
 ///  * the callback function will receive two arguments:
-///    * the current color value selected in the color panel as an `hs.drawing.color` table
+///    * the current color value selected in the color panel as an `hs._asm.uitk.util.color` table
 ///    * a boolean value indicating whether or not the color panel is being closed.
 ///
 ///  * Because a single color panel is shared across all uses of the panel within Hammerspoon, the callback function should clean up when the second argument is true; e.g. the callback function should be set back to nil and the accessory element, if one was assigned, should be removed. This will prevent an accidental call or change if the panel is reopened but the new usage hasn't yet set these properties for its new usage.

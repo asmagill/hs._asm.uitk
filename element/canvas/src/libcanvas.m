@@ -344,7 +344,7 @@ static void defineInternalDictionaries(void) {
             },
             @"fillColor" : @{
                 @"class"       : @[ [NSColor class] ],
-                @"luaClass"    : @"hs.drawing.color table",
+                @"luaClass"    : @"hs._asm.uitk.util.color table",
                 @"nullable"    : @(YES),
                 @"default"     : [NSColor redColor],
                 @"optionalFor" : CLOSED,
@@ -397,7 +397,7 @@ static void defineInternalDictionaries(void) {
                 @"luaClass"       : @"table",
                 @"default"        : @[ [NSColor blackColor], [NSColor whiteColor] ],
                 @"memberClass"    : [NSColor class],
-                @"memberLuaClass" : @"hs.drawing.color table",
+                @"memberLuaClass" : @"hs._asm.uitk.util.color table",
                 @"nullable"       : @(YES),
                 @"optionalFor"    : CLOSED,
             },
@@ -573,7 +573,7 @@ static void defineInternalDictionaries(void) {
             },
             @"strokeColor" : @{
                 @"class"       : @[ [NSColor class] ],
-                @"luaClass"    : @"hs.drawing.color table",
+                @"luaClass"    : @"hs._asm.uitk.util.color table",
                 @"nullable"    : @(YES),
                 @"default"     : [NSColor blackColor],
                 @"optionalFor" : PRIMITIVES,
@@ -626,7 +626,7 @@ static void defineInternalDictionaries(void) {
             },
             @"textColor" : @{
                 @"class"       : @[ [NSColor class] ],
-                @"luaClass"    : @"hs.drawing.color table",
+                @"luaClass"    : @"hs._asm.uitk.util.color table",
                 @"nullable"    : @(YES),
                 @"default"     : [NSColor colorWithCalibratedWhite:1.0 alpha:1.0],
                 @"optionalFor" : @[ @"text" ],
