@@ -2,15 +2,12 @@
 @import LuaSkin ;
 @import ObjectiveC.runtime ;
 
+//    removing element attribute for now for simplifying... we'll see if it's missed
+
 // TODO: Master List of Major Crap
-// +  toolbar and dictionary constructors
-// +  add/modify/delete need to check and update if identifier for a present subitem
-// +  menuForm, menu, element properties need to accept false to clear and reset to "normal"
-// +      item metamethods should take nil, but also need to compare to initial and conditionally release existing
 //
-// +  toolbar group item members when toolbar set to display label only, target to callback is group item, not group member
-// +      convert target/action to self (i.e. the toolbar item itself)
-// +      will have to change dictionary item method as well
+//    add console support
+//    legacy support (wait for webview?)
 //
 //    if a group item is visible and has more than 1 subitem, and window:toolbarStyle("preference") is invoked, HS crashes
 //        if group item defined and allowed and has more than 1 subitem, customizing toolbar crashes, even though not visible
@@ -20,12 +17,20 @@
 //    update without replace needs to be specific when groupMembers changes
 //        i.e. applyDefinition shouldn't remove existing and remaining items, just tweak and reassign array
 //
-//    add minSize & maxSize to attributes in add/modify submethods
-//
 //    centered methods for toolbar
 //
-//    add console support
-//    legacy support (wait for webview?)
+//    implement HSUITKSearchToolbarItem, will need pre-11 implementation as well
+//              HSUITKSharingServicePickerToolbarItem ?
+//              HSUITKTrackingSeparatorToolbarItem    ?
+//
+// +  toolbar and dictionary constructors
+// +  add/modify/delete need to check and update if identifier for a present subitem
+// +  menuForm, menu, element properties need to accept false to clear and reset to "normal"
+// +      item metamethods should take nil, but also need to compare to initial and conditionally release existing
+//
+// +  toolbar group item members when toolbar set to display label only, target to callback is group item, not group member
+// +      convert target/action to self (i.e. the toolbar item itself)
+// +      will have to change dictionary item method as well
 //
 // +  I think menu, menuForm, and element will need to be copied from dict in [toolbar applyDefinition:toItem:]
 //        must test...
@@ -39,7 +44,6 @@
 // +  add/modify should invoke validate, not lua functions to keep retain/release cleaner
 // +      modify add/modify to use error style of validate
 // +      remove as well? Not sure it really can fail if identifier exists...
-//
 //
 // +  dictionary needs array of weak references to all toolbars it is the delegate for
 // +  make type unchangeable? we can't change an instantiated item, so it can only affect new items
@@ -71,14 +75,14 @@ static NSDictionary *GROUP_REPRESENTATION ;
 
 #pragma mark - Support Functions and Classes -
 
-static BOOL oneOfOurElementObjects(NSView *obj) {
-    return [obj isKindOfClass:[NSView class]]  &&
-           [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
-}
+// static BOOL oneOfOurElementObjects(NSView *obj) {
+//     return [obj isKindOfClass:[NSView class]]  &&
+//            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
+// }
 
 static void defineInternalDictionaries(void) {
     DISPLAY_MODES = @{
@@ -431,17 +435,13 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                 } else {
                     errMsg = @"expected a string for paletteLabel key" ;
                 }
-            } else if ([keyName isEqualToString:@"title"]) {
-                if (lua_type(L, -1) == LUA_TSTRING) {
-                    value = [skin toNSObjectAtIndex:-1] ;
-                } else {
-                    errMsg = @"expected a string for title key" ;
-                }
             } else if ([keyName isEqualToString:@"tooltip"]) {
                 if (lua_type(L, -1) == LUA_TSTRING) {
                     value = [skin toNSObjectAtIndex:-1] ;
+                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+                    value = @((BOOL)(lua_toboolean(L, -1))) ;
                 } else {
-                    errMsg = @"expected a string for tooltip key" ;
+                    errMsg = @"expected a string for tooltip key or false to remove" ;
                 }
             } else if ([keyName isEqualToString:@"image"]) {
                 if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs.image")) {
@@ -490,16 +490,22 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                 } else {
                     errMsg = @"expected hs._asm.uitk.menu.item object for menuForm key or false to reset to default" ;
                 }
-            } else if ([keyName isEqualToString:@"element"]) {
-                NSView *view = (lua_type(L, -1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:-1] : nil ;
-                if (view && oneOfOurElementObjects(view)) {
-                    value = view ;
-                    [skin luaRetain:refTable forNSObject:value] ;
-                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
-                    value = @((BOOL)(lua_toboolean(L, -1))) ;
-                } else {
-                    errMsg = @"expected userdata representing a uitk element for element key or false to remove" ;
-                }
+//             } else if ([keyName isEqualToString:@"title"]) {
+//                 if (lua_type(L, -1) == LUA_TSTRING) {
+//                     value = [skin toNSObjectAtIndex:-1] ;
+//                 } else {
+//                     errMsg = @"expected a string for title key" ;
+//                 }
+//             } else if ([keyName isEqualToString:@"element"]) {
+//                 NSView *view = (lua_type(L, -1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:-1] : nil ;
+//                 if (view && oneOfOurElementObjects(view)) {
+//                     value = view ;
+//                     [skin luaRetain:refTable forNSObject:value] ;
+//                 } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+//                     value = @((BOOL)(lua_toboolean(L, -1))) ;
+//                 } else {
+//                     errMsg = @"expected userdata representing a uitk element for element key or false to remove" ;
+//                 }
             } else if ([keyName isEqualToString:@"selectable"]) {
                 if (lua_type(L, -1) == LUA_TBOOLEAN) {
                     value = @((BOOL)(lua_toboolean(L, -1))) ;
@@ -528,11 +534,12 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                 } else {
                     errMsg = @"expected function for callback key or false to remove" ;
                 }
+
 // Don't think these will be useful
 //             } else if ([keyName isEqualToString:@"autoValidates"]) {  // not sure how useful yet
 //             } else if ([keyName isEqualToString:@"possibleLabels"]) { // not sure how useful yet
-//             } else if ([keyName isEqualToString:@"minSize"]) { // deprecated and only for views anyways
-//             } else if ([keyName isEqualToString:@"maxSize"]) { // deprecated and only for views anyways
+//             } else if ([keyName isEqualToString:@"minSize"]) {        // deprecated
+//             } else if ([keyName isEqualToString:@"maxSize"]) {        // deprecated
 // NSToolbarItemGroup
             } else if ([keyName isEqualToString:@"groupMembers"]) {
                 BOOL good = lua_type(L, -1) == LUA_TTABLE ;
@@ -678,7 +685,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
             NSNumber *callback = details[key] ;
             if (!isNSNumberActuallyABoolean(callback)) [skin luaUnref:refTable ref:callback.intValue] ;
         } else if ( [key isEqualToString:@"menuForm"] ||
-                    [key isEqualToString:@"element"] ||
+//                     [key isEqualToString:@"element"] ||
                     [key isEqualToString:@"menu"] )
         {
             [skin luaRelease:refTable forNSObject:details[key]] ;
@@ -765,7 +772,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                                     NSNumber *callback = (NSNumber *)oldValue ;
                                     [skin luaUnref:refTable ref:callback.intValue] ;
                                 } else if ( [key isEqualToString:@"menuForm"] ||
-                                            [key isEqualToString:@"element"] ||
+//                                             [key isEqualToString:@"element"] ||
                                             [key isEqualToString:@"menu"] )
                                 {
                                     [skin luaRelease:refTable forNSObject:oldValue] ;
@@ -875,8 +882,8 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
         if (itemDefinition) {
             NSNumber *temp = itemDefinition[@"menuForm"] ;
             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menuForm"] = nil ;
-            temp = itemDefinition[@"element"] ;
-            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"element"]  = nil ;
+//             temp = itemDefinition[@"element"] ;
+//             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"element"]  = nil ;
             temp = itemDefinition[@"menu"] ;
             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menu"]     = nil ;
 
@@ -894,7 +901,6 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
 
     NSString   *label            = itemDefinition[@"label"] ;
     NSString   *paletteLabel     = itemDefinition[@"paletteLabel"] ;
-    NSString   *title            = itemDefinition[@"title"] ;
     NSString   *tooltip          = itemDefinition[@"tooltip"] ;
     NSImage    *image            = itemDefinition[@"image"] ;
     NSNumber   *priority         = itemDefinition[@"priority"] ;
@@ -903,7 +909,8 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     NSNumber   *bordered         = itemDefinition[@"bordered"] ;
     NSNumber   *navigational     = itemDefinition[@"navigational"] ;
     NSMenuItem *menuForm         = itemDefinition[@"menuForm"] ;
-    NSView     *element          = itemDefinition[@"element"] ;
+//     NSString   *title            = itemDefinition[@"title"] ;
+//     NSView     *element          = itemDefinition[@"element"] ;
 
     if (label) {
         asItem.label = label ;
@@ -911,11 +918,12 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     if (paletteLabel) {
         asItem.paletteLabel = paletteLabel ;
     }
-    if (title) {
-        asItem.title = title ;
-    }
     if (tooltip) {
-        asItem.toolTip = tooltip ;
+        if ([tooltip isKindOfClass:[NSString class]]) {
+            asItem.toolTip = tooltip ;
+        } else {
+            asItem.toolTip = nil ;
+        }
     }
     if (image) {
         if (asItem.image) {
@@ -957,18 +965,21 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
             asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
         } // else it's false and we've already removed it
     }
-    if (element) {
-        NSView *oldValue = asItem.view ;
-        if (oldValue) {
-            [skin luaRelease:refTable forNSObject:oldValue] ;
-            asItem.view = nil ;
-        }
-        if ([element isKindOfClass:[NSView class]]) {
-// ??? I suspect we're going to need to add copyWithState: to all of the possibilities for this as well...
-            [skin luaRetain:refTable forNSObject:element] ;
-            asItem.view = element ;
-        } // else it's false and we've already removed it
-    }
+//     if (element) {
+//         NSView *oldValue = asItem.view ;
+//         if (oldValue) {
+//             [skin luaRelease:refTable forNSObject:oldValue] ;
+//             asItem.view = nil ;
+//         }
+//         if ([element isKindOfClass:[NSView class]]) {
+// // ??? I suspect we're going to need to add copyWithState: to all of the possibilities for this as well...
+//             [skin luaRetain:refTable forNSObject:element] ;
+//             asItem.view = element ;
+//         } // else it's false and we've already removed it
+//     }
+//     if (title) {
+//         asItem.title = title ;
+//     }
 
     if ([toolbarItem isKindOfClass:[NSToolbarItemGroup class]]) {
         HSUITKToolbarItemGroup *asGroupItem = (HSUITKToolbarItemGroup *)toolbarItem ;
@@ -2219,17 +2230,15 @@ static int dictionary_deleteItem(lua_State *L) {
 ///   * `id`                  - a string specifying the item identifier for the definition. This key is only used by the [hs._asm.uitk.toolbar.dictionary:addItem](#addItem) and [hs._asm.uitk.toolbar.dictionary:modifyItem](#modifyItem) methods and is ignored in all other contexts.
 ///   * `type`                - a string, default "item" if not provided, specifying the toolbar item type. Currently recognized types are "item", "group", and "menu".
 ///   * `label`               - a string specifying the label that appears for this item in the toolbar when text is displayed.
-///   * `paletteLabel`        - a string specifying the label that appears in the customization palette for this item.
-///   * `title`               - a string specifying the title for this toolbar item; this will pass through to a custom element's title attribute if the `element` attribute for this item is set.
+///   * `paletteLabel`        - a string specifying the label that appears in the customization palette for this item. If this is not set, or is set to the empty string, then the value for `label` will be used.
 ///   * `tooltip`             - a string specifying the tooltip to display when someone hovers over the item in the toolbar
 ///   * `image`               - an `hs.image` object specifying the image to display for this item in the toolbar when the icon is displayed.
 ///   * `priority`            - an integer specifying the visibility priority for this toolbar item when the windows width isn't sufficient to display all of the items and must put some into an overflow menu. See `hs._asm.uitk.toolbar.itempriorities` for suggestions.
 ///   * `tag`                 - an integer value that you can set and use for your own purposes -- the macOS system ignores this value.
 ///   * `enabled`             - a boolean, default true, indicating whether or not the toolbar item is enabled and can receive button clicks from the user.
-///   * `bordered`            - a boolean, default false, indicating whether or not the toolbar item has a bordered style. If the `element` attribute is set for this item, this will pass through and set the element's bordered property, if supported.
+///   * `bordered`            - a boolean, default false, indicating whether or not the toolbar item has a bordered style.
 ///   * `navigational`        - a boolean indicating whether or not the item is used to navigate within the attached window's content. Navigational items may be treated separately from the other toolbar items for positioning and overflow purposes by the macOS.
 ///   * `menuForm`            - an `hs._asm.uitk.menu.item` object that should be used for the item when the item is moved into the toolbar overflow menu. You do not have to set this attribute unless you wish to modify the default behavior of showing a menu item with a title matching the item's `label`.
-///   * `element`             - an `hs._asm.uitk.element` object that will be displayed for the toolbar item instead of the default label or icon.
 ///   * `selectable`          - a boolean, default false, indicating whether or not this item is selectable; selectable items will show a highlight around the last selectable item that was clicked on, clearing any previously selected item, if one exists.
 ///   * `immovable`           - a boolean, default false, indicating that the item cannot be moved or removed from the toolbar by the user using the customization palette. Items with this attribute set to false should also be listed as part of the default items -- see [hs._asm.uitk.toolbar:defaultItems](#defaultItems) to ensure that they are presented in the toolbar.
 ///   * `callback`            - a callback function unique to this toolbar item that will be called when the user interacts with this item. The callback function should expect three arguments (`toolbarObject, "action", toolbarItemObject`) and return none. If this attribute is not set, the `hs._asm.uitk.toolbar:callback` function will act as a fallback, if defined.
@@ -2243,6 +2252,9 @@ static int dictionary_deleteItem(lua_State *L) {
 ///   * `menu`                -
 ///   * `menuIndicator`       -
 
+// disabled for now... requires copyWithState: -- lets see if it's missed
+// ///   * `title`               - a string specifying the title for this toolbar item when the toolbar item has a custom element assigned.
+// ///   * `element`             - an `hs._asm.uitk.element` object that will be displayed for the toolbar item instead of the default label or icon.
 
 #pragma mark - Item Methods -
 
@@ -2251,98 +2263,18 @@ static int dictionary_deleteItem(lua_State *L) {
 //       requires less coercion or compiler warnings) to stick with the base class when working
 //       with properties they all have and coerce only when necessary
 
-static int item_minSize(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSSize:item.minSize] ;
-    } else {
-        CGFloat defaultSize = 32 ;
-        if (@available(macOS 11.0, *)) {
-            HSUITKToolbar *toolbar = (HSUITKToolbar *)item.toolbar ;
-            if (toolbar) {
-                NSWindow *window = toolbar.window ;
-                if (window && window.toolbarStyle == NSWindowToolbarStyleUnifiedCompact) defaultSize = 22 ;
-            }
-        }
-
-        NSSize newSize = [skin tableToSizeAtIndex:2] ;
-        NSSize minSize = item.minSize ;
-        NSSize maxSize = item.maxSize ;
-
-        if (NSEqualSizes(newSize, NSZeroSize)) {
-            if ([item isKindOfClass:[NSToolbarItemGroup class]]) {
-                newSize.width = defaultSize ;
-                for (NSToolbarItem* tmpItem in ((NSToolbarItemGroup *)item).subitems) {
-                    newSize.width += tmpItem.minSize.width;
-                    newSize.height = fmax(newSize.height, tmpItem.minSize.height);
-                }
-            } else {
-                newSize = NSMakeSize(defaultSize, defaultSize) ;
-            }
-        } else if (newSize.height == 0.0) {
-            newSize.height = minSize.height ;
-        } else if (newSize.width == 0.0) {
-            newSize.width = minSize.width ;
-        }
-
-        if (newSize.height > maxSize.height) maxSize.height = newSize.height ;
-        if (newSize.width  > maxSize.width)  maxSize.width  = newSize.width ;
-        item.maxSize = maxSize ;
-        item.minSize = newSize ;
-        lua_pushvalue(L, 1) ;
-      }
-      return 1 ;
-}
-
-static int item_maxSize(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-    NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSSize:item.maxSize] ;
-    } else {
-        CGFloat defaultSize = 32 ;
-        if (@available(macOS 11.0, *)) {
-            HSUITKToolbar *toolbar = (HSUITKToolbar *)item.toolbar ;
-            if (toolbar) {
-                NSWindow *window = toolbar.window ;
-                if (window && window.toolbarStyle == NSWindowToolbarStyleUnifiedCompact) defaultSize = 22 ;
-            }
-        }
-
-        NSSize newSize = [skin tableToSizeAtIndex:2] ;
-        NSSize minSize = item.minSize ;
-        NSSize maxSize = item.maxSize ;
-
-        if (NSEqualSizes(newSize, NSZeroSize)) {
-            if ([item isKindOfClass:[NSToolbarItemGroup class]]) {
-                newSize.width = defaultSize ;
-                for (NSToolbarItem* tmpItem in ((NSToolbarItemGroup *)item).subitems) {
-                    newSize.width += tmpItem.maxSize.width;
-                    newSize.height = fmax(newSize.height, tmpItem.maxSize.height);
-                }
-            } else {
-                newSize = NSMakeSize(defaultSize, defaultSize) ;
-            }
-        } else if (newSize.height == 0.0) {
-            newSize.height = maxSize.height ;
-        } else if (newSize.width == 0.0) {
-            newSize.width = maxSize.width ;
-        }
-
-        if (newSize.height < minSize.height) minSize.height = newSize.height ;
-        if (newSize.width  < minSize.width)  minSize.width  = newSize.width ;
-        item.minSize = minSize ;
-        item.maxSize = newSize ;
-        lua_pushvalue(L, 1) ;
-      }
-      return 1 ;
-}
-
+/// hs._asm.uitk.toolbar.item:type() -> string
+/// Method
+/// Get the type of toolbar item.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a string specifying the type of toolbar item
+///
+/// Notes:
+///  * the current possible return values for this method are "item", "group", and "menu"
 static int item_type(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2360,6 +2292,15 @@ static int item_type(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:identifier() -> string
+/// Method
+/// Return the toolbar item's identifier.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a string specifying the toolbar item's identifier
 static int item_identifier(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2369,6 +2310,18 @@ static int item_identifier(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:visible() -> boolean
+/// Method
+/// Return a boolean value indicating whether the toolbar item is currently visible.
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * a boolean specifying whether or not the toolbar item is currently visible.
+///
+/// Notes:
+///  * a toolbar item is visible if it is currently assigned to a toolbar and not in the overflow menu
 static int item_isVisible(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2381,12 +2334,21 @@ static int item_isVisible(lua_State *L) {
         if (toolbar) {
             lua_pushboolean(L, [toolbar.visibleItems containsObject:item]) ;
         } else {
-            lua_pushnil(L) ;
+            lua_pushboolean(L, NO) ;
         }
     }
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:toolbar() -> toolbarObject | nil
+/// Method
+/// Get the toolbar that the item is a member of
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * if the item is attached to a toolbar, returns the toolbarObject, otherwise returns nil
 static int item_toolbar(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2396,6 +2358,15 @@ static int item_toolbar(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:dictionary() -> itemDictionaryObject
+/// Method
+/// Returns the dictionary that contains the item's definition
+///
+/// Parameters:
+///  * None
+///
+/// Returns:
+///  * the dictionary object that contains the toolbar item's definition
 static int item_target(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2410,6 +2381,18 @@ static int item_target(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:tag([tag]) -> toolbarItemObject | integer
+/// Method
+/// Get or set the toolbar item's tag value
+///
+/// Parameters:
+///  * `tag` - an optional integer, specifying the tag to assign to the toolbar item
+///
+/// Returns:
+///  * if an argument is provided, returns the toolbarItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * this is a purely informational value and can be used for your own purposes in differentiating or storing information about the toolbar items
 static int item_tag(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -2424,6 +2407,19 @@ static int item_tag(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:priority([priority]) -> toolbarItemObject | integer
+/// Method
+/// Get or set the toolbar item's visibility priority when the overflow menu is reqjuired.
+///
+/// Parameters:
+///  * `priority` - an optional integer, default 0, specifying visibility priority for the item.
+///
+/// Returns:
+///  * if an argument is provided, returns the toolbarItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * Lower priority items may get shifted to the overflow menu when toolbar space is limited.
+///  * suggested values are provided in `hs._asm.uitk.toolbar.itempriorities`.
 static int item_visibilityPriority(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -2438,6 +2434,19 @@ static int item_visibilityPriority(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:label([label]) -> toolbarItemObject | string
+/// Method
+/// Get or set the toolbar item's label.
+///
+/// Parameters:
+///  * `label` - an optional string, default the empty string, specifying the label to display for the menu item when displayed as text or as icon & text.
+///
+/// Returns:
+///  * if an argument is provided, returns the toolbarItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * See also `hs._asm.toolbar:displayMode`.
+///  * This will also be used as the [hs._asm.uitk.toolbar.item:paletteLabel](#paletteLabel) if it hasn't been set.
 static int item_label(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -2456,6 +2465,18 @@ static int item_label(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.toolbar.item:paletteLabel([label]) -> toolbarItemObject | string
+/// Method
+/// Get or set the toolbar item's palette label.
+///
+/// Parameters:
+///  * `label` - an optional string, default the empty string, specifying the label to display for the menu item when the customization panel is active.
+///
+/// Returns:
+///  * if an argument is provided, returns the toolbarItemObject; otherwise returns the current value
+///
+/// Notes:
+///  * If this is not set, or is set to the empty string, the value for [hs._asm.uitk.toolbar.item:label](#label) will be used.
 static int item_paletteLabel(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -2474,24 +2495,15 @@ static int item_paletteLabel(lua_State *L) {
     return 1 ;
 }
 
-static int item_title(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSObject:item.title] ;
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            item.title = @"" ;
-        } else {
-            item.title = [skin toNSObjectAtIndex:2] ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
+/// hs._asm.uitk.toolbar.item:toolTip([text]) -> toolbarItemObject | string | nil
+/// Method
+/// Get or set the toolbar item's tooltip, displayed when the user hovers the mouse pointer over the item.
+///
+/// Parameters:
+///  * `text` - an optional string, or explicit nil to clear, specifying the tooltip to display for the item.
+///
+/// Returns:
+///  * if an argument is provided, returns the toolbarItemObject; otherwise returns the current value
 static int item_toolTip(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
@@ -2587,34 +2599,53 @@ static int item_menuFormRepresentation(lua_State *L) {
     return 1 ;
 }
 
-static int item_view(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+// static int item_view(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         if (item.view && [skin canPushNSObject:item.view]) {
+//             [skin pushNSObject:item.view] ;
+//         } else {
+//             lua_pushnil(L) ;
+//         }
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
+//             item.view = nil ;
+//         } else {
+//             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+//             if (!(view && oneOfOurElementObjects(view))) {
+//                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
+//             }
+//             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
+//             [skin luaRetain:refTable forNSObject:view] ;
+//             item.view = view ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
 
-    if (lua_gettop(L) == 1) {
-        if (item.view && [skin canPushNSObject:item.view]) {
-            [skin pushNSObject:item.view] ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
-            item.view = nil ;
-        } else {
-            NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!(view && oneOfOurElementObjects(view))) {
-                return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
-            }
-            if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
-            [skin luaRetain:refTable forNSObject:view] ;
-            item.view = view ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
+// static int item_title(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
+//     NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:item.title] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             item.title = @"" ;
+//         } else {
+//             item.title = [skin toNSObjectAtIndex:2] ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+//
 
 static int item_enabled(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -2637,8 +2668,6 @@ static int item_enabled(lua_State *L) {
 //     - (void)validate;
 //     @property BOOL autovalidates;
 //     @property(copy) NSSet<NSString *> *possibleLabels; // not sure how useful yet
-//     @property NSSize maxSize;                          // deprecated and only for views anyways
-//     @property NSSize minSize;                          // deprecated and only for views anyways
 
 # pragma mark Group item specific methods
 
@@ -3153,17 +3182,14 @@ static const luaL_Reg ud_item_metaLib[] = {
     {"priority",            item_visibilityPriority},
     {"label",               item_label},
     {"paletteLabel",        item_paletteLabel},
-    {"title",               item_title},
     {"toolTip",             item_toolTip},
     {"bordered",            item_isBordered},
     {"navigational",        item_isNavigational},
     {"image",               item_image},
     {"menuForm",            item_menuFormRepresentation},
-    {"element",             item_view},
     {"enabled",             item_enabled},
-
-    {"minSize",             item_minSize},
-    {"maxSize",             item_maxSize},
+//     {"title",               item_title},
+//     {"element",             item_view},
 
     {"selectedIndex",       groupitem_selectedIndex},
     {"groupRepresentation", groupitem_controlRepresentation},
@@ -3255,17 +3281,14 @@ int luaopen_hs__asm_uitk_libtoolbar(lua_State* L) {
         @"priority",
         @"label",
         @"paletteLabel",
-        @"title",
         @"toolTip",
         @"bordered",
         @"navigational",
         @"image",
         @"menuForm",
-        @"element",
         @"enabled",
-
-        @"minSize",
-        @"maxSize",
+//         @"title",
+//         @"element",
 
         @"selectedIndex",
         @"groupRepresentation",

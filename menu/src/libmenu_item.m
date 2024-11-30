@@ -3,6 +3,8 @@
 // menu items and separator items; forcing an NSMenuItem for a separator into an
 // HSUITKMenuItem object seems... dangerous at best.
 
+//    removing element attribute for now for simplifying... we'll see if it's missed
+
 @import Cocoa ;
 @import LuaSkin ;
 @import ObjectiveC.runtime ;
@@ -21,14 +23,14 @@ static NSDictionary *MENU_ITEM_STATES ;
 
 #pragma mark - Support Functions and Classes -
 
-static BOOL oneOfOurElementObjects(NSView *obj) {
-    return [obj isKindOfClass:[NSView class]]  &&
-           [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
-           [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
-}
+// static BOOL oneOfOurElementObjects(NSView *obj) {
+//     return [obj isKindOfClass:[NSView class]]  &&
+//            [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
+//            [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
+// }
 
 static void defineInternalDictionaries(void) {
     MENU_ITEM_STATES = @{
@@ -609,55 +611,55 @@ static int menuitem_hidden(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.menu.item:element([element]) -> menuItemObject | uitk element | nil
-/// Method
-/// Get or set the element assigned to the menu item
-///
-/// Parameters:
-///  * `element` - an optional uitk element object, or explicit nil to clear, specifying a uitk element the menu item should display in the menu
-///
-/// Returns:
-///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
-///
-/// Notes:
-///  * if you assign an element to the menu item, it will not display its title, state, or other visual attributes defined by these methods.
-static int menuitem_view(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    NSMenuItem *item = [skin toNSObjectAtIndex:1] ;
-
-//     if (item.separatorItem) {
-//         if (lua_gettop(L) == 1) {
-//             lua_pushnil(L) ;
+// /// hs._asm.uitk.menu.item:element([element]) -> menuItemObject | uitk element | nil
+// /// Method
+// /// Get or set the element assigned to the menu item
+// ///
+// /// Parameters:
+// ///  * `element` - an optional uitk element object, or explicit nil to clear, specifying a uitk element the menu item should display in the menu
+// ///
+// /// Returns:
+// ///  * if an argument is provided, returns the menuItemObject; otherwise returns the current value
+// ///
+// /// Notes:
+// ///  * if you assign an element to the menu item, it will not display its title, state, or other visual attributes defined by these methods.
+// static int menuitem_view(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     NSMenuItem *item = [skin toNSObjectAtIndex:1] ;
+//
+// //     if (item.separatorItem) {
+// //         if (lua_gettop(L) == 1) {
+// //             lua_pushnil(L) ;
+// //         } else {
+// //             lua_pushvalue(L, 1) ;
+// //         }
+// //         return 1 ;
+// //     }
+//
+//     if (lua_gettop(L) == 1) {
+//         if (item.view && [skin canPushNSObject:item.view]) {
+//             [skin pushNSObject:item.view] ;
 //         } else {
-//             lua_pushvalue(L, 1) ;
+//             lua_pushnil(L) ;
 //         }
-//         return 1 ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
+//             item.view = nil ;
+//         } else {
+//             NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+//             if (!(view && oneOfOurElementObjects(view))) {
+//                 return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
+//             }
+//             if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
+//             [skin luaRetain:refTable forNSObject:view] ;
+//             item.view = view ;
+//         }
+//         lua_pushvalue(L, 1) ;
 //     }
-
-    if (lua_gettop(L) == 1) {
-        if (item.view && [skin canPushNSObject:item.view]) {
-            [skin pushNSObject:item.view] ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
-            item.view = nil ;
-        } else {
-            NSView *view = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-            if (!(view && oneOfOurElementObjects(view))) {
-                return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
-            }
-            if (item.view && [skin canPushNSObject:item.view]) [skin luaRelease:refTable forNSObject:item.view] ;
-            [skin luaRetain:refTable forNSObject:view] ;
-            item.view = view ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
+//     return 1 ;
+// }
 
 /// hs._asm.uitk.menu.item:submenu([menu | nil]) -> menuItemObject | menuObject | nil
 /// Method
@@ -1314,10 +1316,10 @@ static int userdata_gc(lua_State* L) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef      = [skin luaUnref:refTable ref:obj.callbackRef] ;
             obj.validateCallback = [skin luaUnref:refTable ref:obj.validateCallback] ;
-            if (obj.view) {
-                if ([skin canPushNSObject:obj.view]) [skin luaRelease:refTable forNSObject:obj.view] ;
-                obj.view = nil ;
-            }
+//             if (obj.view) {
+//                 if ([skin canPushNSObject:obj.view]) [skin luaRelease:refTable forNSObject:obj.view] ;
+//                 obj.view = nil ;
+//             }
             if (obj.submenu) {
                 if ([skin canPushNSObject:obj.submenu]) [skin luaRelease:refTable forNSObject:obj.submenu] ;
                 obj.submenu = nil ;
@@ -1347,7 +1349,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"title",             menuitem_title},
     {"enabled",           menuitem_enabled},
     {"hidden",            menuitem_hidden},
-    {"element",           menuitem_view},
+//     {"element",           menuitem_view},
     {"submenu",           menuitem_submenu},
     {"callback",          menuitem_callback},
     {"tag",               menuitem_tag},
@@ -1407,7 +1409,7 @@ int luaopen_hs__asm_uitk_libmenu_item(lua_State* L) {
         @"title",
         @"enabled",
         @"hidden",
-        @"element",
+//         @"element",
         @"submenu",
         @"callback",
         @"tag",
