@@ -1,6 +1,6 @@
 @import Cocoa ;
 @import LuaSkin ;
-@import ObjectiveC.runtime ;
+// @import ObjectiveC.runtime ;
 
 //    removing element attribute for now for simplifying... we'll see if it's missed
 
