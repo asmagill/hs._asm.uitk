@@ -50,7 +50,6 @@ static int matrix_identity(lua_State *L) {
 ///
 /// Notes:
 ///  * Inverting a matrix which represents a series of transformations has the effect of reversing or undoing the original transformations.
-///  * This is useful when used with [hs._asm.uitk.util.matrix.append](#append) to undo a previously applied transformation without actually replacing all of the transformations which may have been applied to a canvas element.
 static int matrix_invert(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE,
@@ -73,7 +72,7 @@ static int matrix_invert(lua_State *L) {
 ///
 /// Notes:
 ///  * Mathematically this method multiples the original matrix by the new one and returns the result of the multiplication.
-///  * You can use this method to "stack" additional transformations on top of existing transformations, without having to know what the existing transformations in effect for the canvas element are.
+///  * You can use this method to "stack" additional transformations on top of existing transformations, without having to know what the existing transformations in effect are.
 static int matrix_append(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE,
@@ -98,7 +97,7 @@ static int matrix_append(lua_State *L) {
 ///
 /// Notes:
 ///  * Mathematically this method multiples the new matrix by the original one and returns the result of the multiplication.
-///  * You can use this method to apply a transformation *before* the currently applied transformations, without having to know what the existing transformations in effect for the canvas element are.
+///  * You can use this method to apply a transformation *before* the currently applied transformations, without having to know what the existing transformations in effect are.
 static int matrix_prepend(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE,
@@ -284,37 +283,43 @@ static id toNSAffineTransform(lua_State *L, int idx) {
         if (lua_getfield(L, idx, "m11") == LUA_TNUMBER) {
             structure.m11 = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field m11 is not a number"] ;
+            structure.m11 = 0.0 ;
+            [skin logError:@"NSAffineTransform field m11 is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "m12") == LUA_TNUMBER) {
             structure.m12 = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field m12 is not a number"] ;
+            structure.m12 = 0.0 ;
+            [skin logError:@"NSAffineTransform field m12 is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "m21") == LUA_TNUMBER) {
             structure.m21 = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field m21 is not a number"] ;
+            structure.m21 = 0.0 ;
+            [skin logError:@"NSAffineTransform field m21 is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "m22") == LUA_TNUMBER) {
             structure.m22 = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field m22 is not a number"] ;
+            structure.m22 = 0.0 ;
+            [skin logError:@"NSAffineTransform field m22 is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "tX") == LUA_TNUMBER) {
             structure.tX = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field tX is not a number"] ;
+            structure.tX = 0.0 ;
+            [skin logError:@"NSAffineTransform field tX is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "tY") == LUA_TNUMBER) {
             structure.tY = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"NSAffineTransform field tY is not a number"] ;
+            structure.tY = 0.0 ;
+            [skin logError:@"NSAffineTransform field tY is not a number; setting to 0"] ;
         }
         lua_pop(L, 1) ;
     } else {
@@ -328,17 +333,41 @@ static id toNSAffineTransform(lua_State *L, int idx) {
 
 #pragma mark - Hammerspoon/Lua Infrastructure -
 
+static int userdata_eq(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    if (lua_type(L, 1) == LUA_TTABLE && lua_type(L, 2) == LUA_TTABLE) {
+        NSAffineTransform *matrixA = [skin luaObjectAtIndex:1 toClass:"NSAffineTransform"] ;
+        NSAffineTransform *matrixB = [skin luaObjectAtIndex:2 toClass:"NSAffineTransform"] ;
+
+        NSAffineTransformStruct structA = [matrixA transformStruct] ;
+        NSAffineTransformStruct structB = [matrixB transformStruct] ;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
+        BOOL answer = (structA.m11 == structB.m11) && (structA.m12 == structB.m12) &&
+                      (structA.m21 == structB.m11) && (structA.m22 == structB.m12) &&
+                      (structA.tX  == structB.tX)  && (structA.tY  == structB.tY) ;
+#pragma clang diagnostic pop
+
+        lua_pushboolean(L, answer) ;
+    } else {
+        lua_pushboolean(L, NO) ;
+    }
+    return 1 ;
+}
+
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"identity",    matrix_identity},
-    {"rotate",      matrix_rotate},
-    {"translate",   matrix_translate},
-    {"scale",       matrix_scale},
-    {"shear",       matrix_shear},
-    {"append",      matrix_append},
-    {"prepend",     matrix_prepend},
-    {"invert",      matrix_invert},
+    {"identity",  matrix_identity},
+    {"rotate",    matrix_rotate},
+    {"translate", matrix_translate},
+    {"scale",     matrix_scale},
+    {"shear",     matrix_shear},
+    {"append",    matrix_append},
+    {"prepend",   matrix_prepend},
+    {"invert",    matrix_invert},
 
+    {"__eq",      userdata_eq},
     {NULL, NULL}
 };
 
