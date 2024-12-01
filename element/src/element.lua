@@ -63,6 +63,7 @@ local subModules = {
     popUpButton     = false,
     progress        = false,
     segmentBar      = true,
+    sceneKit        = USERDATA_TAG .. ".sceneKit",
     slider          = false,
     stepper         = false,
     switch          = false,

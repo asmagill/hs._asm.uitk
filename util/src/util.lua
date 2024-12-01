@@ -35,6 +35,7 @@ local module       = {}
 local subModules = {
     _properties = true,
     matrix      = true,
+    matrix4     = true,
     color       = true,
     gesture     = true,
 }

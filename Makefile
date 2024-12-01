@@ -68,6 +68,7 @@ everything: all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container all
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit all
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField all
 
 universal-everything: universal
@@ -80,6 +81,7 @@ universal-everything: universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField universal
 
 clean-everything: clean
@@ -92,6 +94,7 @@ clean-everything: clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container clean
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit clean
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField clean
 
 install-everything: install
@@ -105,6 +108,7 @@ install-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container install
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install
 
 install-universal-everything: install
@@ -118,6 +122,7 @@ install-universal-everything: install
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container install-universal
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit install-universal
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField install-universal
 
 uninstall-everything: uninstall
@@ -134,6 +139,7 @@ docs-everything: docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container docs
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit docs
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField docs
 
 markdown-everything: markdown
@@ -146,6 +152,7 @@ markdown-everything: markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container markdown
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit markdown
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdown
 
 markdownWithTOC-everything: markdownWithTOC
@@ -158,6 +165,7 @@ markdownWithTOC-everything: markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/canvas markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/container markdownWithTOC
+	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/sceneKit markdownWithTOC
 	HS_APPLICATION=$(HS_APPLICATION) PREFIX=$(PREFIX) make -C element/textField markdownWithTOC
 
 echo:
