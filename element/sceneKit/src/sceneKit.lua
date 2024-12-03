@@ -29,11 +29,13 @@
 --- Stuff about the module
 
 local USERDATA_TAG = "hs._asm.uitk.element.sceneKit"
-local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib"))
-local fnutils      = require("hs.fnutils")
 
-local color = uitk.util.color
+local uitk    = require("hs._asm.uitk")
+local color   = uitk.util.color
+local matrix4 = uitk.util.matrix4
+local fnutils = require("hs.fnutils")
+
 require("hs.image")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
@@ -89,6 +91,33 @@ module.node = require(USERDATA_TAG .. ".node")
 -- private variables and methods -----------------------------------------
 
 -- Public interface ------------------------------------------------------
+
+-- store this in the registry so we can easily set it both from Lua and from C functions
+debug.getregistry()["hs._asm.uitk.element.sceneKit.vector3"] = {
+    __type     = "hs._asm.uitk.element.sceneKit.vector3",
+    __name     = "hs._asm.uitk.element.sceneKit.vector3",
+    __tostring = function(_)
+        return string.format("[ % 10.4f % 10.4f % 10.4f ]", _.x, _.y, _.z)
+    end,
+}
+
+-- store this in the registry so we can easily set it both from Lua and from C functions
+debug.getregistry()["hs._asm.uitk.element.sceneKit.vector4"] = {
+    __type     = "hs._asm.uitk.element.sceneKit.vector4",
+    __name     = "hs._asm.uitk.element.sceneKit.vector4",
+    __tostring = function(_)
+        return string.format("[ % 10.4f % 10.4f % 10.4f % 10.4f ]", _.x, _.y, _.z, _.w)
+    end,
+}
+
+-- store this in the registry so we can easily set it both from Lua and from C functions
+debug.getregistry()["hs._asm.uitk.element.sceneKit.quaternion"] = {
+    __type     = "hs._asm.uitk.element.sceneKit.quaternion",
+    __name     = "hs._asm.uitk.element.sceneKit.quaternion",
+    __tostring = function(_)
+        return string.format("[ % 10.4f % 10.4f % 10.4f % 10.4f ]", _.ix, _.iy, _.iz, _.r)
+    end,
+}
 
 -- Return Module Object --------------------------------------------------
 

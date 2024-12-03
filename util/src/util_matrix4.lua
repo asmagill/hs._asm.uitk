@@ -45,14 +45,14 @@ local methods      = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 
 -- private variables and methods -----------------------------------------
 
--- Public interface ------------------------------------------------------
-
 local module = {
     translate = methods.translate,
     rotate    = methods.rotate,
     scale     = methods.scale,
     identity  = methods.identity,
 }
+
+-- Public interface ------------------------------------------------------
 
 methods.__tostring = function(_)
     return string.format(

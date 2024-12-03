@@ -2,6 +2,7 @@
 @import LuaSkin ;
 @import ObjectiveC.runtime ;
 @import SceneKit ;
+#import "SKconversions.h"
 
 static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.node" ;
 
@@ -10,166 +11,25 @@ static LSRefTable         refTable      = LUA_NOREF ;
 static void *CALLBACKREF_KEY  = @"HS_callbackRefKey" ;
 static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
+static NSDictionary *FOCUSBEHAVIOR ;
+static NSDictionary *MOVABILITYHINT ;
+
 #define get_objectFromUserdata(objType, L, idx, tag) (objType*)*((void**)luaL_checkudata(L, idx, tag))
 // #define get_anyObjectFromUserdata(objType, L, idx) (objType*)*((void**)lua_touserdata(L, idx))
 
 #pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
-}
+    MOVABILITYHINT = @{
+        @"fixed"   : @(SCNMovabilityHintFixed),
+        @"movable" : @(SCNMovabilityHintMovable),
+    } ;
 
-static int pushSCNMatrix4(lua_State *L, SCNMatrix4 matrix4) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    lua_newtable(L) ;
-      lua_pushnumber(L, matrix4.m11) ; lua_setfield(L, -2, "m11") ;
-      lua_pushnumber(L, matrix4.m12) ; lua_setfield(L, -2, "m12") ;
-      lua_pushnumber(L, matrix4.m13) ; lua_setfield(L, -2, "m13") ;
-      lua_pushnumber(L, matrix4.m14) ; lua_setfield(L, -2, "m14") ;
-      lua_pushnumber(L, matrix4.m21) ; lua_setfield(L, -2, "m21") ;
-      lua_pushnumber(L, matrix4.m22) ; lua_setfield(L, -2, "m22") ;
-      lua_pushnumber(L, matrix4.m23) ; lua_setfield(L, -2, "m23") ;
-      lua_pushnumber(L, matrix4.m24) ; lua_setfield(L, -2, "m24") ;
-      lua_pushnumber(L, matrix4.m31) ; lua_setfield(L, -2, "m31") ;
-      lua_pushnumber(L, matrix4.m32) ; lua_setfield(L, -2, "m32") ;
-      lua_pushnumber(L, matrix4.m33) ; lua_setfield(L, -2, "m33") ;
-      lua_pushnumber(L, matrix4.m34) ; lua_setfield(L, -2, "m34") ;
-      lua_pushnumber(L, matrix4.m41) ; lua_setfield(L, -2, "m41") ;
-      lua_pushnumber(L, matrix4.m42) ; lua_setfield(L, -2, "m42") ;
-      lua_pushnumber(L, matrix4.m43) ; lua_setfield(L, -2, "m43") ;
-      lua_pushnumber(L, matrix4.m44) ; lua_setfield(L, -2, "m44") ;
-    luaL_getmetatable(L, "hs._asm.uitk.util.matrix4" ) ;
-    lua_setmetatable(L, -2) ;
-    return 1 ;
-}
-
-static SCNMatrix4 toSCNMatrix4(lua_State *L, int idx) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    SCNMatrix4 matrix4 = SCNMatrix4Identity ;
-
-    if (lua_type(L, idx) == LUA_TTABLE) {
-        idx = lua_absindex(L, idx) ;
-
-        if (lua_getfield(L, idx, "m11") == LUA_TNUMBER) {
-            matrix4.m11 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m11 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m11 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m12") == LUA_TNUMBER) {
-            matrix4.m12 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m12 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m12 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m13") == LUA_TNUMBER) {
-            matrix4.m13 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m13 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m13 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m14") == LUA_TNUMBER) {
-            matrix4.m14 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m14 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m14 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-
-        if (lua_getfield(L, idx, "m21") == LUA_TNUMBER) {
-            matrix4.m21 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m21 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m21 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m22") == LUA_TNUMBER) {
-            matrix4.m22 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m22 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m22 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m23") == LUA_TNUMBER) {
-            matrix4.m23 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m23 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m23 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m24") == LUA_TNUMBER) {
-            matrix4.m24 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m24 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m24 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-
-        if (lua_getfield(L, idx, "m31") == LUA_TNUMBER) {
-            matrix4.m31 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m31 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m31 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m32") == LUA_TNUMBER) {
-            matrix4.m32 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m32 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m32 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m33") == LUA_TNUMBER) {
-            matrix4.m33 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m33 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m33 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m34") == LUA_TNUMBER) {
-            matrix4.m34 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m34 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m34 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-
-        if (lua_getfield(L, idx, "m41") == LUA_TNUMBER) {
-            matrix4.m41 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m41 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m41 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m42") == LUA_TNUMBER) {
-            matrix4.m42 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m42 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m42 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m43") == LUA_TNUMBER) {
-            matrix4.m43 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m43 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m43 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-        if (lua_getfield(L, idx, "m44") == LUA_TNUMBER) {
-            matrix4.m44 = lua_tonumber(L, -1) ;
-        } else {
-            matrix4.m44 = 0.0 ;
-            [skin logError:@"SCNMatrix4 field m44 is not a number; setting to 0"] ;
-        }
-        lua_pop(L, 1) ;
-    } else {
-        [skin logError:[NSString stringWithFormat:@"expected SCNMatrix4 table, found %s",
-                                                  lua_typename(L, lua_type(L, idx))]] ;
-    }
-
-    return matrix4 ;
+    FOCUSBEHAVIOR = @{
+        @"none"      : @(SCNNodeFocusBehaviorNone),
+        @"occluding" : @(SCNNodeFocusBehaviorOccluding),
+        @"focusable" : @(SCNNodeFocusBehaviorFocusable),
+    } ;
 }
 
 @interface SCNNode (HammerspoonAdditions)
@@ -246,109 +106,624 @@ static int node_new(lua_State *L) {
     return 1 ;
 }
 
+static int node_localFront(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TBREAK] ;
+
+    return pushSCNVector3(L, SCNNode.localFront) ;
+}
+
+static int node_localRight(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TBREAK] ;
+
+    return pushSCNVector3(L, SCNNode.localRight) ;
+}
+
+static int node_localUp(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TBREAK] ;
+
+    return pushSCNVector3(L, SCNNode.localUp) ;
+}
+
 #pragma mark - Module Methods -
 
-// @property(class, readonly, nonatomic) SCNVector3 localFront;
-// @property(class, readonly, nonatomic) SCNVector3 localRight;
-// @property(class, readonly, nonatomic) SCNVector3 localUp;
-// @property(copy) NSArray<SCNConstraint *> *constraints;
-// @property(nonatomic, assign, nullable) id<SCNNodeRendererDelegate> rendererDelegate;
-// @property(nonatomic, copy, nullable) NSArray<CIFilter *> *filters;
-// @property(nonatomic, copy, nullable) NSString *name;
-// @property(nonatomic, getter=isHidden) BOOL hidden;
-// @property(nonatomic, getter=isPaused) BOOL paused;
-// @property(nonatomic, readonly, nullable) SCNNode *parentNode;
-// @property(nonatomic, readonly) NSArray<SCNAudioPlayer *> *audioPlayers;
-// @property(nonatomic, readonly) NSArray<SCNNode *> *childNodes;
-// @property(nonatomic, readonly) SCNMatrix4 worldTransform;
-// @property(nonatomic, readonly) SCNNode *presentationNode;
-// @property(nonatomic, retain, nullable) SCNCamera *camera;
-// @property(nonatomic, retain, nullable) SCNGeometry *geometry;
-// @property(nonatomic, retain, nullable) SCNLight *light;
-// @property(nonatomic, retain, nullable) SCNMorpher *morpher;
-// @property(nonatomic, retain, nullable) SCNPhysicsBody *physicsBody;
-// @property(nonatomic, retain, nullable) SCNPhysicsField *physicsField;
-// @property(nonatomic, retain, nullable) SCNSkinner *skinner;
-// @property(nonatomic, weak) GKEntity *entity;
-// @property(nonatomic) BOOL castsShadow;
-// @property(nonatomic) CGFloat opacity;
-// @property(nonatomic) NSInteger renderingOrder;
-// @property(nonatomic) NSUInteger categoryBitMask;
-// @property(nonatomic) SCNMatrix4 pivot;
-// @property(nonatomic) SCNMatrix4 transform;
-// @property(nonatomic) SCNMovabilityHint movabilityHint;
-// @property(nonatomic) SCNNodeFocusBehavior focusBehavior;
-// @property(nonatomic) SCNQuaternion orientation;
-// @property(nonatomic) SCNQuaternion worldOrientation;
-// @property(nonatomic) SCNVector3 eulerAngles;
-// @property(nonatomic) SCNVector3 position;
-// @property(nonatomic) SCNVector3 scale;
-// @property(nonatomic) SCNVector3 worldPosition;
-// @property(nonatomic) SCNVector4 rotation;
-// @property(readonly, nonatomic) SCNVector3 worldFront;
-// @property(readonly, nonatomic) SCNVector3 worldRight;
-// @property(readonly, nonatomic) SCNVector3 worldUp;
-// @property(readonly) NSArray<SCNParticleSystem *> *particleSystems;
+static int node_wordFront(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    return pushSCNVector3(L, node.worldFront) ;
+}
+
+static int node_worldRight(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    return pushSCNVector3(L, node.worldRight) ;
+}
+
+static int node_worldUp(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    return pushSCNVector3(L, node.worldUp) ;
+}
+
+static int node_parentNode(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:node.parentNode] ;
+    return 1 ;
+}
+
+static int node_childNodes(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:node.childNodes] ;
+    return 1 ;
+}
+
+static int node_presentationNode(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:node.presentationNode] ;
+    return 1 ;
+}
+
+static int node_eulerAngles(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNVector3(L, node.eulerAngles) ;
+    } else {
+        SCNVector3 vector = pullSCNVector3(L, 2) ;
+        node.eulerAngles = vector ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_position(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNVector3(L, node.position) ;
+    } else {
+        SCNVector3 vector = pullSCNVector3(L, 2) ;
+        node.position = vector ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_scale(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNVector3(L, node.scale) ;
+    } else {
+        SCNVector3 vector = pullSCNVector3(L, 2) ;
+        node.scale = vector ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_worldPosition(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNVector3(L, node.worldPosition) ;
+    } else {
+        SCNVector3 vector = pullSCNVector3(L, 2) ;
+        node.worldPosition = vector ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_rotation(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNVector4(L, node.rotation) ;
+    } else {
+        SCNVector4 vector = pullSCNVector4(L, 2) ;
+        node.rotation = vector ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_orientation(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNQuaternion(L, node.orientation) ;
+    } else {
+        SCNQuaternion quaternion = pullSCNQuaternion(L, 2) ;
+        node.orientation = quaternion ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_worldOrientation(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNQuaternion(L, node.worldOrientation) ;
+    } else {
+        SCNQuaternion quaternion = pullSCNQuaternion(L, 2) ;
+        node.worldOrientation = quaternion ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_pivot(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNMatrix4(L, node.pivot) ;
+    } else {
+        SCNMatrix4 matrix = pullSCNMatrix4(L, 2) ;
+        node.pivot = matrix ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_transform(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNMatrix4(L, node.transform) ;
+    } else {
+        SCNMatrix4 matrix = pullSCNMatrix4(L, 2) ;
+        node.transform = matrix ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_worldTransform(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        pushSCNMatrix4(L, node.worldTransform) ;
+    } else {
+        SCNMatrix4 matrix = pullSCNMatrix4(L, 2) ;
+        node.worldTransform = matrix ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_name(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:node.name] ;
+    } else {
+        if (lua_type(L, 2) == LUA_TNIL) {
+            node.name = nil ;
+        } else {
+            NSString *newName = [skin toNSObjectAtIndex:2] ;
+            node.name = newName ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_hidden(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, node.hidden) ;
+    } else {
+        node.hidden = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_paused(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, node.paused) ;
+    } else {
+        node.paused = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_castsShadow(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, node.castsShadow) ;
+    } else {
+        node.castsShadow = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_opacity(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushnumber(L, node.opacity) ;
+    } else {
+        node.opacity = lua_tonumber(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
+static int node_renderingOrder(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
+                    LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, node.renderingOrder) ;
+    } else {
+        node.renderingOrder = lua_tointeger(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_categoryBitMask(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
+                    LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, (lua_Integer)node.categoryBitMask) ;
+    } else {
+        node.categoryBitMask = (NSUInteger)lua_tointeger(L, 2) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_camera(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:node.camera] ;
+    } else {
+        if (lua_type(L, 2) == LUA_TNIL) {
+            node.camera = nil ;
+        } else {
+            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.camera", LS_TBREAK] ;
+            SCNCamera *camera = [skin toNSObjectAtIndex:2] ;
+            node.camera = camera ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_geometry(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:node.geometry] ;
+    } else {
+        if (lua_type(L, 2) == LUA_TNIL) {
+            node.geometry = nil ;
+        } else {
+            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.geometry", LS_TBREAK] ;
+            SCNGeometry *geometry = [skin toNSObjectAtIndex:2] ;
+            node.geometry = geometry ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_light(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:node.light] ;
+    } else {
+        if (lua_type(L, 2) == LUA_TNIL) {
+            node.light = nil ;
+        } else {
+            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.light", LS_TBREAK] ;
+            SCNLight *light = [skin toNSObjectAtIndex:2] ;
+            node.light = light ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_movabilityHint(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        NSArray  *keys   = [MOVABILITYHINT allKeysForObject:@(node.movabilityHint)] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", node.movabilityHint] ;
+        [skin pushNSObject:answer] ;
+    } else {
+        NSString *key = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value = MOVABILITYHINT[key] ;
+        if (value) {
+            node.movabilityHint = value.longLongValue ;
+        } else {
+            NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [MOVABILITYHINT.allKeys componentsJoinedByString:@", "]] ;
+            return luaL_argerror(L, 2, errMsg.UTF8String) ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int node_focusBehavior(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        NSArray  *keys   = [FOCUSBEHAVIOR allKeysForObject:@(node.focusBehavior)] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", node.focusBehavior] ;
+        [skin pushNSObject:answer] ;
+    } else {
+        NSString *key = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value = FOCUSBEHAVIOR[key] ;
+        if (value) {
+            node.focusBehavior = value.longLongValue ;
+        } else {
+            NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [FOCUSBEHAVIOR.allKeys componentsJoinedByString:@", "]] ;
+            return luaL_argerror(L, 2, errMsg.UTF8String) ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+// static int node_morpher(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     SCNNode *node = [skin toNSObjectAtIndex:1] ;
 //
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:node.morpher] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             node.morpher = nil ;
+//         } else {
+//             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.morpher", LS_TBREAK] ;
+//             SCNMorpher *morpher = [skin toNSObjectAtIndex:2] ;
+//             node.morpher = morpher ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+//
+// static int node_skinner(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     SCNNode *node = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:node.skinner] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             node.skinner = nil ;
+//         } else {
+//             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.skinner", LS_TBREAK] ;
+//             SCNSkinner *skinner = [skin toNSObjectAtIndex:2] ;
+//             node.skinner = skinner ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+//
+// static int node_physicsBody(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     SCNNode *node = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:node.physicsBody] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             node.physicsBody = nil ;
+//         } else {
+//             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.physicsBody", LS_TBREAK] ;
+//             SCNPhysicsBody *physicsBody = [skin toNSObjectAtIndex:2] ;
+//             node.physicsBody = physicsBody ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+//
+// static int node_physicsField(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     SCNNode *node = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:node.physicsField] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             node.physicsField = nil ;
+//         } else {
+//             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.physicsField", LS_TBREAK] ;
+//             SCNPhysicsField *physicsField = [skin toNSObjectAtIndex:2] ;
+//             node.physicsField = physicsField ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+
+// - (void)localRotateBy:(SCNVector4)rotation;
+// - (void)localTranslateBy:(SCNVector3)translation;
+// - (void)lookAt:(SCNVector3)worldTarget up:(SCNVector3)worldUp localFront:(SCNVector3)localFront;
+// - (void)lookAt:(SCNVector3)worldTarget;
+// - (void)rotateBy:(SCNVector4)worldRotation aroundTarget:(SCNVector3)worldTarget;
+
+// FIXME: list
+//    do we need to check for loops?
+//    do we need to make sure parentNode of child is nil?
+//    if child is geometry or light, make sure fields aren't already filled for this one?
+static int node_addChildNode(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TUSERDATA, USERDATA_TAG,
+                    LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
+                    LS_TBREAK] ;
+    SCNNode     *node  = [skin toNSObjectAtIndex:1] ;
+    SCNNode     *child = [skin toNSObjectAtIndex:2] ;
+
+    if (lua_gettop(L) == 2) {
+        [node addChildNode:child] ;
+    } else {
+        lua_Integer idx = lua_tointeger(L, 3) - 1 ;
+        if (idx >= 0 && idx <= (lua_Integer)node.childNodes.count) {
+            [node insertChildNode:child atIndex:(NSUInteger)idx] ;
+        } else {
+            return luaL_argerror(L, 3, "index out of bounds") ;
+        }
+    }
+    [skin luaRetain:refTable forNSObject:child] ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+static int node_removeChildNode(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    SCNNode *targetNode = nil ;
+
+    if (lua_type(L, 2) == LUA_TNUMBER) {
+        [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
+        lua_Integer idx = lua_tointeger(L, 2) - 1 ;
+        if (idx < 0 || idx >= (lua_Integer)node.childNodes.count) {
+            return luaL_argerror(L, 2, "index out of bounds") ;
+        } else {
+            targetNode = node.childNodes[(NSUInteger)idx] ;
+        }
+    } else {
+        [skin checkArgs:LS_TANY, LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+        targetNode = [skin toNSObjectAtIndex:2] ;
+        if (![targetNode.parentNode isEqualTo:node]) {
+            return luaL_argerror(L, 2, "target node is not a child of this node") ;
+        }
+    }
+
+    if (targetNode) {
+        [targetNode removeFromParentNode] ;
+        [skin luaRelease:refTable forNSObject:targetNode] ;
+    } else {
+        return luaL_argerror(L, 2, "unable to identify target node") ;
+    }
+    return 1 ;
+}
+
+// - (SCNNode *)childNodeWithName:(NSString *)name recursively:(BOOL)recursively;
+// - (void)replaceChildNode:(SCNNode *)oldChild with:(SCNNode *)newChild;
+// - (NSArray<SCNNode *> *)childNodesPassingTest:(BOOL (^)(SCNNode *child, BOOL *stop))predicate;
+
 // - (instancetype)clone;
 // - (instancetype)flattenedClone;
-// - (NSArray<SCNHitTestResult *> *)hitTestWithSegmentFromPoint:(SCNVector3)pointA toPoint:(SCNVector3)pointB options:(NSDictionary<NSString *,id> *)options;
-// - (NSArray<SCNNode *> *)childNodesPassingTest:(BOOL (^)(SCNNode *child, BOOL *stop))predicate;
-// - (SCNMatrix4)convertTransform:(SCNMatrix4)transform fromNode:(SCNNode *)node;
-// - (SCNMatrix4)convertTransform:(SCNMatrix4)transform toNode:(SCNNode *)node;
-// - (SCNNode *)childNodeWithName:(NSString *)name recursively:(BOOL)recursively;
+// - (void)duplicateNode:(SCNNode *)node withMaterial:(SCNMaterial *)material
+
 // - (SCNVector3)convertPosition:(SCNVector3)position fromNode:(SCNNode *)node;
 // - (SCNVector3)convertPosition:(SCNVector3)position toNode:(SCNNode *)node;
 // - (SCNVector3)convertVector:(SCNVector3)vector fromNode:(SCNNode *)node;
 // - (SCNVector3)convertVector:(SCNVector3)vector toNode:(SCNNode *)node;
-// - (void)addAudioPlayer:(SCNAudioPlayer *)player;
-// - (void)addChildNode:(SCNNode *)child;
+// - (SCNMatrix4)convertTransform:(SCNMatrix4)transform fromNode:(SCNNode *)node;
+// - (SCNMatrix4)convertTransform:(SCNMatrix4)transform toNode:(SCNNode *)node;
+
+// @property(readonly) NSArray<SCNParticleSystem *> *particleSystems;
 // - (void)addParticleSystem:(SCNParticleSystem *)system;
-// - (void)duplicateNode:(SCNNode *)node withMaterial:(SCNMaterial *)material
+// - (void)removeAllParticleSystems;
+// - (void)removeParticleSystem:(SCNParticleSystem *)system;
+
+// @property(nonatomic, readonly) NSArray<SCNAudioPlayer *> *audioPlayers;
+// - (void)addAudioPlayer:(SCNAudioPlayer *)player;
+// - (void)removeAllAudioPlayers;
+// - (void)removeAudioPlayer:(SCNAudioPlayer *)player;
+
+// @property(copy) NSArray<SCNConstraint *> *constraints;
+// @property(nonatomic, assign, nullable) id<SCNNodeRendererDelegate> rendererDelegate;
+// @property(nonatomic, copy, nullable) NSArray<CIFilter *> *filters;
+// @property(nonatomic, weak) GKEntity *entity;
+
 // - (void)enumerateChildNodesUsingBlock:(void (^)(SCNNode *child, BOOL *stop))block;
 // - (void)enumerateHierarchyUsingBlock:(void (^)(SCNNode *node, BOOL *stop))block;
-// - (void)insertChildNode:(SCNNode *)child atIndex:(NSUInteger)index;
-// - (void)localRotateBy:(SCNQuaternion)rotation;
-// - (void)localTranslateBy:(SCNVector3)translation;
-// - (void)lookAt:(SCNVector3)worldTarget up:(SCNVector3)worldUp localFront:(SCNVector3)localFront;
-// - (void)lookAt:(SCNVector3)worldTarget;
-// - (void)removeAllAudioPlayers;
-// - (void)removeAllParticleSystems;
-// - (void)removeAudioPlayer:(SCNAudioPlayer *)player;
-// - (void)removeFromParentNode;
-// - (void)removeParticleSystem:(SCNParticleSystem *)system;
-// - (void)replaceChildNode:(SCNNode *)oldChild with:(SCNNode *)newChild;
-// - (void)rotateBy:(SCNQuaternion)worldRotation aroundTarget:(SCNVector3)worldTarget;
-// - (void)setWorldTransform:(SCNMatrix4)worldTransform;
-//
-// // @property(class, readonly, nonatomic) simd_float3 simdLocalFront;
-// // @property(class, readonly, nonatomic) simd_float3 simdLocalRight;
-// // @property(class, readonly, nonatomic) simd_float3 simdLocalUp;
-// // @property(nonatomic) simd_float3 simdEulerAngles;
-// // @property(nonatomic) simd_float3 simdPosition;
-// // @property(nonatomic) simd_float3 simdScale;
-// // @property(nonatomic) simd_float3 simdWorldPosition;
-// // @property(nonatomic) simd_float4 simdRotation;
-// // @property(nonatomic) simd_float4x4 simdPivot;
-// // @property(nonatomic) simd_float4x4 simdTransform;
-// // @property(nonatomic) simd_float4x4 simdWorldTransform;
-// // @property(nonatomic) simd_quatf simdOrientation;
-// // @property(nonatomic) simd_quatf simdWorldOrientation;
-// // @property(readonly, nonatomic) simd_float3 simdWorldFront;
-// // @property(readonly, nonatomic) simd_float3 simdWorldRight;
-// // @property(readonly, nonatomic) simd_float3 simdWorldUp;
-//
-// // - (simd_float3)simdConvertPosition:(simd_float3)position fromNode:(SCNNode *)node;
-// // - (simd_float3)simdConvertPosition:(simd_float3)position toNode:(SCNNode *)node;
-// // - (simd_float3)simdConvertVector:(simd_float3)vector fromNode:(SCNNode *)node;
-// // - (simd_float3)simdConvertVector:(simd_float3)vector toNode:(SCNNode *)node;
-// // - (simd_float4x4)simdConvertTransform:(simd_float4x4)transform fromNode:(SCNNode *)node;
-// // - (simd_float4x4)simdConvertTransform:(simd_float4x4)transform toNode:(SCNNode *)node;
-// // - (void)simdLocalRotateBy:(simd_quatf)rotation;
-// // - (void)simdLocalTranslateBy:(simd_float3)translation;
-// // - (void)simdLookAt:(simd_float3)worldTarget up:(simd_float3)worldUp localFront:(simd_float3)localFront;
-// // - (void)simdLookAt:(simd_float3)worldTarget;
-// // - (void)simdRotateBy:(simd_quatf)worldRotation aroundTarget:(simd_float3)worldTarget;
+
+// - (NSArray<SCNHitTestResult *> *)hitTestWithSegmentFromPoint:(SCNVector3)pointA toPoint:(SCNVector3)pointB options:(NSDictionary<NSString *,id> *)options;
 
 #pragma mark - Module Constants -
 
@@ -426,16 +801,51 @@ static int userdata_gc(lua_State* L) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"__tostring", userdata_tostring},
-    {"__eq",       userdata_eq},
-    {"__gc",       userdata_gc},
-    {NULL,         NULL}
+    {"wordFront",        node_wordFront},
+    {"worldRight",       node_worldRight},
+    {"worldUp",          node_worldUp},
+    {"parentNode",       node_parentNode},
+    {"childNodes",       node_childNodes},
+    {"presentationNode", node_presentationNode},
+    {"addChildNode",     node_addChildNode},
+    {"removeChildNode",  node_removeChildNode},
+
+    {"eulerAngles",      node_eulerAngles},
+    {"position",         node_position},
+    {"scale",            node_scale},
+    {"worldPosition",    node_worldPosition},
+    {"rotation",         node_rotation},
+    {"orientation",      node_orientation},
+    {"worldOrientation", node_worldOrientation},
+    {"pivot",            node_pivot},
+    {"transform",        node_transform},
+    {"worldTransform",   node_worldTransform},
+    {"name",             node_name},
+    {"hidden",           node_hidden},
+    {"paused",           node_paused},
+    {"castsShadow",      node_castsShadow},
+    {"opacity",          node_opacity},
+    {"renderingOrder",   node_renderingOrder},
+    {"categoryBitMask",  node_categoryBitMask},
+    {"camera",           node_camera},
+    {"geometry",         node_geometry},
+    {"light",            node_light},
+    {"movabilityHint",   node_movabilityHint},
+    {"focusBehavior",    node_focusBehavior},
+
+    {"__tostring",       userdata_tostring},
+    {"__eq",             userdata_eq},
+    {"__gc",             userdata_gc},
+    {NULL,               NULL}
 };
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"new", node_new},
-    {NULL,  NULL}
+    {"new",        node_new},
+    {"localFront", node_localFront},
+    {"localRight", node_localRight},
+    {"localUp",    node_localUp},
+    {NULL,         NULL}
 };
 
 // // Metatable for module, if needed
@@ -459,6 +869,28 @@ int luaopen_hs__asm_uitk_element_libsceneKit_node(lua_State* L) {
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
+        @"eulerAngles",
+        @"position",
+        @"scale",
+        @"worldPosition",
+        @"rotation",
+        @"orientation",
+        @"worldOrientation",
+        @"pivot",
+        @"transform",
+        @"worldTransform",
+        @"name",
+        @"hidden",
+        @"paused",
+        @"castsShadow",
+        @"opacity",
+        @"renderingOrder",
+        @"categoryBitMask",
+        @"camera",
+        @"geometry",
+        @"light",
+        @"movabilityHint",
+        @"focusBehavior",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;

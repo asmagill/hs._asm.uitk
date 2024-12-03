@@ -354,7 +354,7 @@ static int sceneKit_scene_paused(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_fogDensityExponent(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -370,7 +370,7 @@ static int sceneKit_scene_fogDensityExponent(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_fogEndDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -386,7 +386,7 @@ static int sceneKit_scene_fogEndDistance(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_fogStartDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -402,7 +402,7 @@ static int sceneKit_scene_fogStartDistance(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_screenSpaceReflectionMaximumDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -418,7 +418,7 @@ static int sceneKit_scene_screenSpaceReflectionMaximumDistance(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_screenSpaceReflectionStride(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -434,7 +434,7 @@ static int sceneKit_scene_screenSpaceReflectionStride(lua_State *L) {
     return 1 ;
 }
 
-// need to see if this needs to be constrained (e.g. not negative)
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int sceneKit_scene_screenSpaceReflectionSampleCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
