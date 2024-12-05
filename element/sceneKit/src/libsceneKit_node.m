@@ -447,11 +447,14 @@ static int node_camera(lua_State *L) {
         [skin pushNSObject:node.camera] ;
     } else {
         if (lua_type(L, 2) == LUA_TNIL) {
+            if (node.camera) [skin luaRelease:refTable forNSObject:node.camera] ;
             node.camera = nil ;
         } else {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.camera", LS_TBREAK] ;
             SCNCamera *camera = [skin toNSObjectAtIndex:2] ;
+            if (node.camera) [skin luaRelease:refTable forNSObject:node.camera] ;
             node.camera = camera ;
+            [skin luaRetain:refTable forNSObject:node.camera] ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -467,11 +470,14 @@ static int node_geometry(lua_State *L) {
         [skin pushNSObject:node.geometry] ;
     } else {
         if (lua_type(L, 2) == LUA_TNIL) {
+            if (node.geometry) [skin luaRelease:refTable forNSObject:node.geometry] ;
             node.geometry = nil ;
         } else {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.geometry", LS_TBREAK] ;
             SCNGeometry *geometry = [skin toNSObjectAtIndex:2] ;
+            if (node.geometry) [skin luaRelease:refTable forNSObject:node.geometry] ;
             node.geometry = geometry ;
+            [skin luaRetain:refTable forNSObject:node.geometry] ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -487,11 +493,14 @@ static int node_light(lua_State *L) {
         [skin pushNSObject:node.light] ;
     } else {
         if (lua_type(L, 2) == LUA_TNIL) {
+            if (node.light) [skin luaRelease:refTable forNSObject:node.light] ;
             node.light = nil ;
         } else {
             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.light", LS_TBREAK] ;
             SCNLight *light = [skin toNSObjectAtIndex:2] ;
+            if (node.light) [skin luaRelease:refTable forNSObject:node.light] ;
             node.light = light ;
+            [skin luaRetain:refTable forNSObject:node.light] ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -553,11 +562,14 @@ static int node_focusBehavior(lua_State *L) {
 //         [skin pushNSObject:node.morpher] ;
 //     } else {
 //         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (node.morpher) [skin luaRelease:refTable forNSObject:node.morpher] ;
 //             node.morpher = nil ;
 //         } else {
 //             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.morpher", LS_TBREAK] ;
 //             SCNMorpher *morpher = [skin toNSObjectAtIndex:2] ;
+//             if (node.morpher) [skin luaRelease:refTable forNSObject:node.morpher] ;
 //             node.morpher = morpher ;
+//             [skin luaRetain:refTable forNSObject:node.morpher] ;
 //         }
 //         lua_pushvalue(L, 1) ;
 //     }
@@ -573,11 +585,14 @@ static int node_focusBehavior(lua_State *L) {
 //         [skin pushNSObject:node.skinner] ;
 //     } else {
 //         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (node.skinner) [skin luaRelease:refTable forNSObject:node.skinner] ;
 //             node.skinner = nil ;
 //         } else {
 //             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.skinner", LS_TBREAK] ;
 //             SCNSkinner *skinner = [skin toNSObjectAtIndex:2] ;
+//             if (node.skinner) [skin luaRelease:refTable forNSObject:node.skinner] ;
 //             node.skinner = skinner ;
+//             [skin luaRetain:refTable forNSObject:node.skinner] ;
 //         }
 //         lua_pushvalue(L, 1) ;
 //     }
@@ -593,11 +608,14 @@ static int node_focusBehavior(lua_State *L) {
 //         [skin pushNSObject:node.physicsBody] ;
 //     } else {
 //         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (node.physicsBody) [skin luaRelease:refTable forNSObject:node.physicsBody] ;
 //             node.physicsBody = nil ;
 //         } else {
 //             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.physicsBody", LS_TBREAK] ;
 //             SCNPhysicsBody *physicsBody = [skin toNSObjectAtIndex:2] ;
+//             if (node.physicsBody) [skin luaRelease:refTable forNSObject:node.physicsBody] ;
 //             node.physicsBody = physicsBody ;
+//             [skin luaRetain:refTable forNSObject:node.physicsBody] ;
 //         }
 //         lua_pushvalue(L, 1) ;
 //     }
@@ -613,11 +631,14 @@ static int node_focusBehavior(lua_State *L) {
 //         [skin pushNSObject:node.physicsField] ;
 //     } else {
 //         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (node.physicsField) [skin luaRelease:refTable forNSObject:node.physicsField] ;
 //             node.physicsField = nil ;
 //         } else {
 //             [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.physicsField", LS_TBREAK] ;
 //             SCNPhysicsField *physicsField = [skin toNSObjectAtIndex:2] ;
+//             if (node.physicsField) [skin luaRelease:refTable forNSObject:node.physicsField] ;
 //             node.physicsField = physicsField ;
+//             [skin luaRetain:refTable forNSObject:node.physicsField] ;
 //         }
 //         lua_pushvalue(L, 1) ;
 //     }
@@ -786,6 +807,13 @@ static int userdata_gc(lua_State* L) {
             obj.callbackRef = [skin luaUnref:refTable ref:obj.callbackRef] ;
 
             for (SCNNode *child in obj.childNodes) [skin luaRelease:refTable forNSObject:child] ;
+            if (obj.geometry)     [skin luaRelease:refTable forNSObject:obj.geometry] ;
+            if (obj.light)        [skin luaRelease:refTable forNSObject:obj.light] ;
+            if (obj.camera)       [skin luaRelease:refTable forNSObject:obj.camera] ;
+            if (obj.morpher)      [skin luaRelease:refTable forNSObject:obj.morpher] ;
+            if (obj.skinner)      [skin luaRelease:refTable forNSObject:obj.skinner] ;
+            if (obj.physicsBody)  [skin luaRelease:refTable forNSObject:obj.physicsBody] ;
+            if (obj.physicsField) [skin luaRelease:refTable forNSObject:obj.physicsField] ;
             obj = nil ;
         }
     }

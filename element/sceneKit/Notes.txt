@@ -4,10 +4,10 @@
 
     @class SCNCamera
     @class SCNLight
-    @class SCNGeometry
-        @class SCNBox
-        @class SCNCapsule
-        @class SCNCone
++   @class SCNGeometry
++       @class SCNBox
++       @class SCNCapsule
++       @class SCNCone
         @class SCNCylinder
         @class SCNFloor
         @class SCNPlane
@@ -17,6 +17,9 @@
         @class SCNText
         @class SCNTorus
         @class SCNTube
++   @class SCNGeometryTessellator
+ ?  @class SCNGeometryElement
+ ?  @class SCNGeometrySource
 
     @class SCNAction
     @class SCNAnimation
@@ -35,9 +38,6 @@
         @class SCNReplicatorConstraint
         @class SCNSliderConstraint
         @class SCNTransformConstraint
-    @class SCNGeometryElement
-    @class SCNGeometrySource
-    @class SCNGeometryTessellator
     @class SCNHitTestResult
     @class SCNLayer
     @class SCNLevelOfDetail
