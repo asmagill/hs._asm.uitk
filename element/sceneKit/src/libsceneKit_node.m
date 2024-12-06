@@ -32,6 +32,15 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
+BOOL oneOfOurGeometryObjects(SCNGeometry *obj) {
+    return [obj isKindOfClass:[SCNGeometry class]]  &&
+           [obj respondsToSelector:NSSelectorFromString(@"selfRefCount")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"setSelfRefCount:")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"refTable")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"callbackRef")] &&
+           [obj respondsToSelector:NSSelectorFromString(@"setCallbackRef:")] ;
+}
+
 @interface SCNNode (HammerspoonAdditions)
 @property (nonatomic)           int  callbackRef ;
 @property (nonatomic)           int  selfRefCount ;
@@ -473,8 +482,10 @@ static int node_geometry(lua_State *L) {
             if (node.geometry) [skin luaRelease:refTable forNSObject:node.geometry] ;
             node.geometry = nil ;
         } else {
-            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.geometry", LS_TBREAK] ;
-            SCNGeometry *geometry = [skin toNSObjectAtIndex:2] ;
+            SCNGeometry *geometry = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+            if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+                return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+            }
             if (node.geometry) [skin luaRelease:refTable forNSObject:node.geometry] ;
             node.geometry = geometry ;
             [skin luaRetain:refTable forNSObject:node.geometry] ;

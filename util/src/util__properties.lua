@@ -181,6 +181,7 @@ module.addPropertiesWrapper = function(objMT, readonlyAdditions)
 
         -- check for inheritable methods from immediate container
         if type(value) == "nil" and objMT._nextResponder then
+--         print(inspect(objMT, { newline = " ", indent = "" }))
             local parent          = self:_nextResponder()
             local inheritedMethod = ((getmetatable(parent) or {})._inheritableMethods or {})[key]
 

@@ -28,7 +28,7 @@
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.geometry"
+local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.material"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libsceneKit_"))
 local fnutils      = require("hs.fnutils")
@@ -48,7 +48,7 @@ local preload = function(m, isLua)
                        or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libsceneKit_") .. "_" .. m)
         local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
         if el and elMT then
-            uitk.element._elementControlViewWrapper(elMT)
+            uitk.util._properties.addPropertiesWrapper(elMT)
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then
@@ -63,8 +63,8 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
-module.property = require(USERDATA .. ".property")
-local propertyMT = hs.getObjectMetatable(USERDATA .. ".property")
+module.property = require(USERDATA_TAG .. ".property")
+local propertyMT = hs.getObjectMetatable(USERDATA_TAG .. ".property")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods

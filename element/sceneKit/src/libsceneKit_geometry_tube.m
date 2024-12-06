@@ -3,7 +3,7 @@
 @import ObjectiveC.runtime ;
 @import SceneKit ;
 
-static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.cone" ;
+static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.tube" ;
 
 static LSRefTable         refTable      = LUA_NOREF ;
 
@@ -14,7 +14,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Support Functions and Classes -
 
-@interface SCNCone (HammerspoonAdditions)
+@interface SCNTube (HammerspoonAdditions)
 @property (nonatomic)           int  callbackRef ;
 @property (nonatomic)           int  selfRefCount ;
 @property (nonatomic, readonly) int  refTable ;
@@ -26,19 +26,19 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 - (int)refTable ;
 @end
 
-@implementation SCNCone (HammerspoonAdditions)
+@implementation SCNTube (HammerspoonAdditions)
 
-+ (instancetype)coneWithName:(NSString *)name topRadius:(CGFloat)topRadius
-                                           bottomRadius:(CGFloat)bottomRadius
-                                                 height:(CGFloat)height {
-    SCNCone *cone = [SCNCone coneWithTopRadius:topRadius bottomRadius:bottomRadius height:height] ;
++ (instancetype)tubeWithName:(NSString *)name innerRadius:(CGFloat)innerRadius
+                                              outerRadius:(CGFloat)outerRadius
+                                                   height:(CGFloat)height {
+    SCNTube *tube = [SCNTube tubeWithInnerRadius:innerRadius outerRadius:outerRadius height:height] ;
 
-    if (cone) {
-        cone.callbackRef  = LUA_NOREF ;
-        cone.selfRefCount = 0 ;
-        cone.name         = name ;
+    if (tube) {
+        tube.callbackRef  = LUA_NOREF ;
+        tube.selfRefCount = 0 ;
+        tube.name         = name ;
     }
-    return cone ;
+    return tube ;
 }
 
 - (void)setCallbackRef:(int)value {
@@ -76,7 +76,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Module Functions -
 
-static int cone_new(lua_State *L) {
+static int tube_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING | LS_TNUMBER, LS_TBREAK | LS_TVARARG] ;
     NSString *name       = [[NSUUID UUID] UUIDString] ;
@@ -90,19 +90,17 @@ static int cone_new(lua_State *L) {
         [skin checkArgs:LS_TNUMBER, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
     }
 
-    CGFloat topRadius    = lua_tonumber(L, numericArgs++) ;
-    CGFloat bottomRadius = lua_tonumber(L, numericArgs++) ;
-    CGFloat height       = lua_tonumber(L, numericArgs) ;
-
-    if (topRadius < 0.0)    return luaL_argerror(L, numericArgs - 2, "topRadius cannot be negative") ;
-    if (bottomRadius < 0.0) return luaL_argerror(L, numericArgs - 1, "bottomRadius cannot be negative") ;
+    CGFloat innerRadius = lua_tonumber(L, numericArgs++) ;
+    CGFloat outerRadius = lua_tonumber(L, numericArgs++) ;
+    CGFloat height      = lua_tonumber(L, numericArgs) ;
+    if (innerRadius >= outerRadius) return luaL_argerror(L, numericArgs - 2, "outerRadius must be greater than innerRadius") ;
+    if (innerRadius <= 0.0) return luaL_argerror(L, numericArgs - 2, "innerRadius must be larger than zero") ;
+    if (outerRadius <= 0.0) return luaL_argerror(L, numericArgs - 1, "outerRadius must be larger than zero") ;
     if (height <= 0.0)      return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-    if (topRadius == 0.0 && bottomRadius == 0.0)
-        return luaL_argerror(L, numericArgs - 2, "top and bottom radii cannot both be zero") ;
 
-    SCNCone *cone = [SCNCone coneWithName:name topRadius:topRadius bottomRadius:bottomRadius height:height] ;
-    if (cone) {
-        [skin pushNSObject:cone] ;
+    SCNTube *tube = [SCNTube tubeWithName:name innerRadius:innerRadius outerRadius:outerRadius height:height] ;
+    if (tube) {
+        [skin pushNSObject:tube] ;
     } else {
         lua_pushnil(L) ;
     }
@@ -111,83 +109,83 @@ static int cone_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-static int cone_topRadius(lua_State *L) {
+static int tube_innerRadius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNTube *tube = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.topRadius) ;
+        lua_pushnumber(L, tube.innerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                              return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.bottomRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        cone.topRadius = value ;
+        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
+        if (value >= tube.outerRadius) return luaL_argerror(L, 2, "cannot be equal to or greater than the outerRadius") ;
+        tube.innerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_bottomRadius(lua_State *L) {
+static int tube_outerRadius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNTube *tube = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.bottomRadius) ;
+        lua_pushnumber(L, tube.outerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                           return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.topRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        cone.bottomRadius = value ;
+        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
+        if (value <= tube.innerRadius) return luaL_argerror(L, 2, "cannot be equal to or less than the innerRadius") ;
+        tube.outerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_height(lua_State *L) {
+static int tube_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNTube *tube = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.height) ;
+        lua_pushnumber(L, tube.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
-        cone.height = value ;
+        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
+        tube.height = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_heightSegmentCount(lua_State *L) {
+static int tube_radialSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNTube *tube = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.heightSegmentCount) ;
-    } else {
-        lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
-        cone.heightSegmentCount = value ;
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int cone_radialSegmentCount(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.radialSegmentCount) ;
+        lua_pushinteger(L, tube.radialSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
         if (value < 3) return luaL_argerror(L, 2, "must be 3 or greater") ;
-        cone.radialSegmentCount = value ;
+        tube.radialSegmentCount = value ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int tube_heightSegmentCount(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNTube *tube = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, tube.heightSegmentCount) ;
+    } else {
+        lua_Integer value = lua_tointeger(L, 2) ;
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
+        tube.heightSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -199,21 +197,21 @@ static int cone_radialSegmentCount(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushSCNCone(lua_State *L, id obj) {
-    SCNCone *value = obj;
+static int pushSCNTube(lua_State *L, id obj) {
+    SCNTube *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCone *));
+    void** valuePtr = lua_newuserdata(L, sizeof(SCNTube *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toSCNCone(lua_State *L, int idx) {
+static id toSCNTube(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    SCNCone *value ;
+    SCNTube *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge SCNCone, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge SCNTube, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -229,11 +227,11 @@ static id toSCNCone(lua_State *L, int idx) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"topRadius",      cone_topRadius},
-    {"bottomRadius",   cone_bottomRadius},
-    {"height",         cone_height},
-    {"heightSegments", cone_heightSegmentCount},
-    {"radialSegments", cone_radialSegmentCount},
+    {"innerRadius",    tube_innerRadius},
+    {"outerRadius",    tube_outerRadius},
+    {"height",         tube_height},
+    {"radialSegments", tube_radialSegmentCount},
+    {"heightSegments", tube_heightSegmentCount},
 
     // inherits metamethods from geometry
     {NULL,             NULL}
@@ -241,7 +239,7 @@ static const luaL_Reg userdata_metaLib[] = {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"new", cone_new},
+    {"new", tube_new},
     {NULL,  NULL}
 };
 
@@ -251,24 +249,24 @@ static luaL_Reg moduleLib[] = {
 //     {NULL,   NULL}
 // };
 
-int luaopen_hs__asm_uitk_element_libsceneKit_geometry_cone(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libsceneKit_geometry_tube(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushSCNCone  forClass:"SCNCone"];
-    [skin registerLuaObjectHelper:toSCNCone forClass:"SCNCone"
-                                 withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushSCNTube  forClass:"SCNTube"];
+    [skin registerLuaObjectHelper:toSCNTube forClass:"SCNTube"
+                                  withUserdataMapping:USERDATA_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
-        @"topRadius",
-        @"bottomRadius",
+        @"innerRadius",
+        @"outerRadius",
         @"height",
-        @"heightSegments",
         @"radialSegments",
+        @"heightSegments",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pushboolean(L, YES) ; lua_setfield(L, -2, "_subclass") ;

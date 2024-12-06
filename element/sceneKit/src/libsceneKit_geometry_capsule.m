@@ -108,18 +108,15 @@ static int capsule_new(lua_State *L) {
 
 static int capsule_capRadius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNCapsule *capsule = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, capsule.capRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        } else if (value > capsule.height / 2) {
-            return luaL_argerror(L, 2, "must be less than half of the height") ;
-        }
+        if (value <= 0.0)               return luaL_argerror(L, 2, "must be larger than zero") ;
+        if (value > capsule.height / 2) return luaL_argerror(L, 2, "must be less than half of the height") ;
         capsule.capRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -128,18 +125,15 @@ static int capsule_capRadius(lua_State *L) {
 
 static int capsule_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNCapsule *capsule = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, capsule.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        } else if (value < capsule.capRadius * 2) {
-            return luaL_argerror(L, 2, "must be greater than double the radius") ;
-        }
+        if (value <= 0.0)                  return luaL_argerror(L, 2, "must be larger than zero") ;
+        if (value < capsule.capRadius * 2) return luaL_argerror(L, 2, "must be greater than double the radius") ;
         capsule.height = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -148,16 +142,14 @@ static int capsule_height(lua_State *L) {
 
 static int capsule_capSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNCapsule *capsule = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, capsule.capSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 2) return luaL_argerror(L, 2, "must be 2 or greater") ;
         capsule.capSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -166,16 +158,14 @@ static int capsule_capSegmentCount(lua_State *L) {
 
 static int capsule_heightSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNCapsule *capsule = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, capsule.heightSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         capsule.heightSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -184,16 +174,14 @@ static int capsule_heightSegmentCount(lua_State *L) {
 
 static int capsule_radialSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNCapsule *capsule = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, capsule.radialSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 3) return luaL_argerror(L, 2, "must be 3 or greater") ;
         capsule.radialSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }

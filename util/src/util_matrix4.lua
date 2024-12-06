@@ -45,6 +45,8 @@ local methods      = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 
 -- private variables and methods -----------------------------------------
 
+-- Public interface ------------------------------------------------------
+
 local module = {
     translate = methods.translate,
     rotate    = methods.rotate,
@@ -52,26 +54,23 @@ local module = {
     identity  = methods.identity,
 }
 
--- Public interface ------------------------------------------------------
-
-methods.__tostring = function(_)
-    return string.format(
-        "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
-        "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
-        "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
-        "[ % 10.4f % 10.4f % 10.4f % 10.4f ]",
-        _.m11, _.m12, _.m13, _.m14,
-        _.m21, _.m22, _.m23, _.m24,
-        _.m31, _.m32, _.m33, _.m34,
-        _.m41, _.m42, _.m43, _.m44
-    )
-end
-
 -- store this in the registry so we can easily set it both from Lua and from C functions
 debug.getregistry()[USERDATA_TAG] = {
     __type     = USERDATA_TAG,
     __name     = USERDATA_TAG,
     __index    = methods,
+    __tostring = function(_)
+        return string.format(
+            "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
+            "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
+            "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..
+            "[ % 10.4f % 10.4f % 10.4f % 10.4f ]",
+            _.m11, _.m12, _.m13, _.m14,
+            _.m21, _.m22, _.m23, _.m24,
+            _.m31, _.m32, _.m33, _.m34,
+            _.m41, _.m42, _.m43, _.m44
+        )
+    end,
 }
 
 -- Return Module Object --------------------------------------------------

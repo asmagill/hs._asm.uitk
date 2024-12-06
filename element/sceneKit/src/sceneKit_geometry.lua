@@ -46,13 +46,13 @@ local subModules = {
     cylinder    = false,
     floor       = false,
     plane       = false,
---     pyramid     = false,
---     sphere      = false,
---     torus       = false,
---     tube        = false,
-
---     shape       = false,
+    pyramid     = false,
+--     shape       = false, -- uses bezierCurve... can we leverage canvas segments without too much re-write?
+    sphere      = false,
 --     text        = false,
+    torus       = false,
+    tube        = false,
+
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -75,7 +75,7 @@ local preload = function(m, isLua)
                     end
                 end
             end
-            uitk.element._elementControlViewWrapper(elMT)
+            uitk.util._properties.addPropertiesWrapper(elMT)
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then

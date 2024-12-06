@@ -57,20 +57,19 @@ local module = {
     identity  = methods.identity,
 }
 
-methods.__tostring = function(_)
-    return string.format("[ % 10.4f % 10.4f 0 ]\n" ..
-                         "[ % 10.4f % 10.4f 0 ]\n" ..
-                         "[ % 10.4f % 10.4f 1 ]",
-                         _.m11, _.m12,
-                         _.m21, _.m22,
-                         _.tX, _.tY)
-end
-
 -- store this in the registry so we can easily set it both from Lua and from C functions
 debug.getregistry()[USERDATA_TAG] = {
     __type     = USERDATA_TAG,
     __name     = USERDATA_TAG,
     __index    = methods,
+    __tostring = function(_)
+        return string.format("[ % 10.4f % 10.4f 0 ]\n" ..
+                             "[ % 10.4f % 10.4f 0 ]\n" ..
+                             "[ % 10.4f % 10.4f 1 ]",
+                             _.m11, _.m12,
+                             _.m21, _.m22,
+                             _.tX, _.tY)
+    end,
 }
 
 -- Return Module Object --------------------------------------------------

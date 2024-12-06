@@ -3,7 +3,7 @@
 @import ObjectiveC.runtime ;
 @import SceneKit ;
 
-static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.cone" ;
+static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.pyramid" ;
 
 static LSRefTable         refTable      = LUA_NOREF ;
 
@@ -14,7 +14,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Support Functions and Classes -
 
-@interface SCNCone (HammerspoonAdditions)
+@interface SCNPyramid (HammerspoonAdditions)
 @property (nonatomic)           int  callbackRef ;
 @property (nonatomic)           int  selfRefCount ;
 @property (nonatomic, readonly) int  refTable ;
@@ -26,19 +26,17 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 - (int)refTable ;
 @end
 
-@implementation SCNCone (HammerspoonAdditions)
+@implementation SCNPyramid (HammerspoonAdditions)
 
-+ (instancetype)coneWithName:(NSString *)name topRadius:(CGFloat)topRadius
-                                           bottomRadius:(CGFloat)bottomRadius
-                                                 height:(CGFloat)height {
-    SCNCone *cone = [SCNCone coneWithTopRadius:topRadius bottomRadius:bottomRadius height:height] ;
++ (instancetype)pyramidWithName:(NSString *)name width:(CGFloat)width height:(CGFloat)height length:(CGFloat)length {
+    SCNPyramid *pyramid = [SCNPyramid pyramidWithWidth:width height:height length:length] ;
 
-    if (cone) {
-        cone.callbackRef  = LUA_NOREF ;
-        cone.selfRefCount = 0 ;
-        cone.name         = name ;
+    if (pyramid) {
+        pyramid.callbackRef  = LUA_NOREF ;
+        pyramid.selfRefCount = 0 ;
+        pyramid.name         = name ;
     }
-    return cone ;
+    return pyramid ;
 }
 
 - (void)setCallbackRef:(int)value {
@@ -76,7 +74,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Module Functions -
 
-static int cone_new(lua_State *L) {
+static int pyramid_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING | LS_TNUMBER, LS_TBREAK | LS_TVARARG] ;
     NSString *name       = [[NSUUID UUID] UUIDString] ;
@@ -90,19 +88,17 @@ static int cone_new(lua_State *L) {
         [skin checkArgs:LS_TNUMBER, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
     }
 
-    CGFloat topRadius    = lua_tonumber(L, numericArgs++) ;
-    CGFloat bottomRadius = lua_tonumber(L, numericArgs++) ;
-    CGFloat height       = lua_tonumber(L, numericArgs) ;
+    CGFloat width  = lua_tonumber(L, numericArgs++) ;
+    CGFloat height = lua_tonumber(L, numericArgs++) ;
+    CGFloat length = lua_tonumber(L, numericArgs) ;
 
-    if (topRadius < 0.0)    return luaL_argerror(L, numericArgs - 2, "topRadius cannot be negative") ;
-    if (bottomRadius < 0.0) return luaL_argerror(L, numericArgs - 1, "bottomRadius cannot be negative") ;
-    if (height <= 0.0)      return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-    if (topRadius == 0.0 && bottomRadius == 0.0)
-        return luaL_argerror(L, numericArgs - 2, "top and bottom radii cannot both be zero") ;
+    if (width  <= 0.0) return luaL_argerror(L, numericArgs - 2, "width must be larger than zero") ;
+    if (height <= 0.0) return luaL_argerror(L, numericArgs - 1, "height must be larger than zero") ;
+    if (length <= 0.0) return luaL_argerror(L, numericArgs,     "length must be larger than zero") ;
 
-    SCNCone *cone = [SCNCone coneWithName:name topRadius:topRadius bottomRadius:bottomRadius height:height] ;
-    if (cone) {
-        [skin pushNSObject:cone] ;
+    SCNPyramid *pyramid = [SCNPyramid pyramidWithName:name width:width height:height length:length] ;
+    if (pyramid) {
+        [skin pushNSObject:pyramid] ;
     } else {
         lua_pushnil(L) ;
     }
@@ -111,83 +107,97 @@ static int cone_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-static int cone_topRadius(lua_State *L) {
+static int pyramid_width(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.topRadius) ;
+        lua_pushnumber(L, pyramid.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                              return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.bottomRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        cone.topRadius = value ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
+        pyramid.width = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_bottomRadius(lua_State *L) {
+static int pyramid_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.bottomRadius) ;
+        lua_pushnumber(L, pyramid.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                           return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.topRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        cone.bottomRadius = value ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
+        pyramid.height = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_height(lua_State *L) {
+static int pyramid_length(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.height) ;
+        lua_pushnumber(L, pyramid.length) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
-        cone.height = value ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
+        pyramid.length = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_heightSegmentCount(lua_State *L) {
+static int pyramid_widthSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.heightSegmentCount) ;
+        lua_pushinteger(L, pyramid.widthSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
         if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
-        cone.heightSegmentCount = value ;
+        pyramid.widthSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_radialSegmentCount(lua_State *L) {
+static int pyramid_heightSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.radialSegmentCount) ;
+        lua_pushinteger(L, pyramid.heightSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 3) return luaL_argerror(L, 2, "must be 3 or greater") ;
-        cone.radialSegmentCount = value ;
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
+        pyramid.heightSegmentCount = value ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int pyramid_lengthSegmentCount(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNPyramid *pyramid = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, pyramid.lengthSegmentCount) ;
+    } else {
+        lua_Integer value = lua_tointeger(L, 2) ;
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
+        pyramid.lengthSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -199,21 +209,21 @@ static int cone_radialSegmentCount(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushSCNCone(lua_State *L, id obj) {
-    SCNCone *value = obj;
+static int pushSCNPyramid(lua_State *L, id obj) {
+    SCNPyramid *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCone *));
+    void** valuePtr = lua_newuserdata(L, sizeof(SCNPyramid *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toSCNCone(lua_State *L, int idx) {
+static id toSCNPyramid(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    SCNCone *value ;
+    SCNPyramid *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge SCNCone, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge SCNPyramid, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -229,11 +239,12 @@ static id toSCNCone(lua_State *L, int idx) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"topRadius",      cone_topRadius},
-    {"bottomRadius",   cone_bottomRadius},
-    {"height",         cone_height},
-    {"heightSegments", cone_heightSegmentCount},
-    {"radialSegments", cone_radialSegmentCount},
+    {"width",          pyramid_width},
+    {"height",         pyramid_height},
+    {"length",         pyramid_length},
+    {"widthSegments",  pyramid_widthSegmentCount},
+    {"heightSegments", pyramid_heightSegmentCount},
+    {"lengthSegments", pyramid_lengthSegmentCount},
 
     // inherits metamethods from geometry
     {NULL,             NULL}
@@ -241,7 +252,7 @@ static const luaL_Reg userdata_metaLib[] = {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"new", cone_new},
+    {"new", pyramid_new},
     {NULL,  NULL}
 };
 
@@ -251,24 +262,25 @@ static luaL_Reg moduleLib[] = {
 //     {NULL,   NULL}
 // };
 
-int luaopen_hs__asm_uitk_element_libsceneKit_geometry_cone(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libsceneKit_geometry_pyramid(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushSCNCone  forClass:"SCNCone"];
-    [skin registerLuaObjectHelper:toSCNCone forClass:"SCNCone"
-                                 withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushSCNPyramid  forClass:"SCNPyramid"];
+    [skin registerLuaObjectHelper:toSCNPyramid forClass:"SCNPyramid"
+                                    withUserdataMapping:USERDATA_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
-        @"topRadius",
-        @"bottomRadius",
+        @"width",
         @"height",
+        @"length",
+        @"widthSegments",
         @"heightSegments",
-        @"radialSegments",
+        @"lengthSegments",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pushboolean(L, YES) ; lua_setfield(L, -2, "_subclass") ;

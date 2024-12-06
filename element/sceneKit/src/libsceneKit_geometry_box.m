@@ -115,16 +115,14 @@ static int box_new(lua_State *L) {
 
 static int box_chamferRadius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, box.chamferRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) {
-            return luaL_argerror(L, 2, "cannot be negative") ;
-        }
+        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         box.chamferRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -133,16 +131,14 @@ static int box_chamferRadius(lua_State *L) {
 
 static int box_width(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, box.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        }
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -151,16 +147,14 @@ static int box_width(lua_State *L) {
 
 static int box_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, box.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        }
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.height = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -169,16 +163,14 @@ static int box_height(lua_State *L) {
 
 static int box_length(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, box.length) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        }
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.length = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -187,16 +179,14 @@ static int box_length(lua_State *L) {
 
 static int box_chamferSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, box.chamferSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         box.chamferSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -205,16 +195,14 @@ static int box_chamferSegmentCount(lua_State *L) {
 
 static int box_widthSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, box.widthSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         box.widthSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -223,16 +211,14 @@ static int box_widthSegmentCount(lua_State *L) {
 
 static int box_heightSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, box.heightSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         box.heightSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -241,16 +227,14 @@ static int box_heightSegmentCount(lua_State *L) {
 
 static int box_lengthSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNBox *box = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, box.lengthSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         box.lengthSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }

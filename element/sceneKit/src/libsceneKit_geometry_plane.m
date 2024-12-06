@@ -107,16 +107,14 @@ static int plane_new(lua_State *L) {
 
 static int plane_cornerRadius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, plane.cornerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) {
-            return luaL_argerror(L, 2, "cannot be negative") ;
-        }
+        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         plane.cornerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -125,16 +123,14 @@ static int plane_cornerRadius(lua_State *L) {
 
 static int plane_width(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, plane.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        }
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         plane.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -143,16 +139,14 @@ static int plane_width(lua_State *L) {
 
 static int plane_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, plane.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be larger than zero") ;
-        }
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         plane.height = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -161,16 +155,14 @@ static int plane_height(lua_State *L) {
 
 static int plane_cornerSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, plane.cornerSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         plane.cornerSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -179,16 +171,14 @@ static int plane_cornerSegmentCount(lua_State *L) {
 
 static int plane_widthSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, plane.widthSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         plane.widthSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -197,16 +187,14 @@ static int plane_widthSegmentCount(lua_State *L) {
 
 static int plane_heightSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNPlane *plane = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
         lua_pushinteger(L, plane.heightSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
-        if (value < 1) {
-            return luaL_argerror(L, 2, "must be 1 or greater") ;
-        }
+        if (value < 1) return luaL_argerror(L, 2, "must be 1 or greater") ;
         plane.heightSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }

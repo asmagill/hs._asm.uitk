@@ -104,7 +104,7 @@ static int property_contents(lua_State *L) {
     if (lua_gettop(L) == 1) {
         [skin pushNSObject:property.contents] ;
     } else {
-        NSObject *previousContents = property.contents ;
+//         NSObject *previousContents = property.contents ;
 
         if (lua_type(L, 2) == LUA_TNIL) {
             property.contents = nil ;
@@ -122,14 +122,20 @@ static int property_contents(lua_State *L) {
             lua_getfield(L, 2, "__name") ;
             NSString *type = [NSString stringWithUTF8String:lua_tostring(L, -1)] ;
             lua_pop(L, 2) ;
-            if ([type isEqualToString:@"hs.image"] || [type isEqualToString:@"hs._asm.uitk.element.avplayer"]) {
-                NSObject *contents = [skin toNSObjectAtIndex:2] ;
-                if ([contents isKindOfClass:[AVPlayerView class]]) {
-                    [skin luaRetain:refTable forNSObject:contents] ;
-                }
-                property.contents = contents ;
+// FIXME: Nope, not the view, but the player object. Need to decide if breaking avplayer element into two parts is worth it
+//             if ([type isEqualToString:@"hs.image"] || [type isEqualToString:@"hs._asm.uitk.element.avplayer"]) {
+//                 NSObject *contents = [skin toNSObjectAtIndex:2] ;
+//                 if ([contents isKindOfClass:[AVPlayerView class]]) {
+//                     [skin luaRetain:refTable forNSObject:contents] ;
+//                 }
+//                 property.contents = contents ;
+//             } else {
+//                 return luaL_argerror(L, 2, "userdata must be image or avplayer") ;
+//             }
+            if ([type isEqualToString:@"hs.image"]) {
+                property.contents = [skin toNSObjectAtIndex:2] ;
             } else {
-                return luaL_argerror(L, 2, "userdata must be image or avplayer") ;
+                return luaL_argerror(L, 2, "userdata must be image") ;
             }
         } else if (lua_type(L, 2) == LUA_TTABLE) {
             NSArray *value = [skin toNSObjectAtIndex:2] ;
@@ -149,11 +155,9 @@ static int property_contents(lua_State *L) {
         } else {
             return luaL_argerror(L, 2, "invalid content type") ;
         }
-
-        if (previousContents && [previousContents isKindOfClass:[AVPlayerView class]]) {
-            [skin luaRelease:refTable forNSObject:previousContents] ;
-        }
-
+//         if (previousContents && [previousContents isKindOfClass:[AVPlayerView class]]) {
+//             [skin luaRelease:refTable forNSObject:previousContents] ;
+//         }
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -407,10 +411,10 @@ static int userdata_gc(lua_State* L) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:refTable ref:obj.callbackRef] ;
             if (obj.contents) {
-                NSObject *contents = obj.contents ;
-                if ([contents isKindOfClass:[AVPlayerView class]]) {
-                    [skin luaRelease:refTable forNSObject:contents] ;
-                }
+//                 NSObject *contents = obj.contents ;
+//                 if ([contents isKindOfClass:[AVPlayerView class]]) {
+//                     [skin luaRelease:refTable forNSObject:contents] ;
+//                 }
             }
             obj.contents = nil ;
             obj = nil ;
@@ -455,8 +459,7 @@ static luaL_Reg moduleLib[] = {
 //     {"__gc", meta_gc},
 //     {NULL,   NULL}
 // };
-
-int luaopen_hs__asm_uitk_element_libsceneKit_materialProperty(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libsceneKit_material_property(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib

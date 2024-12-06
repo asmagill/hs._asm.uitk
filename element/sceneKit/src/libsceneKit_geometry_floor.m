@@ -92,7 +92,7 @@ static int floor_new(lua_State *L) {
 
 static int floor_length(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -100,7 +100,6 @@ static int floor_length(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
-
         theFloor.length = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -109,7 +108,7 @@ static int floor_length(lua_State *L) {
 
 static int floor_width(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -117,7 +116,6 @@ static int floor_width(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
-
         theFloor.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -126,7 +124,7 @@ static int floor_width(lua_State *L) {
 
 static int floor_reflectionFalloffEnd(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -134,7 +132,6 @@ static int floor_reflectionFalloffEnd(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
-
         theFloor.reflectionFalloffEnd = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -143,7 +140,7 @@ static int floor_reflectionFalloffEnd(lua_State *L) {
 
 static int floor_reflectionFalloffStart(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -151,7 +148,6 @@ static int floor_reflectionFalloffStart(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
-
         theFloor.reflectionFalloffStart = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -160,7 +156,7 @@ static int floor_reflectionFalloffStart(lua_State *L) {
 
 static int floor_reflectivity(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -168,7 +164,6 @@ static int floor_reflectivity(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
-
         theFloor.reflectivity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -177,7 +172,7 @@ static int floor_reflectivity(lua_State *L) {
 
 static int floor_reflectionResolutionScaleFactor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -185,7 +180,6 @@ static int floor_reflectionResolutionScaleFactor(lua_State *L) {
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
         if (value <= 0.0 || value > 1.0) return luaL_argerror(L, 2, "must be greater than 0.0 and less than or equal to 1.0") ;
-
         theFloor.reflectionResolutionScaleFactor = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -194,7 +188,7 @@ static int floor_reflectionResolutionScaleFactor(lua_State *L) {
 
 static int floor_reflectionCategoryBitMask(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNFloor *theFloor = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {

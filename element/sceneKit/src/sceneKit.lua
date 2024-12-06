@@ -55,7 +55,7 @@ local preload = function(m, isLua)
                          or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)([%w_]+)$") }, "lib") .. "_" .. m)
         local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
         if el and elMT then
-            uitk.element._elementControlViewWrapper(elMT)
+            uitk.util._properties.addPropertiesWrapper(elMT)
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then
