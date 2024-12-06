@@ -43,15 +43,16 @@ local subModules = {
     box         = false,
     capsule     = false,
     cone        = false,
---     cylinder    = false,
---     floor       = false,
---     plane       = false,
+    cylinder    = false,
+    floor       = false,
+    plane       = false,
 --     pyramid     = false,
---     shape       = false,
 --     sphere      = false,
---     text        = false,
 --     torus       = false,
 --     tube        = false,
+
+--     shape       = false,
+--     text        = false,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or

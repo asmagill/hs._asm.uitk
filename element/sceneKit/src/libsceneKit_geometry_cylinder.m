@@ -3,7 +3,7 @@
 @import ObjectiveC.runtime ;
 @import SceneKit ;
 
-static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.cone" ;
+static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry.cylinder" ;
 
 static LSRefTable         refTable      = LUA_NOREF ;
 
@@ -14,7 +14,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Support Functions and Classes -
 
-@interface SCNCone (HammerspoonAdditions)
+@interface SCNCylinder (HammerspoonAdditions)
 @property (nonatomic)           int  callbackRef ;
 @property (nonatomic)           int  selfRefCount ;
 @property (nonatomic, readonly) int  refTable ;
@@ -26,19 +26,17 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 - (int)refTable ;
 @end
 
-@implementation SCNCone (HammerspoonAdditions)
+@implementation SCNCylinder (HammerspoonAdditions)
 
-+ (instancetype)coneWithName:(NSString *)name topRadius:(CGFloat)topRadius
-                                           bottomRadius:(CGFloat)bottomRadius
-                                                 height:(CGFloat)height {
-    SCNCone *cone = [SCNCone coneWithTopRadius:topRadius bottomRadius:bottomRadius height:height] ;
++ (instancetype)cylinderWithName:(NSString *)name radius:(CGFloat)radius height:(CGFloat)height {
+    SCNCylinder *cylinder = [SCNCylinder cylinderWithRadius:radius height:height] ;
 
-    if (cone) {
-        cone.callbackRef  = LUA_NOREF ;
-        cone.selfRefCount = 0 ;
-        cone.name         = name ;
+    if (cylinder) {
+        cylinder.callbackRef  = LUA_NOREF ;
+        cylinder.selfRefCount = 0 ;
+        cylinder.name         = name ;
     }
-    return cone ;
+    return cylinder ;
 }
 
 - (void)setCallbackRef:(int)value {
@@ -76,7 +74,7 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Module Functions -
 
-static int cone_new(lua_State *L) {
+static int cylinder_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING | LS_TNUMBER, LS_TBREAK | LS_TVARARG] ;
     NSString *name       = [[NSUUID UUID] UUIDString] ;
@@ -90,19 +88,15 @@ static int cone_new(lua_State *L) {
         [skin checkArgs:LS_TNUMBER, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
     }
 
-    CGFloat topRadius    = lua_tonumber(L, numericArgs++) ;
-    CGFloat bottomRadius = lua_tonumber(L, numericArgs++) ;
-    CGFloat height       = lua_tonumber(L, numericArgs) ;
+    CGFloat radius = lua_tonumber(L, numericArgs++) ;
+    CGFloat height = lua_tonumber(L, numericArgs) ;
 
-    if (topRadius < 0.0)    return luaL_argerror(L, numericArgs - 2, "topRadius cannot be negative") ;
-    if (bottomRadius < 0.0) return luaL_argerror(L, numericArgs - 1, "bottomRadius cannot be negative") ;
-    if (height <= 0.0)      return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-    if (topRadius == 0.0 && bottomRadius == 0.0)
-        return luaL_argerror(L, numericArgs - 2, "top and bottom radii cannot both be zero") ;
+    if (radius <= 0.0) return luaL_argerror(L, numericArgs - 1, "height must be greater than zero") ;
+    if (height <= 0.0) return luaL_argerror(L, numericArgs,     "height must be greater than zero") ;
 
-    SCNCone *cone = [SCNCone coneWithName:name topRadius:topRadius bottomRadius:bottomRadius height:height] ;
-    if (cone) {
-        [skin pushNSObject:cone] ;
+    SCNCylinder *cylinder = [SCNCylinder cylinderWithName:name radius:radius height:height] ;
+    if (cylinder) {
+        [skin pushNSObject:cylinder] ;
     } else {
         lua_pushnil(L) ;
     }
@@ -111,95 +105,71 @@ static int cone_new(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-static int cone_topRadius(lua_State *L) {
+static int cylinder_radius(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNCylinder *cylinder = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.topRadius) ;
+        lua_pushnumber(L, cylinder.radius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) {
-            return luaL_argerror(L, 2, "cannot be negative") ;
-        } else if (value == 0.0 && cone.bottomRadius == 0.0) {
-            return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        }
-        cone.topRadius = value ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
+
+        cylinder.radius = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_bottomRadius(lua_State *L) {
+static int cylinder_height(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNCylinder *cylinder = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.bottomRadius) ;
+        lua_pushnumber(L, cylinder.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) {
-            return luaL_argerror(L, 2, "cannot be negative") ;
-        } else if (value == 0.0 && cone.topRadius == 0.0) {
-            return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
-        }
-        cone.bottomRadius = value ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
+
+        cylinder.height = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_height(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        lua_pushnumber(L, cone.height) ;
-    } else {
-        CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) {
-            return luaL_argerror(L, 2, "must be greater than zero") ;
-        }
-        cone.height = value ;
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int cone_heightSegmentCount(lua_State *L) {
+static int cylinder_heightSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNCylinder *cylinder = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.heightSegmentCount) ;
+        lua_pushinteger(L, cylinder.heightSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
         if (value < 1) {
             return luaL_argerror(L, 2, "must be 1 or greater") ;
         }
-        cone.heightSegmentCount = value ;
+        cylinder.heightSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
 
-static int cone_radialSegmentCount(lua_State *L) {
+static int cylinder_radialSegmentCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNCone *cone = [skin toNSObjectAtIndex:1] ;
+    SCNCylinder *cylinder = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushinteger(L, cone.radialSegmentCount) ;
+        lua_pushinteger(L, cylinder.radialSegmentCount) ;
     } else {
         lua_Integer value = lua_tointeger(L, 2) ;
         if (value < 1) {
             return luaL_argerror(L, 2, "must be 1 or greater") ;
         }
-        cone.radialSegmentCount = value ;
+        cylinder.radialSegmentCount = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -211,21 +181,21 @@ static int cone_radialSegmentCount(lua_State *L) {
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
 // delegates and blocks.
 
-static int pushSCNCone(lua_State *L, id obj) {
-    SCNCone *value = obj;
+static int pushSCNCylinder(lua_State *L, id obj) {
+    SCNCylinder *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCone *));
+    void** valuePtr = lua_newuserdata(L, sizeof(SCNCylinder *));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
     return 1;
 }
 
-static id toSCNCone(lua_State *L, int idx) {
+static id toSCNCylinder(lua_State *L, int idx) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    SCNCone *value ;
+    SCNCylinder *value ;
     if (luaL_testudata(L, idx, USERDATA_TAG)) {
-        value = get_objectFromUserdata(__bridge SCNCone, L, idx, USERDATA_TAG) ;
+        value = get_objectFromUserdata(__bridge SCNCylinder, L, idx, USERDATA_TAG) ;
     } else {
         [skin logError:[NSString stringWithFormat:@"expected %s object, found %s", USERDATA_TAG,
                                                    lua_typename(L, lua_type(L, idx))]] ;
@@ -241,11 +211,10 @@ static id toSCNCone(lua_State *L, int idx) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"topRadius",      cone_topRadius},
-    {"bottomRadius",   cone_bottomRadius},
-    {"height",         cone_height},
-    {"heightSegments", cone_heightSegmentCount},
-    {"radialSegments", cone_radialSegmentCount},
+    {"radius",         cylinder_radius},
+    {"height",         cylinder_height},
+    {"heightSegments", cylinder_heightSegmentCount},
+    {"radialSegments", cylinder_radialSegmentCount},
 
     // inherits metamethods from geometry
     {NULL,             NULL}
@@ -253,7 +222,7 @@ static const luaL_Reg userdata_metaLib[] = {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"new", cone_new},
+    {"new", cylinder_new},
     {NULL,  NULL}
 };
 
@@ -263,21 +232,20 @@ static luaL_Reg moduleLib[] = {
 //     {NULL,   NULL}
 // };
 
-int luaopen_hs__asm_uitk_element_libsceneKit_geometry_cone(lua_State* L) {
+int luaopen_hs__asm_uitk_element_libsceneKit_geometry_cylinder(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     refTable = [skin registerLibraryWithObject:USERDATA_TAG
                                      functions:moduleLib
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
 
-    [skin registerPushNSHelper:pushSCNCone  forClass:"SCNCone"];
-    [skin registerLuaObjectHelper:toSCNCone forClass:"SCNCone"
+    [skin registerPushNSHelper:pushSCNCylinder  forClass:"SCNCylinder"];
+    [skin registerLuaObjectHelper:toSCNCylinder forClass:"SCNCylinder"
                                  withUserdataMapping:USERDATA_TAG];
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
-        @"topRadius",
-        @"bottomRadius",
+        @"radius",
         @"height",
         @"heightSegments",
         @"radialSegments",

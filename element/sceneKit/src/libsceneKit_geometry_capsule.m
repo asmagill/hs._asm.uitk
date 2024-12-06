@@ -14,9 +14,6 @@ static void *SELFREFCOUNT_KEY = @"HS_selfRefCountKey" ;
 
 #pragma mark - Support Functions and Classes -
 
-static void defineInternalDictionaries(void) {
-}
-
 @interface SCNCapsule (HammerspoonAdditions)
 @property (nonatomic)           int  callbackRef ;
 @property (nonatomic)           int  selfRefCount ;
@@ -267,8 +264,6 @@ int luaopen_hs__asm_uitk_element_libsceneKit_geometry_capsule(lua_State* L) {
                                      functions:moduleLib
                                  metaFunctions:nil    // or module_metaLib
                                objectFunctions:userdata_metaLib];
-
-    defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushSCNCapsule  forClass:"SCNCapsule"];
     [skin registerLuaObjectHelper:toSCNCapsule forClass:"SCNCapsule"

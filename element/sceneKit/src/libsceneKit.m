@@ -466,25 +466,25 @@ static int sceneKit_scene_fogColor(lua_State *L) {
     return 1 ;
 }
 
-// static int sceneKit_scene_backgroundMaterial(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
-//     SCNScene             *scene = view.scene ;
-//
-//     [skin pushNSObject:scene.background] ;
-//     return 1 ;
-// }
-//
-// static int sceneKit_scene_lightingEnvironment(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
-//     SCNScene             *scene = view.scene ;
-//
-//     [skin pushNSObject:scene.lightingEnvironment] ;
-//     return 1 ;
-// }
+static int sceneKit_scene_backgroundMaterial(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+    SCNScene             *scene = view.scene ;
+
+    [skin pushNSObject:scene.background] ;
+    return 1 ;
+}
+
+static int sceneKit_scene_lightingEnvironment(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+    SCNScene             *scene = view.scene ;
+
+    [skin pushNSObject:scene.lightingEnvironment] ;
+    return 1 ;
+}
 
 static int sceneKit_scene_rootNode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -584,8 +584,8 @@ static const luaL_Reg userdata_metaLib[] = {
 
 //     {"cameraControlConfig",   sceneKit_cameraControlConfiguration},
 //     {"defaultCamera",         sceneKit_defaultCameraController},
-//     {"backgroundMaterial",    sceneKit_scene_backgroundMaterial},
-//     {"lightingEnvironment",   sceneKit_scene_lightingEnvironment},
+    {"backgroundMaterial",    sceneKit_scene_backgroundMaterial},
+    {"lightingEnvironment",   sceneKit_scene_lightingEnvironment},
     {"rootNode",              sceneKit_scene_rootNode},
 //     {"physicsWorld",          sceneKit_scene_physicsWorld},
 

@@ -341,9 +341,8 @@ static int geometry_materials(lua_State *L) {
         BOOL       isGood     = [materials isKindOfClass:[NSArray class]] ;
         NSUInteger count      = 0 ;
         while (isGood && count < materials.count) {
-            SCNMaterial *item = materials[count] ;
+            SCNMaterial *item = materials[count++] ;
             if (![item isKindOfClass:[SCNMaterial class]]) isGood = NO ;
-            count++ ;
         }
         if (!isGood) {
             return luaL_argerror(L, 2, "expected array of sceneKit material objects") ;
@@ -397,9 +396,8 @@ static int geometry_firstMaterial(lua_State *L) {
 //             BOOL       isGood  = [levels isKindOfClass:[NSArray class]] ;
 //             NSUInteger count      = 0 ;
 //             while (isGood && count < levels.count) {
-//                 levelsOfDetail *item = levels[count] ;
+//                 levelsOfDetail *item = levels[count++] ;
 //                 if (![item isKindOfClass:[levelsOfDetail class]]) isGood = NO ;
-//                 count++ ;
 //             }
 //             if (!isGood) {
 //                 return luaL_argerror(L, 2, "expected array of sceneKit levelsOfDetail objects or nil to clear") ;

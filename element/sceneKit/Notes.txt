@@ -1,6 +1,5 @@
 +   @class SCNView
 +   @class SCNNode
--       @class SCNReferenceNode // for loading scenes from file
 
     @class SCNCamera
     @class SCNLight
@@ -8,7 +7,7 @@
 +       @class SCNBox
 +       @class SCNCapsule
 +       @class SCNCone
-        @class SCNCylinder
++       @class SCNCylinder
         @class SCNFloor
         @class SCNPlane
         @class SCNPyramid
@@ -20,6 +19,8 @@
 +   @class SCNGeometryTessellator
  ?  @class SCNGeometryElement
  ?  @class SCNGeometrySource
++   @class SCNMaterial
++   @class SCNMaterialProperty
 
     @class SCNAction
     @class SCNAnimation
@@ -39,10 +40,7 @@
         @class SCNSliderConstraint
         @class SCNTransformConstraint
     @class SCNHitTestResult
-    @class SCNLayer
     @class SCNLevelOfDetail
-    @class SCNMaterial
-    @class SCNMaterialProperty
     @class SCNMorpher
     @class SCNParticlePropertyController
     @class SCNParticleSystem
@@ -60,9 +58,12 @@
     @class SCNPhysicsWorld
     @class SCNProgram
     @class SCNRenderer
-    @class SCNScene
     @class SCNSceneSource
     @class SCNSkinner
     @class SCNTechnique
     @class SCNTimingFunction
     @class SCNTransaction
+
+-   @class SCNReferenceNode   // SCNNode subclass, for loading scenes from file
+-   @class SCNLayer           // deprecated
+-   @class SCNScene           // wrapped up with SCNView
