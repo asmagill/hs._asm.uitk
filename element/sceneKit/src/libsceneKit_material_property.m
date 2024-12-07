@@ -410,12 +410,12 @@ static int userdata_gc(lua_State* L) {
         if (obj.selfRefCount == 0) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:refTable ref:obj.callbackRef] ;
-            if (obj.contents) {
+//             if (obj.contents) {
 //                 NSObject *contents = obj.contents ;
 //                 if ([contents isKindOfClass:[AVPlayerView class]]) {
 //                     [skin luaRelease:refTable forNSObject:contents] ;
 //                 }
-            }
+//             }
             obj.contents = nil ;
             obj = nil ;
         }
