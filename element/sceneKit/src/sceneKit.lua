@@ -45,6 +45,7 @@ local subModules = {
     node             = false,
     geometry         = true,
     material         = true,
+    cameraController = false,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -71,11 +72,10 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
--- we need the node definition to exist so `new` can retain the root node
-module.node = require(USERDATA_TAG .. ".node")
-
--- also needed by submodules, so preload to ensure it's in place
-module.material = require(USERDATA_TAG .. ".material")
+-- these create types required by module and/or submodules, so preload
+module.node             = require(USERDATA_TAG .. ".node")
+module.cameraController = require(USERDATA_TAG .. ".cameraController")
+module.material         = require(USERDATA_TAG .. ".material")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods

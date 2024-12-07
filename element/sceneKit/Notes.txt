@@ -1,26 +1,28 @@
-+   @class SCNView
-+   @class SCNNode
++   @class SCNView                          SCNSceneRenderer SCNTechniqueSupport
++   @class SCNNode                          SCNActionable SCNAnimatable SCNBoundingVolume
 
-    @class SCNCamera
-    @class SCNLight
-+   @class SCNGeometry
++   @class SCNCameraController              SCNCameraControllerDelegate
+
+    @class SCNCamera                        SCNAnimatable SCNTechniqueSupport
+    @class SCNLight                         SCNAnimatable
++   @class SCNGeometry                      SCNAnimatable SCNBoundingVolume SCNShadable
 +       @class SCNBox
 +       @class SCNCapsule
 +       @class SCNCone
 +       @class SCNCylinder
-        @class SCNFloor
-        @class SCNPlane
-        @class SCNPyramid
-        @class SCNShape
-        @class SCNSphere
++       @class SCNFloor
++       @class SCNPlane
++       @class SCNPyramid
+ ?      @class SCNShape
++       @class SCNSphere
         @class SCNText
-        @class SCNTorus
-        @class SCNTube
-+   @class SCNGeometryTessellator
++       @class SCNTorus
++       @class SCNTube
++   @class SCNGeometryTessellator   -
  ?  @class SCNGeometryElement
  ?  @class SCNGeometrySource
-+   @class SCNMaterial
-+   @class SCNMaterialProperty
++   @class SCNMaterial                      SCNAnimatable SCNShadable
++   @class SCNMaterialProperty              SCNAnimatable
 
     @class SCNAction
     @class SCNAnimation
@@ -28,10 +30,9 @@
     @class SCNAnimationPlayer
     @class SCNAudioPlayer
     @class SCNAudioSource
-    @class SCNCameraController
     @class SCNConstraint
         @class SCNAccelerationConstraint
-        @class SCNAvoidOccluderConstraint
+        @class SCNAvoidOccluderConstraint   SCNAvoidOccluderConstraintDelegate
         @class SCNBillboardConstraint
         @class SCNDistanceConstraint
         @class SCNIKConstraint
@@ -56,7 +57,7 @@
     @class SCNPhysicsShape
     @class SCNPhysicsVehicleWheel
     @class SCNPhysicsWorld
-    @class SCNProgram
+    @class SCNProgram                       SCNProgramDelegate
     @class SCNRenderer
     @class SCNSceneSource
     @class SCNSkinner
@@ -67,3 +68,18 @@
 -   @class SCNReferenceNode   // SCNNode subclass, for loading scenes from file
 -   @class SCNLayer           // deprecated
 -   @class SCNScene           // wrapped up with SCNView
+
+@protocol SCNActionable
+@protocol SCNAnimatable
+@protocol SCNAnimation
+@protocol SCNBoundingVolume
+@protocol SCNBufferStream
+@protocol SCNCameraControlConfiguration
+@protocol SCNSceneRenderer
+@protocol SCNShadable
+@protocol SCNTechniqueSupport
+
+@protocol SCNNodeRendererDelegate
+@protocol SCNPhysicsContactDelegate
+@protocol SCNSceneExportDelegate
+@protocol SCNSceneRendererDelegate

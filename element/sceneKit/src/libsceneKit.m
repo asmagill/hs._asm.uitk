@@ -22,6 +22,10 @@ static void defineInternalDictionaries(void) {
     } ;
 }
 
+@interface SCNCameraController (HammerspoonAdditions)
+@property (nonatomic) SCNView *ownerView ;
+@end
+
 @interface HSUITKElementSCNView : SCNView
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
@@ -54,6 +58,9 @@ static void defineInternalDictionaries(void) {
 
     return self ;
 }
+
+// // Follow the Hammerspoon convention
+// - (BOOL)isFlipped { return YES; }
 
 // NOTE: Passthrough Callback Support
 
@@ -303,23 +310,85 @@ static int sceneKit_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
-// static int sceneKit_cameraControlConfiguration(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
-//
-//     [skin pushNSObject:view.cameraControlConfiguration] ;
-//     return 1 ;
-// }
-//
-// static int sceneKit_defaultCameraController(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
-//
-//     [skin pushNSObject:view.defaultCameraController] ;
-//     return 1 ;
-// }
+static int sceneKit_cameraControlConfiguration(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
+
+    id<SCNCameraControlConfiguration> config = view.cameraControlConfiguration ;
+    if (lua_gettop(L) == 1) {
+        lua_newtable(L) ;
+        lua_pushboolean(L, config.allowsTranslation) ;      lua_setfield(L, -2, "allowsTranslation") ;
+        lua_pushboolean(L, config.autoSwitchToFreeCamera) ; lua_setfield(L, -2, "autoSwitchToFreeCamera") ;
+        lua_pushnumber(L, config.flyModeVelocity) ;         lua_setfield(L, -2, "flyModeVelocity") ;
+        lua_pushnumber(L, config.panSensitivity) ;          lua_setfield(L, -2, "panSensitivity") ;
+        lua_pushnumber(L, config.rotationSensitivity) ;     lua_setfield(L, -2, "rotationSensitivity") ;
+        lua_pushnumber(L, config.truckSensitivity) ;        lua_setfield(L, -2, "truckSensitivity") ;
+    } else {
+        NSDictionary *newConfig = [skin toNSObjectAtIndex:2] ;
+        if (![newConfig isKindOfClass:[NSDictionary class]]) return luaL_argerror(L, 2, "expected table of key-value pairs") ;
+        NSNumber *value = newConfig[@"allowsTranslation"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.allowsTranslation = value.boolValue ;
+            } else {
+                [skin logWarn:@"expected boolean value for allowsTranslation; ignoring"] ;
+            }
+        }
+        value = newConfig[@"autoSwitchToFreeCamera"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.autoSwitchToFreeCamera = value.boolValue ;
+            } else {
+                [skin logWarn:@"expected boolean value for autoSwitchToFreeCamera; ignoring"] ;
+            }
+        }
+        value = newConfig[@"flyModeVelocity"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.flyModeVelocity = value.doubleValue ;
+            } else {
+                [skin logWarn:@"expected number value for flyModeVelocity; ignoring"] ;
+            }
+        }
+        value = newConfig[@"panSensitivity"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.panSensitivity = value.doubleValue ;
+            } else {
+                [skin logWarn:@"expected number value for panSensitivity; ignoring"] ;
+            }
+        }
+        value = newConfig[@"rotationSensitivity"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.rotationSensitivity = value.doubleValue ;
+            } else {
+                [skin logWarn:@"expected number value for rotationSensitivity; ignoring"] ;
+            }
+        }
+        value = newConfig[@"truckSensitivity"] ;
+        if (value) {
+            if ([value isKindOfClass:[NSNumber class]]) {
+                config.truckSensitivity = value.doubleValue ;
+            } else {
+                [skin logWarn:@"expected number value for truckSensitivity; ignoring"] ;
+            }
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneKit_defaultCameraController(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
+
+    view.defaultCameraController.ownerView = view ;
+    [skin pushNSObject:view.defaultCameraController] ;
+    return 1 ;
+}
 
 #pragma mark - Module Methods - SCNScene -
 
@@ -582,8 +651,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"stop",                  sceneKit_stop},
     {"snapshot",              sceneKit_snapshot},
 
-//     {"cameraControlConfig",   sceneKit_cameraControlConfiguration},
-//     {"defaultCamera",         sceneKit_defaultCameraController},
+    {"cameraControlConfig",   sceneKit_cameraControlConfiguration},
+    {"defaultCamera",         sceneKit_defaultCameraController},
     {"backgroundMaterial",    sceneKit_scene_backgroundMaterial},
     {"lightingEnvironment",   sceneKit_scene_lightingEnvironment},
     {"rootNode",              sceneKit_scene_rootNode},
@@ -637,6 +706,7 @@ int luaopen_hs__asm_uitk_element_libsceneKit(lua_State* L) {
         @"rendersContinuously",
         @"allowsCameraControl",
         @"backgroundColor",
+        @"cameraControlConfig",
         @"preferredFPS",
         @"antialiasingMode",
         @"passthroughCallback",
