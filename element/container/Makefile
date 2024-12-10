@@ -1,6 +1,8 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
+.SILENT:
+
 # Universal build info mostly from
 #     https://developer.apple.com/documentation/xcode/building_a_universal_macos_binary
 # Insight on Universal dSYM from
