@@ -262,8 +262,9 @@ moduleMT._inheritableMethods = {
 
 moduleMT._inheritableProperties = { "containerFrame", "id" }
 
--- normally handled by _elementControlViewWrapper, but we want to add fittingSize, so we invoke separately
-uitk.util._properties.addPropertiesWrapper(moduleMT, { _fittingSize = moduleMT.fittingSize })
+-- it's nil here anyways, since it's inherited through shared view methods
+-- -- normally handled by _elementControlViewWrapper, but we want to add fittingSize, so we invoke separately
+-- uitk.util._properties.addPropertiesWrapper(moduleMT, { _fittingSize = moduleMT.fittingSize })
 
 -- because we're loaded directly rather than through an element preload function, we need to invoke the
 -- wrapper manually, but it needs to happen after our local __index and __newindex (if any) methods are defined
