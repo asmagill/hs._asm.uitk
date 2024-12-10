@@ -52,7 +52,8 @@ local subModules = {
 --     text        = false,
     torus       = false,
     tube        = false,
-
+    source      = false,
+    element     = false,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -75,7 +76,14 @@ local preload = function(m, isLua)
                     end
                 end
             end
-            uitk.util._properties.addPropertiesWrapper(elMT)
+
+            local readOnlyAdditions
+            if elMT._readOnlyAdditions then
+                readOnlyAdditions = {}
+                for i, v in ipairs(elMT._readOnlyAdditions) do readOnlyAdditions[v] = elMT[v] end
+            end
+
+            if elMT._propertyList then uitk.util._properties.addPropertiesWrapper(elMT, readOnlyAdditions) end
         end
 
         if getmetatable(el) == nil and type(el.new) == "function" then
@@ -89,6 +97,10 @@ end
 for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
+
+-- make sure these are loaded since they provide types for this module
+module.source  = require(USERDATA_TAG .. ".source")
+module.element = require(USERDATA_TAG .. ".element")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods

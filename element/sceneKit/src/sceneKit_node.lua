@@ -28,43 +28,12 @@
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.material"
+local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.node"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libsceneKit_"))
 local fnutils      = require("hs.fnutils")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
-
-local subModules = {
---  name       lua or library?
-    property = false,
-}
-
--- set up preload for elements so that when they are loaded, the methods from _control and/or
--- __view are also included and the property lists are setup correctly.
-local preload = function(m, isLua)
-    return function()
-       local el = isLua and require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "sceneKit_") .. "_" .. m)
-                       or  require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libsceneKit_") .. "_" .. m)
-        local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
-        if el and elMT then
-            if elMT._propertyList then uitk.util._properties.addPropertiesWrapper(elMT) end
-        end
-
-        if getmetatable(el) == nil and type(el.new) == "function" then
-            el = setmetatable(el, { __call = function(self, ...) return self.new(...) end })
-        end
-
-        return el
-    end
-end
-
-for k, v in pairs(subModules) do
-    package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
-end
-
-module.property = require(USERDATA_TAG .. ".property")
-local propertyMT = hs.getObjectMetatable(USERDATA_TAG .. ".property")
 
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
@@ -76,27 +45,18 @@ local propertyMT = hs.getObjectMetatable(USERDATA_TAG .. ".property")
 
 -- Public interface ------------------------------------------------------
 
-module.property.colorMasks = ls.makeConstantsTable(module.property.colorMasks)
+local _moduleMT_index = moduleMT.__index
 
-local _textureComponents = propertyMT.textureComponents ;
-propertyMT.textureComponents = function(self, ...)
-    local args = table.pack(...)
-
-    if args.n == 0 then return _textureComponents(self) end
-    if args.n == 1 and type(args[1]) == "table" then args = args[1] end
-
-    local value = 0
-    for i = 1, args.n, 1 do
-        local item = args[i]
-        if math.type(item) == "integer" then
-            value = value | item
-        elseif type(item) == "string" and module.property.colorMasks[item] then
-            value = value | module.property.colorMasks[item]
-        else
-            error("expected integer or string from hs._asm.uitk.element.sceneKit.material.property.colorMasks", 3)
-        end
+moduleMT.__index = function(self, key)
+    if math.type(key) == "integer" then
+        return self:childNodes()[key]
+    else
+        return nil
     end
-    return _textureComponents(self, value)
+end
+
+moduleMT.__len = function(self)
+    return #self:childNodes()
 end
 
 -- Return Module Object --------------------------------------------------

@@ -1,11 +1,18 @@
-+   @class SCNView                          SCNSceneRenderer SCNTechniqueSupport
-+   @class SCNNode                          SCNActionable SCNAnimatable SCNBoundingVolume
+//    remove constraints that result in zero geometry? effect is documented, so no ill effects
+//    should quaternion functions check that it's a unit vector?
+//        obj-c side -- it's only rotation quaternions (what macOS mainly uses them for) that has this limit;
+//            uitk.util.vector should probably remain agnostic
 
-+   @class SCNCameraController              SCNCameraControllerDelegate
++   @class SCNView                          <+SCNSceneRenderer, -SCNTechniqueSupport>
++   @class SCNScene  w/ SCNView
 
-    @class SCNCamera                        SCNAnimatable SCNTechniqueSupport
-    @class SCNLight                         SCNAnimatable
-+   @class SCNGeometry                      SCNAnimatable SCNBoundingVolume SCNShadable
++   @class SCNNode                          <SCNAnimatable, SCNActionable, +SCNBoundingVolume>
+
++   @class SCNCameraController
+
++   @class SCNCamera                        <SCNAnimatable, -SCNTechniqueSupport>
++   @class SCNLight                         <SCNAnimatable>
++   @class SCNGeometry                      <SCNAnimatable, +SCNBoundingVolume, -SCNShadable>
 +       @class SCNBox
 +       @class SCNCapsule
 +       @class SCNCone
@@ -18,68 +25,55 @@
         @class SCNText
 +       @class SCNTorus
 +       @class SCNTube
-+   @class SCNGeometryTessellator   -
++   @class SCNGeometryTessellator
  ?  @class SCNGeometryElement
  ?  @class SCNGeometrySource
-+   @class SCNMaterial                      SCNAnimatable SCNShadable
-+   @class SCNMaterialProperty              SCNAnimatable
++   @class SCNMaterial                      <SCNAnimatable, -SCNShadable>
++   @class SCNMaterialProperty              <SCNAnimatable>
+ ?  @class SCNMorpher                       <SCNAnimatable>
 
-    @class SCNAction
-    @class SCNAnimation
-    @class SCNAnimationEvent
-    @class SCNAnimationPlayer
-    @class SCNAudioPlayer
-    @class SCNAudioSource
-    @class SCNConstraint
-        @class SCNAccelerationConstraint
-        @class SCNAvoidOccluderConstraint   SCNAvoidOccluderConstraintDelegate
-        @class SCNBillboardConstraint
-        @class SCNDistanceConstraint
-        @class SCNIKConstraint
-        @class SCNLookAtConstraint
-        @class SCNReplicatorConstraint
-        @class SCNSliderConstraint
-        @class SCNTransformConstraint
-    @class SCNHitTestResult
-    @class SCNLevelOfDetail
-    @class SCNMorpher
-    @class SCNParticlePropertyController
-    @class SCNParticleSystem
-    @class SCNPhysicsBehavior
-        @class SCNPhysicsBallSocketJoint
-        @class SCNPhysicsConeTwistJoint
-        @class SCNPhysicsHingeJoint
-        @class SCNPhysicsSliderJoint
-        @class SCNPhysicsVehicle
-    @class SCNPhysicsBody
-    @class SCNPhysicsContact
-    @class SCNPhysicsField
-    @class SCNPhysicsShape
-    @class SCNPhysicsVehicleWheel
-    @class SCNPhysicsWorld
-    @class SCNProgram                       SCNProgramDelegate
-    @class SCNRenderer
-    @class SCNSceneSource
-    @class SCNSkinner
-    @class SCNTechnique
-    @class SCNTimingFunction
-    @class SCNTransaction
+ ?  @class SCNAction
+ ?  @class SCNAnimation                 // probably if supporting animation <SCNAnimation>
+ ?  @class SCNAnimationEvent            // probably if supporting animation
+ ?  @class SCNAnimationPlayer           // probably if supporting animation <SCNAnimatable>
+ ?  @class SCNAudioPlayer
+ ?  @class SCNAudioSource
+ ?  @class SCNConstraint                    <SCNAnimatable>
+ ?      @class SCNAccelerationConstraint
+ ?      @class SCNAvoidOccluderConstraint
+ ?      @class SCNBillboardConstraint
+ ?      @class SCNDistanceConstraint
+ ?      @class SCNIKConstraint
+ ?      @class SCNLookAtConstraint
+ ?      @class SCNReplicatorConstraint
+ ?      @class SCNSliderConstraint
+ ?      @class SCNTransformConstraint
+ ?  @class SCNHitTestResult                 // probably if supporting animation
+ ?  @class SCNLevelOfDetail                 // for providing alternate geometries based on distance
+ ?  @class SCNParticlePropertyController
+ ?  @class SCNParticleSystem                <SCNAnimatable>
+ ?  @class SCNPhysicsBehavior
+ ?      @class SCNPhysicsBallSocketJoint
+ ?      @class SCNPhysicsConeTwistJoint
+ ?      @class SCNPhysicsHingeJoint
+ ?      @class SCNPhysicsSliderJoint
+ ?      @class SCNPhysicsVehicle
+ ?  @class SCNPhysicsBody
+ ?  @class SCNPhysicsContact
+ ?  @class SCNPhysicsField
+ ?  @class SCNPhysicsShape
+ ?  @class SCNPhysicsVehicleWheel
+ ?  @class SCNPhysicsWorld
+ ?  @class SCNSceneSource         // associated with loading scene contents from a file or data
+ ?  @class SCNSkinner             // requires arbitry meshes or file support
+ ?  @class SCNTimingFunction      // probably if supporting animation
+ ?  @class SCNTransaction         // synchronizes changes
 
--   @class SCNReferenceNode   // SCNNode subclass, for loading scenes from file
--   @class SCNLayer           // deprecated
--   @class SCNScene           // wrapped up with SCNView
+-   @class SCNLayer               // deprecated <SCNSceneRenderer, SCNTechniqueSupport>
+-   @class SCNProgram             // for using custom Metal or OpenGL shading code
+-   @class SCNReferenceNode       // SCNNode subclass, for loading scenes from file
+-   @class SCNTechnique           //for using custom Metal or OpenGL post processing code <SCNAnimatable>
+-   @class SCNRenderer            // for using a Metal or OpenGL directly <SCNSceneRenderer, SCNTechniqueSupport>
 
-@protocol SCNActionable
-@protocol SCNAnimatable
-@protocol SCNAnimation
-@protocol SCNBoundingVolume
-@protocol SCNBufferStream
-@protocol SCNCameraControlConfiguration
-@protocol SCNSceneRenderer
-@protocol SCNShadable
-@protocol SCNTechniqueSupport
-
-@protocol SCNNodeRendererDelegate
-@protocol SCNPhysicsContactDelegate
-@protocol SCNSceneExportDelegate
-@protocol SCNSceneRendererDelegate
+-   @protocol SCNShadable         // for using custom Metal or OpenGL shader code
+-   @protocol SCNTechniqueSupport // for using custom Metal or OpenGL post processing code

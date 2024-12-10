@@ -2,6 +2,7 @@
 @import LuaSkin ;
 @import ObjectiveC.runtime ;
 @import SceneKit ;
+#import "SKconversions.h"
 
 static const char * const USERDATA_TAG  = "hs._asm.uitk.element.sceneKit.geometry" ;
 
@@ -342,7 +343,7 @@ static int geometry_materials(lua_State *L) {
         NSUInteger count      = 0 ;
         while (isGood && count < materials.count) {
             SCNMaterial *item = materials[count++] ;
-            if (![item isKindOfClass:[SCNMaterial class]]) isGood = NO ;
+            isGood = [item isKindOfClass:[SCNMaterial class]] ;
         }
         if (!isGood) {
             return luaL_argerror(L, 2, "expected array of sceneKit material objects") ;
@@ -369,9 +370,21 @@ static int geometry_firstMaterial(lua_State *L) {
     return 1 ;
 }
 
+static int geometry_materialWithName(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TSTRING, LS_TBREAK] ;
+    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+    }
+    NSString *name = [skin toNSObjectAtIndex:2] ;
+
+    [skin pushNSObject:[geometry materialWithName:name]] ;
+    return 1 ;
+}
+
 // NOTE: we can already set the array with materials; these just give a more refined way, so lets see how often it
 //       becomes an issue
-//     - (SCNMaterial *)materialWithName:(NSString *)name;
 //     - (void)insertMaterial:(SCNMaterial *)material atIndex:(NSUInteger)index;
 //     - (void)removeMaterialAtIndex:(NSUInteger)index;
 //     - (void)replaceMaterialAtIndex:(NSUInteger)index withMaterial:(SCNMaterial *)material;
@@ -396,8 +409,8 @@ static int geometry_firstMaterial(lua_State *L) {
 //             BOOL       isGood  = [levels isKindOfClass:[NSArray class]] ;
 //             NSUInteger count      = 0 ;
 //             while (isGood && count < levels.count) {
-//                 levelsOfDetail *item = levels[count++] ;
-//                 if (![item isKindOfClass:[levelsOfDetail class]]) isGood = NO ;
+//                 SCNLevelOfDetail *item = levels[count++] ;
+//                 isGood = [item isKindOfClass:[SCNLevelOfDetail class]] ;
 //             }
 //             if (!isGood) {
 //                 return luaL_argerror(L, 2, "expected array of sceneKit levelsOfDetail objects or nil to clear") ;
@@ -408,6 +421,63 @@ static int geometry_firstMaterial(lua_State *L) {
 //     }
 //     return 1 ;
 // }
+
+#pragma mark - SCNBoundingVolume Protocol Methods -
+
+static int geometry_boundingBox(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK];
+    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+    }
+    SCNVector3  min, max ;
+
+    // For now, skip overriding as I can think of ways to abuse this and not so much
+    // where it's useful -- let's wait and see...
+    // - (void)setBoundingBoxMin:(SCNVector3 *)min max:(SCNVector3 *)max;
+
+    if ([geometry getBoundingBoxMin:&min max:&max]) {
+        pushSCNVector3(L, min) ;
+        pushSCNVector3(L, max) ;
+        return 2 ;
+    } else {
+        lua_pushnil(L) ;
+    }
+    return 1 ;
+}
+
+static int geometry_boundingSphere(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK];
+    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+    }
+    SCNVector3  center ;
+    CGFloat     radius ;
+
+    if ([geometry getBoundingSphereCenter:&center radius:&radius]) {
+        pushSCNVector3(L, center) ;
+        lua_pushnumber(L, radius) ;
+        return 2 ;
+    } else {
+        lua_pushnil(L) ;
+    }
+    return 1 ;
+}
+
+static int geometry_copy(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TANY, LS_TBREAK];
+    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+    }
+
+    [skin pushNSObject:[geometry copy]] ;
+    return 1 ;
+}
 
 #pragma mark - Module Constants -
 
@@ -501,6 +571,10 @@ static const luaL_Reg userdata_metaLib[] = {
     {"sourcesForSemantic",  geometry_geometrySourcesForSemantic},
     {"elementAtIndex",      geometry_geometryElementAtIndex},
     {"firstMaterial",       geometry_firstMaterial},
+    {"boundingBox",         geometry_boundingBox},
+    {"boundingSphere",      geometry_boundingSphere},
+    {"materialWithName",    geometry_materialWithName},
+    {"copy",                geometry_copy},
 
     {"adaptiveSubdivision", geometry_wantsAdaptiveSubdivision},
     {"subdivisionLevel",    geometry_subdivisionLevel},

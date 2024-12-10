@@ -56,11 +56,11 @@ static void defineInternalDictionaries(void) {
     } ;
 
     TRANSPARENCY_MODE = @{
-        @"AOne"        : @(SCNTransparencyModeAOne),
-        @"Default"     : @(SCNTransparencyModeDefault),
-        @"DualLayer"   : @(SCNTransparencyModeDualLayer),
-        @"RGBZero"     : @(SCNTransparencyModeRGBZero),
-        @"SingleLayer" : @(SCNTransparencyModeSingleLayer),
+        @"aOne"        : @(SCNTransparencyModeAOne),
+        @"default"     : @(SCNTransparencyModeDefault),
+        @"dualLayer"   : @(SCNTransparencyModeDualLayer),
+        @"rgbZero"     : @(SCNTransparencyModeRGBZero),
+        @"singleLayer" : @(SCNTransparencyModeSingleLayer),
     } ;
 }
 
@@ -229,7 +229,6 @@ static int material_writesToDepthBuffer(lua_State *L) {
     return 1 ;
 }
 
-// FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int material_fresnelExponent(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
@@ -239,6 +238,7 @@ static int material_fresnelExponent(lua_State *L) {
         lua_pushnumber(L, material.fresnelExponent) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
+        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         material.fresnelExponent = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -248,7 +248,7 @@ static int material_fresnelExponent(lua_State *L) {
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int material_shininess(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNMaterial *material = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -264,7 +264,7 @@ static int material_shininess(lua_State *L) {
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
 static int material_transparency(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     SCNMaterial *material = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
@@ -694,6 +694,25 @@ int luaopen_hs__asm_uitk_element_libsceneKit_material(lua_State* L) {
         @"blendMode",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
+    [skin pushNSObject:@[
+        @"diffuse",
+        @"ambient",
+        @"specular",
+        @"emission",
+        @"transparent",
+        @"reflective",
+        @"multiply",
+        @"normal",
+        @"displacement",
+        @"ambientOcclusion",
+        @"selfIllumination",
+        @"metalness",
+        @"roughness",
+        @"clearCoat",
+        @"clearCoatRoughness",
+        @"clearCoatNormal",
+    ]] ;
+    lua_setfield(L, -2, "_materialProperties") ;
     lua_pop(L, 1) ;
 
     return 1;

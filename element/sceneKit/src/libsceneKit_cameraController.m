@@ -136,7 +136,6 @@ static int controller_automaticTarget(lua_State *L) {
     return 1 ;
 }
 
-// FIXME: does this need to be constrained?
 static int controller_inertiaFriction(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
@@ -146,6 +145,7 @@ static int controller_inertiaFriction(lua_State *L) {
         lua_pushnumber(L, (lua_Number)controller.inertiaFriction) ;
     } else {
         float value = (float)(lua_tonumber(L, 2)) ;
+        if (value < 0.0f || value > 1.0f) return luaL_argerror(L, 2, "must be between 0.0 and 1.0 inclusive") ;
         controller.inertiaFriction = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -385,7 +385,7 @@ static int controller_frameNodes(lua_State *L) {
     NSUInteger count  = 0 ;
     while (isGood && count < nodes.count) {
         SCNNode *item = nodes[count++] ;
-        if (![item isKindOfClass:[SCNNode class]]) isGood = NO ;
+        isGood = [item isKindOfClass:[SCNNode class]] ;
     }
     if (!isGood) {
         return luaL_argerror(L, 2, "expected array of sceneKit node objects") ;

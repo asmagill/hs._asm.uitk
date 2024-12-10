@@ -1,6 +1,7 @@
 @import Cocoa ;
 @import LuaSkin ;
 @import SceneKit ;
+#import "SKconversions.h"
 
 static const char * const USERDATA_TAG = "hs._asm.uitk.element.sceneKit" ;
 static LSRefTable         refTable     = LUA_NOREF ;
@@ -9,6 +10,10 @@ static LSRefTable         refTable     = LUA_NOREF ;
 // #define get_anyObjectFromUserdata(objType, L, idx) (objType*)*((void**)lua_touserdata(L, idx))
 
 static NSDictionary *ANTIALIASING_MODE ;
+static NSDictionary *DEBUG_OPTIONS ;
+static NSDictionary *RENDERING_API ;
+
+static const NSUInteger scnDebugOptionAll = (1 << 11) - 1 ;
 
 #pragma mark - Support Functions and Classes -
 
@@ -20,13 +25,36 @@ static void defineInternalDictionaries(void) {
         @"8x"   : @(SCNAntialiasingModeMultisampling8X),
         @"16x"  : @(SCNAntialiasingModeMultisampling16X),
     } ;
+
+    DEBUG_OPTIONS = @{
+        @"none"                : @(SCNDebugOptionNone),
+        @"showPhysicsShapes"   : @(SCNDebugOptionShowPhysicsShapes),
+        @"showBoundingBoxes"   : @(SCNDebugOptionShowBoundingBoxes),
+        @"showLightInfluences" : @(SCNDebugOptionShowLightInfluences),
+        @"showLightExtents"    : @(SCNDebugOptionShowLightExtents),
+        @"showPhysicsFields"   : @(SCNDebugOptionShowPhysicsFields),
+        @"showWireframe"       : @(SCNDebugOptionShowWireframe),
+        @"renderAsWireframe"   : @(SCNDebugOptionRenderAsWireframe),
+        @"showSkeletons"       : @(SCNDebugOptionShowSkeletons),
+        @"showCreases"         : @(SCNDebugOptionShowCreases),
+        @"showConstraints"     : @(SCNDebugOptionShowConstraints),
+        @"showCameras"         : @(SCNDebugOptionShowCameras),
+        @"all"                  :@(scnDebugOptionAll),
+    } ;
+
+    RENDERING_API = @{
+        @"metal"        : @(SCNRenderingAPIMetal),
+        @"openGLCore32" : @(SCNRenderingAPIOpenGLCore32),
+        @"openGLCore41" : @(SCNRenderingAPIOpenGLCore41),
+        @"openGLLegacy" : @(SCNRenderingAPIOpenGLLegacy),
+    } ;
 }
 
 @interface SCNCameraController (HammerspoonAdditions)
 @property (nonatomic) SCNView *ownerView ;
 @end
 
-@interface HSUITKElementSCNView : SCNView
+@interface HSUITKElementSCNView : SCNView <SCNSceneRendererDelegate>
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
 @property            int        callbackRef ;
@@ -50,6 +78,7 @@ static void defineInternalDictionaries(void) {
         _refTable     = refTable ;
 
         self.scene    = [SCNScene scene] ;
+        self.delegate = self ;
 
         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
         [skin luaRetain:refTable forNSObject:self.scene.rootNode] ;
@@ -102,6 +131,15 @@ static void defineInternalDictionaries(void) {
         [self passCallbackUpWith:@[ self, arguments ]] ;
     }
 }
+
+// NOTE - SCNSceneRendererDelegate methods -
+
+// - (void)renderer:(id<SCNSceneRenderer>)renderer didApplyAnimationsAtTime:(NSTimeInterval)time;
+// - (void)renderer:(id<SCNSceneRenderer>)renderer didApplyConstraintsAtTime:(NSTimeInterval)time;
+// - (void)renderer:(id<SCNSceneRenderer>)renderer didRenderScene:(SCNScene *)scene atTime:(NSTimeInterval)time;
+// - (void)renderer:(id<SCNSceneRenderer>)renderer didSimulatePhysicsAtTime:(NSTimeInterval)time;
+// - (void)renderer:(id<SCNSceneRenderer>)renderer updateAtTime:(NSTimeInterval)time;
+// - (void)renderer:(id<SCNSceneRenderer>)renderer willRenderScene:(SCNScene *)scene atTime:(NSTimeInterval)time;
 
 @end
 
@@ -312,7 +350,10 @@ static int sceneKit_passthroughCallback(lua_State *L) {
 
 static int sceneKit_cameraControlConfiguration(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TTABLE | LS_TSTRING | LS_TOPTIONAL,
+                    LS_TBOOLEAN | LS_TNUMBER | LS_TOPTIONAL,
+                    LS_TBREAK] ;
     HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
 
     id<SCNCameraControlConfiguration> config = view.cameraControlConfiguration ;
@@ -324,57 +365,96 @@ static int sceneKit_cameraControlConfiguration(lua_State *L) {
         lua_pushnumber(L, config.panSensitivity) ;          lua_setfield(L, -2, "panSensitivity") ;
         lua_pushnumber(L, config.rotationSensitivity) ;     lua_setfield(L, -2, "rotationSensitivity") ;
         lua_pushnumber(L, config.truckSensitivity) ;        lua_setfield(L, -2, "truckSensitivity") ;
-    } else {
+    } else if (lua_gettop(L) == 2) {
+        [skin checkArgs:LS_TANY, LS_TTABLE, LS_TBREAK] ;
         NSDictionary *newConfig = [skin toNSObjectAtIndex:2] ;
         if (![newConfig isKindOfClass:[NSDictionary class]]) return luaL_argerror(L, 2, "expected table of key-value pairs") ;
+
+        BOOL    allowsTranslation      = config.allowsTranslation ;
+        BOOL    autoSwitchToFreeCamera = config.autoSwitchToFreeCamera ;
+        CGFloat flyModeVelocity        = config.flyModeVelocity ;
+        CGFloat panSensitivity         = config.panSensitivity ;
+        CGFloat rotationSensitivity    = config.rotationSensitivity ;
+        CGFloat truckSensitivity       = config.truckSensitivity ;
+
         NSNumber *value = newConfig[@"allowsTranslation"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.allowsTranslation = value.boolValue ;
+                allowsTranslation = value.boolValue ;
             } else {
-                [skin logWarn:@"expected boolean value for allowsTranslation; ignoring"] ;
+                return luaL_argerror(L, 2, "expected boolean value for allowsTranslation") ;
             }
         }
         value = newConfig[@"autoSwitchToFreeCamera"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.autoSwitchToFreeCamera = value.boolValue ;
+                autoSwitchToFreeCamera = value.boolValue ;
             } else {
-                [skin logWarn:@"expected boolean value for autoSwitchToFreeCamera; ignoring"] ;
+                return luaL_argerror(L, 2, "expected boolean value for autoSwitchToFreeCamera") ;
             }
         }
         value = newConfig[@"flyModeVelocity"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.flyModeVelocity = value.doubleValue ;
+                flyModeVelocity = value.doubleValue ;
             } else {
-                [skin logWarn:@"expected number value for flyModeVelocity; ignoring"] ;
+                return luaL_argerror(L, 2, "expected number value for flyModeVelocity") ;
             }
         }
         value = newConfig[@"panSensitivity"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.panSensitivity = value.doubleValue ;
+                panSensitivity = value.doubleValue ;
             } else {
-                [skin logWarn:@"expected number value for panSensitivity; ignoring"] ;
+                return luaL_argerror(L, 2, "expected number value for panSensitivity") ;
             }
         }
         value = newConfig[@"rotationSensitivity"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.rotationSensitivity = value.doubleValue ;
+                rotationSensitivity = value.doubleValue ;
             } else {
-                [skin logWarn:@"expected number value for rotationSensitivity; ignoring"] ;
+                return luaL_argerror(L, 2, "expected number value for rotationSensitivity") ;
             }
         }
         value = newConfig[@"truckSensitivity"] ;
         if (value) {
             if ([value isKindOfClass:[NSNumber class]]) {
-                config.truckSensitivity = value.doubleValue ;
+                truckSensitivity = value.doubleValue ;
             } else {
-                [skin logWarn:@"expected number value for truckSensitivity; ignoring"] ;
+                return luaL_argerror(L, 2, "expected number value for truckSensitivity") ;
             }
         }
+
+        config.allowsTranslation      = allowsTranslation ;
+        config.autoSwitchToFreeCamera = autoSwitchToFreeCamera ;
+        config.flyModeVelocity        = flyModeVelocity ;
+        config.panSensitivity         = panSensitivity ;
+        config.rotationSensitivity    = rotationSensitivity ;
+        config.truckSensitivity       = truckSensitivity ;
+
+        lua_pushvalue(L, 1) ;
+    } else {
+        [skin checkArgs:LS_TANY, LS_TSTRING, LS_TBOOLEAN | LS_TNUMBER, LS_TBREAK] ;
+        NSString *attribute = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value     = [skin toNSObjectAtIndex:3] ;
+
+        if ([attribute isEqualToString:@"allowsTranslation"]) {
+            config.allowsTranslation = value.boolValue ;
+        } else if ([attribute isEqualToString:@"autoSwitchToFreeCamera"]) {
+            config.autoSwitchToFreeCamera = value.boolValue ;
+        } else if ([attribute isEqualToString:@"flyModeVelocity"]) {
+            config.flyModeVelocity = value.doubleValue ;
+        } else if ([attribute isEqualToString:@"panSensitivity"]) {
+            config.panSensitivity = value.doubleValue ;
+        } else if ([attribute isEqualToString:@"rotationSensitivity"]) {
+            config.rotationSensitivity = value.doubleValue ;
+        } else if ([attribute isEqualToString:@"truckSensitivity"]) {
+            config.truckSensitivity = value.doubleValue ;
+        } else {
+            return luaL_argerror(L, 2, "unrecognized attribute name") ;
+        }
+
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -392,7 +472,7 @@ static int sceneKit_defaultCameraController(lua_State *L) {
 
 #pragma mark - Module Methods - SCNScene -
 
-static int sceneKit_scene_wantsScreenSpaceReflection(lua_State *L) {
+static int scene_wantsScreenSpaceReflection(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -407,7 +487,7 @@ static int sceneKit_scene_wantsScreenSpaceReflection(lua_State *L) {
     return 1 ;
 }
 
-static int sceneKit_scene_paused(lua_State *L) {
+static int scene_paused(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -423,7 +503,7 @@ static int sceneKit_scene_paused(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_fogDensityExponent(lua_State *L) {
+static int scene_fogDensityExponent(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -439,7 +519,7 @@ static int sceneKit_scene_fogDensityExponent(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_fogEndDistance(lua_State *L) {
+static int scene_fogEndDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -455,7 +535,7 @@ static int sceneKit_scene_fogEndDistance(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_fogStartDistance(lua_State *L) {
+static int scene_fogStartDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -471,7 +551,7 @@ static int sceneKit_scene_fogStartDistance(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_screenSpaceReflectionMaximumDistance(lua_State *L) {
+static int scene_screenSpaceReflectionMaximumDistance(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -487,7 +567,7 @@ static int sceneKit_scene_screenSpaceReflectionMaximumDistance(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_screenSpaceReflectionStride(lua_State *L) {
+static int scene_screenSpaceReflectionStride(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -503,7 +583,7 @@ static int sceneKit_scene_screenSpaceReflectionStride(lua_State *L) {
 }
 
 // FIXME: need to see if this needs to be constrained (e.g. not negative)
-static int sceneKit_scene_screenSpaceReflectionSampleCount(lua_State *L) {
+static int scene_screenSpaceReflectionSampleCount(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
                     LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL,
@@ -520,7 +600,7 @@ static int sceneKit_scene_screenSpaceReflectionSampleCount(lua_State *L) {
     return 1 ;
 }
 
-static int sceneKit_scene_fogColor(lua_State *L) {
+static int scene_fogColor(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -535,7 +615,7 @@ static int sceneKit_scene_fogColor(lua_State *L) {
     return 1 ;
 }
 
-static int sceneKit_scene_backgroundMaterial(lua_State *L) {
+static int scene_background(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -545,7 +625,7 @@ static int sceneKit_scene_backgroundMaterial(lua_State *L) {
     return 1 ;
 }
 
-static int sceneKit_scene_lightingEnvironment(lua_State *L) {
+static int scene_lightingEnvironment(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -555,7 +635,7 @@ static int sceneKit_scene_lightingEnvironment(lua_State *L) {
     return 1 ;
 }
 
-static int sceneKit_scene_rootNode(lua_State *L) {
+static int scene_rootNode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -565,7 +645,7 @@ static int sceneKit_scene_rootNode(lua_State *L) {
     return 1 ;
 }
 
-// static int sceneKit_scene_physicsWorld(lua_State *L) {
+// static int scene_physicsWorld(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 //     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
 //     HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
@@ -596,7 +676,226 @@ static int sceneKit_scene_rootNode(lua_State *L) {
 //     - (void)removeParticleSystem:(SCNParticleSystem *)system;
 //     @property(readonly) NSArray<SCNParticleSystem *> *particleSystems;
 
+#pragma mark - SCNSceneRenderer Protocol Methods -
+
+static int sceneRenderer_autoenablesDefaultLighting(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.autoenablesDefaultLighting) ;
+    } else {
+        view.autoenablesDefaultLighting = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_loops(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.loops) ;
+    } else {
+        view.loops = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_showsStatistics(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.showsStatistics) ;
+    } else {
+        view.showsStatistics = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_usesReverseZ(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.usesReverseZ) ;
+    } else {
+        view.usesReverseZ = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_playing(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.playing) ;
+    } else {
+        view.playing = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_jitteringEnabled(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.jitteringEnabled) ;
+    } else {
+        view.jitteringEnabled = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_temporalAntialiasingEnabled(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, view.temporalAntialiasingEnabled) ;
+    } else {
+        view.temporalAntialiasingEnabled = (BOOL)(lua_toboolean(L, 2)) ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_pointOfView(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:view.pointOfView] ;
+    } else {
+        if (lua_type(L, 2) == LUA_TNIL) {
+            view.pointOfView = nil ;
+        } else {
+            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.node", LS_TBREAK] ;
+            SCNNode *node = [skin toNSObjectAtIndex:2] ;
+            if (!(node.camera || (node.light && node.light.type == SCNLightTypeSpot))) {
+                return luaL_argerror(L, 2, "node must have a camera or a spotlight assigned") ;
+            }
+            view.pointOfView = node ;
+        }
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_debugOptions(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushinteger(L, (lua_Integer)view.debugOptions) ;
+    } else {
+        view.debugOptions = (NSUInteger)(lua_tointeger(L, 2)) & scnDebugOptionAll ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int sceneRenderer_currentViewport(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    HSUITKElementSCNView *view  = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSRect:NSRectFromCGRect(view.currentViewport)] ;
+    return 1 ;
+}
+
+static int sceneRenderer_renderingAPI(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
+
+    NSArray  *keys   = [RENDERING_API allKeysForObject:@(view.renderingAPI)] ;
+    NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", view.renderingAPI] ;
+    [skin pushNSObject:answer] ;
+    return 1 ;
+}
+
+static int sceneRenderer_projectPoint(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
+    HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
+
+    SCNVector3 point  = pullSCNVector3(L, 2) ;
+    pushSCNVector3(L, [view projectPoint:point]) ;
+    return 1 ;
+}
+
+static int sceneRenderer_unprojectPoint(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE, LS_TBREAK] ;
+    HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
+
+    SCNVector3 point  = pullSCNVector3(L, 2) ;
+    pushSCNVector3(L, [view unprojectPoint:point]) ;
+    return 1 ;
+}
+
+// // probably
+// - (BOOL)isNodeInsideFrustum:(SCNNode *)node withPointOfView:(SCNNode *)pointOfView;
+// - (NSArray<SCNNode *> *)nodesInsideFrustumWithPointOfView:(SCNNode *)pointOfView;
+
+// // maybe
+// - (NSArray<SCNHitTestResult *> *)hitTest:(CGPoint)point options:(NSDictionary<SCNHitTestOption, id> *)options;
+
+// // if we add SCNAnimation* support, then maybe; see SCNSceneEndTimeAttributeKey and
+// //     SCNSceneStartTimeAttributeKey above
+// @property(nonatomic) NSTimeInterval sceneTime;
+
+// // if we add SCNAudioPlayer/Source, then maybe
+// @property(nonatomic, retain, nullable) SCNNode *audioListener;
+
+// // if we ever add SpriteKit support to uitk, then maybe
+// @property(nonatomic, retain, nullable) SKScene *overlaySKScene;
+
+// // at present, we're merging scnview and scnscene, so no way to change scene; if that changes...
+// - (void)presentScene:(SCNScene *)scene withTransition:(SKTransition *)transition incomingPointOfView:(SCNNode *)pointOfView completionHandler:(void (^)(void))completionHandler;
+
+// // probably not useful; informational only anyways
+// @property(nonatomic, readonly, nullable) id<MTLCommandQueue> commandQueue;
+// @property(nonatomic, readonly, nullable) id<MTLDevice> device;
+// @property(nonatomic, readonly, nullable) id<MTLRenderCommandEncoder> currentRenderCommandEncoder;
+// @property(nonatomic, readonly, nullable) void *context;
+// @property(nonatomic, readonly) AVAudioEngine *audioEngine;
+// @property(nonatomic, readonly) AVAudioEnvironmentNode *audioEnvironmentNode;
+// @property(nonatomic, readonly) CGColorSpaceRef workingColorSpace;
+// @property(nonatomic, readonly) MTLPixelFormat colorPixelFormat;
+// @property(nonatomic, readonly) MTLPixelFormat depthPixelFormat;
+// @property(nonatomic, readonly) MTLPixelFormat stencilPixelFormat;
+// @property(nonatomic, readonly) MTLRenderPassDescriptor *currentRenderPassDescriptor;
+
+// - (BOOL)prepareObject:(id)object shouldAbortBlock:(BOOL (^)(void))block;
+// - (void)prepareObjects:(NSArray *)objects withCompletionHandler:(void (^)(BOOL success))completionHandler;
+
 #pragma mark - Module Constants -
+
+static int sceneRenderer_debugMasks(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin pushNSObject:DEBUG_OPTIONS] ;
+    return 1 ;
+}
 
 #pragma mark - Lua<->NSObject Conversion Functions -
 // These must not throw a lua error to ensure LuaSkin can safely be used from Objective-C
@@ -651,29 +950,42 @@ static const luaL_Reg userdata_metaLib[] = {
     {"stop",                  sceneKit_stop},
     {"snapshot",              sceneKit_snapshot},
 
-    {"cameraControlConfig",   sceneKit_cameraControlConfiguration},
     {"defaultCamera",         sceneKit_defaultCameraController},
-    {"backgroundMaterial",    sceneKit_scene_backgroundMaterial},
-    {"lightingEnvironment",   sceneKit_scene_lightingEnvironment},
-    {"rootNode",              sceneKit_scene_rootNode},
-//     {"physicsWorld",          sceneKit_scene_physicsWorld},
+    {"background",            scene_background},
+    {"lightingEnvironment",   scene_lightingEnvironment},
+    {"rootNode",              scene_rootNode},
+//     {"physicsWorld",          scene_physicsWorld},
+    {"currentViewport",       sceneRenderer_currentViewport},
+    {"renderingAPI",          sceneRenderer_renderingAPI},
+    {"projectPoint",          sceneRenderer_projectPoint},
+    {"unprojectPoint",        sceneRenderer_unprojectPoint},
 
     {"resizesAsynchronously", sceneKit_drawableResizesAsynchronously},
     {"rendersContinuously",   sceneKit_rendersContinuously},
     {"allowsCameraControl",   sceneKit_allowsCameraControl},
     {"backgroundColor",       sceneKit_backgroundColor},
+    {"cameraControlConfig",   sceneKit_cameraControlConfiguration},
     {"preferredFPS",          sceneKit_preferredFramesPerSecond},
     {"antialiasingMode",      sceneKit_antialiasingMode},
     {"passthroughCallback",   sceneKit_passthroughCallback},
-    {"wantsReflection",       sceneKit_scene_wantsScreenSpaceReflection},
-    {"paused",                sceneKit_scene_paused},
-    {"fogDensityExponent",    sceneKit_scene_fogDensityExponent},
-    {"fogEndDistance",        sceneKit_scene_fogEndDistance},
-    {"fogStartDistance",      sceneKit_scene_fogStartDistance},
-    {"reflectionMaxDistance", sceneKit_scene_screenSpaceReflectionMaximumDistance},
-    {"reflectionStride",      sceneKit_scene_screenSpaceReflectionStride},
-    {"reflectionSampleCount", sceneKit_scene_screenSpaceReflectionSampleCount},
-    {"fogColor",              sceneKit_scene_fogColor},
+    {"wantsReflection",       scene_wantsScreenSpaceReflection},
+    {"paused",                scene_paused},
+    {"fogDensityExponent",    scene_fogDensityExponent},
+    {"fogEndDistance",        scene_fogEndDistance},
+    {"fogStartDistance",      scene_fogStartDistance},
+    {"reflectionMaxDistance", scene_screenSpaceReflectionMaximumDistance},
+    {"reflectionStride",      scene_screenSpaceReflectionStride},
+    {"reflectionSampleCount", scene_screenSpaceReflectionSampleCount},
+    {"fogColor",              scene_fogColor},
+    {"enableDefaultLighting", sceneRenderer_autoenablesDefaultLighting},
+    {"loops",                 sceneRenderer_loops},
+    {"showsStatistics",       sceneRenderer_showsStatistics},
+    {"usesReverseZ",          sceneRenderer_usesReverseZ},
+    {"playing",               sceneRenderer_playing},
+    {"jitteringEnabled",      sceneRenderer_jitteringEnabled},
+    {"temporalAntialiasing",  sceneRenderer_temporalAntialiasingEnabled},
+    {"pointOfView",           sceneRenderer_pointOfView},
+    {"debugOptions",          sceneRenderer_debugOptions},
 
 // other metamethods inherited from _control and _view
     {"__gc",                  userdata_gc},
@@ -699,6 +1011,8 @@ int luaopen_hs__asm_uitk_element_libsceneKit(lua_State* L) {
     [skin registerLuaObjectHelper:toHSUITKElementSCNView forClass:"HSUITKElementSCNView"
                                               withUserdataMapping:USERDATA_TAG];
 
+    sceneRenderer_debugMasks(L) ; lua_setfield(L, -2, "debugMasks") ;
+
     // properties for this item that can be modified through container metamethods
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
@@ -719,9 +1033,24 @@ int luaopen_hs__asm_uitk_element_libsceneKit(lua_State* L) {
         @"reflectionStride",
         @"reflectionSampleCount",
         @"fogColor",
+        @"enableDefaultLighting",
+        @"loops",
+        @"showsStatistics",
+        @"usesReverseZ",
+        @"playing",
+        @"jitteringEnabled",
+        @"temporalAntialiasing",
+        @"pointOfView",
+        @"debugOptions",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     // (all elements inherit from _view)
+
+    [skin pushNSObject:@[
+        @"background",
+        @"lightingEnvironment",
+    ]] ;
+    lua_setfield(L, -2, "_materialProperties") ;
     lua_pop(L, 1) ;
 
     return 1;

@@ -138,7 +138,7 @@ static int node_localUp(lua_State *L) {
 
 #pragma mark - Module Methods -
 
-static int node_wordFront(lua_State *L) {
+static int node_worldFront(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     SCNNode *node = [skin toNSObjectAtIndex:1] ;
@@ -722,13 +722,42 @@ static int node_removeChildNode(lua_State *L) {
     return 1 ;
 }
 
-// - (SCNNode *)childNodeWithName:(NSString *)name recursively:(BOOL)recursively;
+static int node_clone(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode *node     = [skin toNSObjectAtIndex:1] ;
+    BOOL    flattened = (lua_gettop(L) == 2) ? (BOOL)(lua_toboolean(L, 2)) : NO ;
+
+    if (flattened) {
+        [skin pushNSObject:[node flattenedClone]] ;
+    } else {
+        [skin pushNSObject:[node clone]] ;
+    }
+    return 1 ;
+}
+
+static int node_copy(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node     = [skin toNSObjectAtIndex:1] ;
+
+    [skin pushNSObject:[node copy]] ;
+    return 1 ;
+}
+
+static int node_childNodeWithName(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode  *node       = [skin toNSObjectAtIndex:1] ;
+    NSString *name       = [skin toNSObjectAtIndex:2] ;
+    BOOL     recursively = (lua_gettop(L) == 3) ? (BOOL)(lua_toboolean(L, 3)) : NO ;
+
+    [skin pushNSObject:[node childNodeWithName:name recursively:recursively]] ;
+    return 1 ;
+}
+
 // - (void)replaceChildNode:(SCNNode *)oldChild with:(SCNNode *)newChild;
 // - (NSArray<SCNNode *> *)childNodesPassingTest:(BOOL (^)(SCNNode *child, BOOL *stop))predicate;
-
-// - (instancetype)clone;
-// - (instancetype)flattenedClone;
-// - (void)duplicateNode:(SCNNode *)node withMaterial:(SCNMaterial *)material
 
 // - (SCNVector3)convertPosition:(SCNVector3)position fromNode:(SCNNode *)node;
 // - (SCNVector3)convertPosition:(SCNVector3)position toNode:(SCNNode *)node;
@@ -748,7 +777,6 @@ static int node_removeChildNode(lua_State *L) {
 // - (void)removeAudioPlayer:(SCNAudioPlayer *)player;
 
 // @property(copy) NSArray<SCNConstraint *> *constraints;
-// @property(nonatomic, assign, nullable) id<SCNNodeRendererDelegate> rendererDelegate;
 // @property(nonatomic, copy, nullable) NSArray<CIFilter *> *filters;
 // @property(nonatomic, weak) GKEntity *entity;
 
@@ -756,6 +784,45 @@ static int node_removeChildNode(lua_State *L) {
 // - (void)enumerateHierarchyUsingBlock:(void (^)(SCNNode *node, BOOL *stop))block;
 
 // - (NSArray<SCNHitTestResult *> *)hitTestWithSegmentFromPoint:(SCNVector3)pointA toPoint:(SCNVector3)pointB options:(NSDictionary<NSString *,id> *)options;
+
+#pragma mark - SCNBoundingVolume Protocol Methods -
+
+static int node_boundingBox(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK];
+    SCNNode    *node = [skin toNSObjectAtIndex:1] ;
+    SCNVector3 min, max ;
+
+    // For now, skip overriding as I can think of ways to abuse this and not so much
+    // where it's useful -- let's wait and see...
+    // - (void)setBoundingBoxMin:(SCNVector3 *)min max:(SCNVector3 *)max;
+
+    if ([node getBoundingBoxMin:&min max:&max]) {
+        pushSCNVector3(L, min) ;
+        pushSCNVector3(L, max) ;
+        return 2 ;
+    } else {
+        lua_pushnil(L) ;
+    }
+    return 1 ;
+}
+
+static int node_boundingSphere(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode    *node = [skin toNSObjectAtIndex:1] ;
+    SCNVector3 center ;
+    CGFloat    radius ;
+
+    if ([node getBoundingSphereCenter:&center radius:&radius]) {
+        pushSCNVector3(L, center) ;
+        lua_pushnumber(L, radius) ;
+        return 2 ;
+    } else {
+        lua_pushnil(L) ;
+    }
+    return 1 ;
+}
 
 #pragma mark - Module Constants -
 
@@ -840,7 +907,7 @@ static int userdata_gc(lua_State* L) {
 
 // Metatable for userdata objects
 static const luaL_Reg userdata_metaLib[] = {
-    {"wordFront",        node_wordFront},
+    {"worldFront",       node_worldFront},
     {"worldRight",       node_worldRight},
     {"worldUp",          node_worldUp},
     {"parentNode",       node_parentNode},
@@ -848,6 +915,11 @@ static const luaL_Reg userdata_metaLib[] = {
     {"presentationNode", node_presentationNode},
     {"addChildNode",     node_addChildNode},
     {"removeChildNode",  node_removeChildNode},
+    {"boundingBox",      node_boundingBox},
+    {"boundingSphere",   node_boundingSphere},
+    {"clone",            node_clone},
+    {"copy",             node_copy},
+    {"childWithName",    node_childNodeWithName},
 
     {"eulerAngles",      node_eulerAngles},
     {"position",         node_position},

@@ -173,7 +173,24 @@ static int tessellator_tessellationFactorScale(lua_State *L) {
     if (lua_gettop(L) == 1) {
         lua_pushnumber(L, tessellator.tessellationFactorScale) ;
     } else {
-        tessellator.tessellationFactorScale = lua_tonumber(L, 2) ;
+        CGFloat value = lua_tonumber(L, 2) ;
+//         if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
+        tessellator.tessellationFactorScale = value ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+// FIXME: need to see if this needs to be constrained (e.g. not negative)
+static int tessellator_edgeTessellationFactor(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNGeometryTessellator *tessellator = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushnumber(L, tessellator.edgeTessellationFactor) ;
+    } else {
+        tessellator.edgeTessellationFactor = lua_tonumber(L, 2) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -257,13 +274,8 @@ static id toSCNGeometryTessellator(lua_State *L, int idx) {
 
 static int userdata_tostring(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    NSString *title = @"<not userdata>" ;
-    if (lua_getmetatable(L, -1)) {
-        lua_getfield(L, -1, "__name") ;
-        title = [NSString stringWithUTF8String:lua_tostring(L, -1)] ;
-        lua_pop(L, 2) ;
-    }
-    [skin pushNSObject:[NSString stringWithFormat:@"%@: (%p)", title, lua_topointer(L, 1)]] ;
+//     SCNGeometryTessellator *obj = [skin luaObjectAtIndex:1 toClass:"SCNGeometryTessellator"] ;
+    [skin pushNSObject:[NSString stringWithFormat:@"%s: (%p)", USERDATA_TAG, lua_topointer(L, 1)]] ;
     return 1 ;
 }
 
@@ -308,6 +320,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"adaptive",                  tessellator_adaptive},
     {"screenSpace",               tessellator_screenSpace},
     {"insideTessellationFactor",  tessellator_insideTessellationFactor},
+    {"edgeTessellationFactor",    tessellator_edgeTessellationFactor},
     {"maximumEdgeLength",         tessellator_maximumEdgeLength},
     {"tessellationFactorScale",   tessellator_tessellationFactorScale},
     {"tessellationPartitionMode", tessellator_tessellationPartitionMode},
@@ -349,6 +362,7 @@ int luaopen_hs__asm_uitk_element_libsceneKit_geometry_tessellator(lua_State* L) 
         @"adaptive",
         @"screenSpace",
         @"insideTessellationFactor",
+        @"edgeTessellationFactor",
         @"maximumEdgeLength",
         @"tessellationFactorScale",
         @"tessellationPartitionMode",

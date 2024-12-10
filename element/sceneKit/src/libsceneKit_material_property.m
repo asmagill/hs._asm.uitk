@@ -102,7 +102,7 @@ static int property_contents(lua_State *L) {
     SCNMaterialProperty *property = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        [skin pushNSObject:property.contents] ;
+        [skin pushNSObject:property.contents withOptions:LS_NSDescribeUnknownTypes] ;
     } else {
 //         NSObject *previousContents = property.contents ;
 
@@ -348,7 +348,7 @@ static int property_wrapT(lua_State *L) {
 
 #pragma mark - Module Constants -
 
-static int property_colorMask(lua_State *L) {
+static int property_colorMasks(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin pushNSObject:COLOR_MASK] ;
     return 1 ;
@@ -416,7 +416,7 @@ static int userdata_gc(lua_State* L) {
 //                     [skin luaRelease:refTable forNSObject:contents] ;
 //                 }
 //             }
-            obj.contents = nil ;
+//             obj.contents = nil ;
             obj = nil ;
         }
     }
@@ -472,7 +472,7 @@ int luaopen_hs__asm_uitk_element_libsceneKit_material_property(lua_State* L) {
     [skin registerLuaObjectHelper:toSCNMaterialProperty forClass:"SCNMaterialProperty"
                                              withUserdataMapping:USERDATA_TAG];
 
-    property_colorMask(L) ; lua_setfield(L, -2, "colorMask") ;
+    property_colorMasks(L) ; lua_setfield(L, -2, "colorMasks") ;
 
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[

@@ -165,7 +165,7 @@ static int pushSCNVector3(lua_State *L, SCNVector3 vector3) {
       lua_pushnumber(L, vector3.x) ; lua_setfield(L, -2, "x") ;
       lua_pushnumber(L, vector3.y) ; lua_setfield(L, -2, "y") ;
       lua_pushnumber(L, vector3.z) ; lua_setfield(L, -2, "z") ;
-    luaL_getmetatable(L, "hs._asm.uitk.element.sceneKit.vector3") ;
+    luaL_getmetatable(L, "hs._asm.uitk.util.vector.vector3") ;
     lua_setmetatable(L, -2) ;
     return 1 ;
 }
@@ -209,7 +209,7 @@ static int pushSCNVector4(lua_State *L, SCNVector4 vector4) {
       lua_pushnumber(L, vector4.y) ; lua_setfield(L, -2, "y") ;
       lua_pushnumber(L, vector4.z) ; lua_setfield(L, -2, "z") ;
       lua_pushnumber(L, vector4.w) ; lua_setfield(L, -2, "w") ;
-    luaL_getmetatable(L, "hs._asm.uitk.element.sceneKit.vector4") ;
+    luaL_getmetatable(L, "hs._asm.uitk.util.vector.vector4") ;
     lua_setmetatable(L, -2) ;
     return 1 ;
 }
@@ -259,7 +259,7 @@ static int pushSCNQuaternion(lua_State *L, SCNQuaternion quaternion) {
       lua_pushnumber(L, quaternion.y) ; lua_setfield(L, -2, "iy") ;
       lua_pushnumber(L, quaternion.z) ; lua_setfield(L, -2, "iz") ;
       lua_pushnumber(L, quaternion.w) ; lua_setfield(L, -2, "r") ;
-    luaL_getmetatable(L, "hs._asm.uitk.element.sceneKit.quaternion") ;
+    luaL_getmetatable(L, "hs._asm.uitk.util.vector.quaternion") ;
     lua_setmetatable(L, -2) ;
     return 1 ;
 }

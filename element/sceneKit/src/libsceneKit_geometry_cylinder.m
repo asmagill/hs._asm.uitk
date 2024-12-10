@@ -81,11 +81,11 @@ static int cylinder_new(lua_State *L) {
     int      numericArgs = 1 ;
 
     if (lua_type(L, 1) == LUA_TSTRING) {
-        [skin checkArgs:LS_TSTRING, LS_TNUMBER, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
+        [skin checkArgs:LS_TSTRING, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
         name        = [skin toNSObjectAtIndex:1] ;
         numericArgs = 2 ;
     } else {
-        [skin checkArgs:LS_TNUMBER, LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
+        [skin checkArgs:LS_TNUMBER, LS_TNUMBER, LS_TBREAK] ;
     }
 
     CGFloat radius = lua_tonumber(L, numericArgs++) ;
@@ -130,7 +130,7 @@ static int cylinder_height(lua_State *L) {
         lua_pushnumber(L, cylinder.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
+//         if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         cylinder.height = value ;
         lua_pushvalue(L, 1) ;
     }
