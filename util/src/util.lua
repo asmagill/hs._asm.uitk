@@ -38,6 +38,7 @@ local subModules = {
     matrix4     = true,
     color       = true,
     gesture     = true,
+    vector      = true,
 }
 
 local preload = function(m, isLua)
