@@ -91,9 +91,6 @@ static int cylinder_new(lua_State *L) {
     CGFloat radius = lua_tonumber(L, numericArgs++) ;
     CGFloat height = lua_tonumber(L, numericArgs) ;
 
-    if (radius <= 0.0) return luaL_argerror(L, numericArgs - 1, "height must be greater than zero") ;
-    if (height <= 0.0) return luaL_argerror(L, numericArgs,     "height must be greater than zero") ;
-
     SCNCylinder *cylinder = [SCNCylinder cylinderWithName:name radius:radius height:height] ;
     if (cylinder) {
         [skin pushNSObject:cylinder] ;
@@ -114,7 +111,6 @@ static int cylinder_radius(lua_State *L) {
         lua_pushnumber(L, cylinder.radius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         cylinder.radius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -130,7 +126,6 @@ static int cylinder_height(lua_State *L) {
         lua_pushnumber(L, cylinder.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-//         if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         cylinder.height = value ;
         lua_pushvalue(L, 1) ;
     }

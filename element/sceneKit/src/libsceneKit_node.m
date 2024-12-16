@@ -664,8 +664,11 @@ static int node_focusBehavior(lua_State *L) {
 
 // FIXME: list
 //    do we need to check for loops?
-//    do we need to make sure parentNode of child is nil?
-//    if child is geometry or light, make sure fields aren't already filled for this one?
+// +  do we need to make sure parentNode of child is nil?
+//        no, reassignment undoes original and moves object to new location
+// +  if child is geometry or light, make sure fields aren't already filled for this one?
+//        produces some wierd results (light inside translucent sphere turned sphere black) but no
+//        serious side effects
 static int node_addChildNode(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,

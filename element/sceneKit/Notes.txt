@@ -1,15 +1,11 @@
-//    remove constraints that result in zero geometry? effect is documented, so no ill effects
 //    should quaternion functions check that it's a unit vector?
 //        obj-c side -- it's only rotation quaternions (what macOS mainly uses them for) that has this limit;
 //            uitk.util.vector should probably remain agnostic
 
 +   @class SCNView                          <+SCNSceneRenderer, -SCNTechniqueSupport>
 +   @class SCNScene  w/ SCNView
-
 +   @class SCNNode                          <SCNAnimatable, SCNActionable, +SCNBoundingVolume>
-
 +   @class SCNCameraController
-
 +   @class SCNCamera                        <SCNAnimatable, -SCNTechniqueSupport>
 +   @class SCNLight                         <SCNAnimatable>
 +   @class SCNGeometry                      <SCNAnimatable, +SCNBoundingVolume, -SCNShadable>
@@ -26,8 +22,8 @@
 +       @class SCNTorus
 +       @class SCNTube
 +   @class SCNGeometryTessellator
- ?  @class SCNGeometryElement
- ?  @class SCNGeometrySource
+ p  @class SCNGeometryElement
+ p  @class SCNGeometrySource
 +   @class SCNMaterial                      <SCNAnimatable, -SCNShadable>
 +   @class SCNMaterialProperty              <SCNAnimatable>
  ?  @class SCNMorpher                       <SCNAnimatable>

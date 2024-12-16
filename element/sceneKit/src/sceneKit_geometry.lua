@@ -24,7 +24,7 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.uitk.element.textField ===
+--- === hs._asm.uitk.element.sceneKit.geometry ===
 ---
 --- Stuff about the module
 
@@ -52,8 +52,8 @@ local subModules = {
 --     text        = false,
     torus       = false,
     tube        = false,
-    source      = false,
-    element     = false,
+    source      = true,
+    element     = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -80,7 +80,7 @@ local preload = function(m, isLua)
             local readOnlyAdditions
             if elMT._readOnlyAdditions then
                 readOnlyAdditions = {}
-                for i, v in ipairs(elMT._readOnlyAdditions) do readOnlyAdditions[v] = elMT[v] end
+                for i, v in ipairs(elMT._readOnlyAdditions) do readOnlyAdditions["_" .. v] = elMT[v] end
             end
 
             if elMT._propertyList then uitk.util._properties.addPropertiesWrapper(elMT, readOnlyAdditions) end

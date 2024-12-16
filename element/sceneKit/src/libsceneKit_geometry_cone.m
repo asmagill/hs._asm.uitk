@@ -94,12 +94,6 @@ static int cone_new(lua_State *L) {
     CGFloat bottomRadius = lua_tonumber(L, numericArgs++) ;
     CGFloat height       = lua_tonumber(L, numericArgs) ;
 
-    if (topRadius < 0.0)    return luaL_argerror(L, numericArgs - 2, "topRadius cannot be negative") ;
-    if (bottomRadius < 0.0) return luaL_argerror(L, numericArgs - 1, "bottomRadius cannot be negative") ;
-    if (height <= 0.0)      return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-    if (topRadius == 0.0 && bottomRadius == 0.0)
-        return luaL_argerror(L, numericArgs - 2, "top and bottom radii cannot both be zero") ;
-
     SCNCone *cone = [SCNCone coneWithName:name topRadius:topRadius bottomRadius:bottomRadius height:height] ;
     if (cone) {
         [skin pushNSObject:cone] ;
@@ -120,8 +114,6 @@ static int cone_topRadius(lua_State *L) {
         lua_pushnumber(L, cone.topRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                              return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.bottomRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
         cone.topRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -137,8 +129,6 @@ static int cone_bottomRadius(lua_State *L) {
         lua_pushnumber(L, cone.bottomRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)                           return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value == 0.0 && cone.topRadius == 0.0) return luaL_argerror(L, 2, "top and bottom radii cannot both be zero") ;
         cone.bottomRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -154,7 +144,6 @@ static int cone_height(lua_State *L) {
         lua_pushnumber(L, cone.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         cone.height = value ;
         lua_pushvalue(L, 1) ;
     }

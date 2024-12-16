@@ -89,7 +89,6 @@ static int sphere_new(lua_State *L) {
     }
 
     CGFloat radius = lua_tonumber(L, numericArgs) ;
-    if (radius <= 0.0) return luaL_argerror(L, numericArgs, "radius must be larger than zero") ;
 
     SCNSphere *sphere = [SCNSphere sphereWithName:name radius:radius] ;
     if (sphere) {
@@ -111,7 +110,6 @@ static int sphere_radius(lua_State *L) {
         lua_pushnumber(L, sphere.radius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         sphere.radius = value ;
         lua_pushvalue(L, 1) ;
     }

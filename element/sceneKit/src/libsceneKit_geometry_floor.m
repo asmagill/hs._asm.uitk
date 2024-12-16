@@ -99,7 +99,7 @@ static int floor_length(lua_State *L) {
         lua_pushnumber(L, theFloor.length) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+//         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         theFloor.length = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -115,7 +115,7 @@ static int floor_width(lua_State *L) {
         lua_pushnumber(L, theFloor.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+//         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         theFloor.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -131,7 +131,7 @@ static int floor_reflectionFalloffEnd(lua_State *L) {
         lua_pushnumber(L, theFloor.reflectionFalloffEnd) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+//         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         theFloor.reflectionFalloffEnd = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -147,7 +147,7 @@ static int floor_reflectionFalloffStart(lua_State *L) {
         lua_pushnumber(L, theFloor.reflectionFalloffStart) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+//         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         theFloor.reflectionFalloffStart = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -163,7 +163,7 @@ static int floor_reflectivity(lua_State *L) {
         lua_pushnumber(L, theFloor.reflectivity) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+//         if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         theFloor.reflectivity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -179,7 +179,7 @@ static int floor_reflectionResolutionScaleFactor(lua_State *L) {
         lua_pushnumber(L, theFloor.reflectionResolutionScaleFactor) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0 || value > 1.0) return luaL_argerror(L, 2, "must be greater than 0.0 and less than or equal to 1.0") ;
+//         if (value <= 0.0 || value > 1.0) return luaL_argerror(L, 2, "must be greater than 0.0 and less than or equal to 1.0") ;
         theFloor.reflectionResolutionScaleFactor = value ;
         lua_pushvalue(L, 1) ;
     }

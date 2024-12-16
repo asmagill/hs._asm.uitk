@@ -191,7 +191,7 @@ p     menubar rewrite so it can use views for status icon and menu items
     @interface NSBrowser                  : NSControl
     @interface NSSplitView                : NSView
 
-    @interface SCNView                    : NSView -- SceneKit framework
++   @interface SCNView                    : NSView -- SceneKit framework
     @interface SKView                     : NSView -- SpriteKit framework
         @interface SKNode                 : NSResponder
     @interface PDFView                    : NSView -- PDFKit framework

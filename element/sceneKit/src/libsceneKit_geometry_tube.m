@@ -93,10 +93,6 @@ static int tube_new(lua_State *L) {
     CGFloat innerRadius = lua_tonumber(L, numericArgs++) ;
     CGFloat outerRadius = lua_tonumber(L, numericArgs++) ;
     CGFloat height      = lua_tonumber(L, numericArgs) ;
-    if (innerRadius >= outerRadius) return luaL_argerror(L, numericArgs - 2, "outerRadius must be greater than innerRadius") ;
-    if (innerRadius <= 0.0) return luaL_argerror(L, numericArgs - 2, "innerRadius must be larger than zero") ;
-    if (outerRadius <= 0.0) return luaL_argerror(L, numericArgs - 1, "outerRadius must be larger than zero") ;
-    if (height <= 0.0)      return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
 
     SCNTube *tube = [SCNTube tubeWithName:name innerRadius:innerRadius outerRadius:outerRadius height:height] ;
     if (tube) {
@@ -118,8 +114,6 @@ static int tube_innerRadius(lua_State *L) {
         lua_pushnumber(L, tube.innerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value >= tube.outerRadius) return luaL_argerror(L, 2, "cannot be equal to or greater than the outerRadius") ;
         tube.innerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -135,8 +129,6 @@ static int tube_outerRadius(lua_State *L) {
         lua_pushnumber(L, tube.outerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
-        if (value <= tube.innerRadius) return luaL_argerror(L, 2, "cannot be equal to or less than the innerRadius") ;
         tube.outerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -152,7 +144,6 @@ static int tube_height(lua_State *L) {
         lua_pushnumber(L, tube.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0)               return luaL_argerror(L, 2, "cannot be negative") ;
         tube.height = value ;
         lua_pushvalue(L, 1) ;
     }

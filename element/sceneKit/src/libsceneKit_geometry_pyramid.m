@@ -92,10 +92,6 @@ static int pyramid_new(lua_State *L) {
     CGFloat height = lua_tonumber(L, numericArgs++) ;
     CGFloat length = lua_tonumber(L, numericArgs) ;
 
-    if (width  <= 0.0) return luaL_argerror(L, numericArgs - 2, "width must be larger than zero") ;
-    if (height <= 0.0) return luaL_argerror(L, numericArgs - 1, "height must be larger than zero") ;
-    if (length <= 0.0) return luaL_argerror(L, numericArgs,     "length must be larger than zero") ;
-
     SCNPyramid *pyramid = [SCNPyramid pyramidWithName:name width:width height:height length:length] ;
     if (pyramid) {
         [skin pushNSObject:pyramid] ;
@@ -116,7 +112,6 @@ static int pyramid_width(lua_State *L) {
         lua_pushnumber(L, pyramid.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         pyramid.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -132,7 +127,6 @@ static int pyramid_height(lua_State *L) {
         lua_pushnumber(L, pyramid.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         pyramid.height = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -148,7 +142,6 @@ static int pyramid_length(lua_State *L) {
         lua_pushnumber(L, pyramid.length) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         pyramid.length = value ;
         lua_pushvalue(L, 1) ;
     }

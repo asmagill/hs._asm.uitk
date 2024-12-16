@@ -180,19 +180,34 @@ static SCNVector3 pullSCNVector3(lua_State *L, int idx) {
         if (lua_getfield(L, idx, "x") == LUA_TNUMBER) {
             vector3.x = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector3 field x is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 1) == LUA_TNUMBER) {
+                vector3.x = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector3 field x is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "y") == LUA_TNUMBER) {
             vector3.y = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector3 field y is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 2) == LUA_TNUMBER) {
+                vector3.y = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector3 field y is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "z") == LUA_TNUMBER) {
             vector3.z = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector3 field z is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 3) == LUA_TNUMBER) {
+                vector3.z = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector3 field z is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
     } else {
@@ -224,25 +239,45 @@ static SCNVector4 pullSCNVector4(lua_State *L, int idx) {
         if (lua_getfield(L, idx, "x") == LUA_TNUMBER) {
             vector4.x = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector4 field x is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 1) == LUA_TNUMBER) {
+                vector4.x = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector4 field x is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "y") == LUA_TNUMBER) {
             vector4.y = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector4 field y is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 2) == LUA_TNUMBER) {
+                vector4.y = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector4 field y is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "z") == LUA_TNUMBER) {
             vector4.z = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector4 field z is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 3) == LUA_TNUMBER) {
+                vector4.z = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector4 field z is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "w") == LUA_TNUMBER) {
             vector4.w = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNVector4 field z is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 4) == LUA_TNUMBER) {
+                vector4.w = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNVector4 field w is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
     } else {
@@ -274,25 +309,45 @@ static SCNQuaternion pullSCNQuaternion(lua_State *L, int idx) {
         if (lua_getfield(L, idx, "ix") == LUA_TNUMBER) {
             quaternion.x = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNQuaternion field ix is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 2) == LUA_TNUMBER) {
+                quaternion.x = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNQuaternion field ix is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "iy") == LUA_TNUMBER) {
             quaternion.y = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNQuaternion field iy is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 3) == LUA_TNUMBER) {
+                quaternion.y = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNQuaternion field iy is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "iz") == LUA_TNUMBER) {
             quaternion.z = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNQuaternion field iz is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 4) == LUA_TNUMBER) {
+                quaternion.z = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNQuaternion field iz is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
         if (lua_getfield(L, idx, "r") == LUA_TNUMBER) {
             quaternion.w = lua_tonumber(L, -1) ;
         } else {
-            [skin logError:@"SCNQuaternion field r is not a number; setting to 0"] ;
+            if (lua_geti(L, idx, 1) == LUA_TNUMBER) {
+                quaternion.w = lua_tonumber(L, -1) ;
+            } else {
+                [skin logInfo:@"SCNQuaternion field r is not a number; setting to 0"] ;
+            }
+            lua_pop(L, 1) ;
         }
         lua_pop(L, 1) ;
     } else {

@@ -90,8 +90,6 @@ static int torus_new(lua_State *L) {
 
     CGFloat ringRadius = lua_tonumber(L, numericArgs++) ;
     CGFloat pipeRadius = lua_tonumber(L, numericArgs) ;
-    if (ringRadius <= 0.0) return luaL_argerror(L, numericArgs - 1, "ringRadius must be larger than zero") ;
-    if (pipeRadius <= 0.0) return luaL_argerror(L, numericArgs ,    "pipeRadius must be larger than zero") ;
 
     SCNTorus *torus = [SCNTorus torusWithName:name ringRadius:ringRadius pipeRadius:pipeRadius] ;
     if (torus) {
@@ -113,7 +111,6 @@ static int torus_ringRadius(lua_State *L) {
         lua_pushnumber(L, torus.ringRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         torus.ringRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -129,7 +126,6 @@ static int torus_pipeRadius(lua_State *L) {
         lua_pushnumber(L, torus.pipeRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         torus.pipeRadius = value ;
         lua_pushvalue(L, 1) ;
     }

@@ -161,11 +161,8 @@ static int geometry_subdivisionLevel(lua_State *L) {
         lua_pushinteger(L, (lua_Integer)geometry.subdivisionLevel) ;
     } else {
         lua_Integer level = lua_tointeger(L, 2) ;
-        if (level < 0) {
-            return luaL_argerror(L, 2, "subdivision level must be 0 or greater") ;
-        }
-
-        geometry.subdivisionLevel = (NSUInteger)lua_tointeger(L, 2) ;
+//         if (level < 0) return luaL_argerror(L, 2, "subdivision level must be 0 or greater") ;
+        geometry.subdivisionLevel = (NSUInteger)level ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -214,56 +211,6 @@ static int geometry_geometrySources(lua_State *L) {
     }
 
     [skin pushNSObject:geometry.geometrySources] ;
-    return 1 ;
-}
-
-static int geometry_edgeCreasesElement(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TANY, LS_TANY | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
-        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
-    }
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSObject:geometry.edgeCreasesElement] ;
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            if (geometry.edgeCreasesElement) [skin luaRelease:refTable forNSObject:geometry.edgeCreasesElement] ;
-            geometry.edgeCreasesElement = nil ;
-        } else {
-            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.geometry.element", LS_TBREAK] ;
-            SCNGeometryElement *element = [skin toNSObjectAtIndex:2] ;
-            geometry.edgeCreasesElement = element ;
-            [skin luaRetain:refTable forNSObject:geometry.edgeCreasesElement] ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int geometry_edgeCreasesSource(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TANY, LS_TANY | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
-        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
-    }
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSObject:geometry.edgeCreasesSource] ;
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            if (geometry.edgeCreasesSource) [skin luaRelease:refTable forNSObject:geometry.edgeCreasesSource] ;
-            geometry.edgeCreasesSource = nil ;
-        } else {
-            [skin checkArgs:LS_TANY, LS_TUSERDATA, "hs._asm.uitk.element.sceneKit.geometry.source", LS_TBREAK] ;
-            SCNGeometrySource *source = [skin toNSObjectAtIndex:2] ;
-            geometry.edgeCreasesSource = source ;
-            [skin luaRetain:refTable forNSObject:geometry.edgeCreasesSource] ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
     return 1 ;
 }
 
@@ -389,38 +336,13 @@ static int geometry_materialWithName(lua_State *L) {
 //     - (void)removeMaterialAtIndex:(NSUInteger)index;
 //     - (void)replaceMaterialAtIndex:(NSUInteger)index withMaterial:(SCNMaterial *)material;
 
-// for setting alternate geometry objects when distance changes; let's see if this even works well enough for
-// animation before worrying about it.
-// static int geometry_levelsOfDetail(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-//     SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-//     if (!geometry || !oneOfOurGeometryObjects(geometry)) {
-//         return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
-//     }
-//
-//     if (lua_gettop(L) == 1) {
-//         [skin pushNSObject:geometry.levelsOfDetail] ;
-//     } else {
-//         if (lua_type(L, 2) == LUA_TNIL) {
-//             geometry.levelsOfDetail = nil ;
-//         } else {
-//             NSArray    *levels = [skin toNSObjectAtIndex:2] ;
-//             BOOL       isGood  = [levels isKindOfClass:[NSArray class]] ;
-//             NSUInteger count      = 0 ;
-//             while (isGood && count < levels.count) {
-//                 SCNLevelOfDetail *item = levels[count++] ;
-//                 isGood = [item isKindOfClass:[SCNLevelOfDetail class]] ;
-//             }
-//             if (!isGood) {
-//                 return luaL_argerror(L, 2, "expected array of sceneKit levelsOfDetail objects or nil to clear") ;
-//             }
-//
-//         geometry.levelsOfDetail = levels ;
-//         lua_pushvalue(L, 1) ;
-//     }
-//     return 1 ;
-// }
+// NOTE: for setting alternate geometry objects when distance changes; let's see if this even works well enough for
+//       animation before worrying about it.
+//     @property(nonatomic, copy, nullable) NSArray<SCNLevelOfDetail *> *levelsOfDetail;
+
+// NOTE: for tweaking subdivision levels, but requires element and source creators
+//     @property(nonatomic, retain, nullable) SCNGeometryElement *edgeCreasesElement;
+//     @property(nonatomic, retain, nullable) SCNGeometrySource *edgeCreasesSource
 
 #pragma mark - SCNBoundingVolume Protocol Methods -
 
@@ -545,8 +467,6 @@ static int userdata_gc(lua_State* L) {
         if (obj.selfRefCount == 0) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:obj.refTable ref:obj.callbackRef] ;
-            if (obj.edgeCreasesElement) [skin luaRelease:refTable forNSObject:obj.edgeCreasesElement] ;
-            if (obj.edgeCreasesSource)  [skin luaRelease:refTable forNSObject:obj.edgeCreasesSource] ;
             if (obj.tessellator)        [skin luaRelease:refTable forNSObject:obj.tessellator] ;
             for (SCNMaterial *item in obj.materials) [skin luaRelease:refTable forNSObject:item] ;
             obj = nil ;
@@ -579,8 +499,6 @@ static const luaL_Reg userdata_metaLib[] = {
     {"adaptiveSubdivision", geometry_wantsAdaptiveSubdivision},
     {"subdivisionLevel",    geometry_subdivisionLevel},
     {"name",                geometry_name},
-    {"edgeCreasesElement",  geometry_edgeCreasesElement},
-    {"edgeCreasesSource",   geometry_edgeCreasesSource},
     {"tessellator",         geometry_tessellator},
     {"materials",           geometry_materials},
 //     {"levelsOfDetail",      geometry_levelsOfDetail},
@@ -621,8 +539,6 @@ int luaopen_hs__asm_uitk_element_libsceneKit_geometry(lua_State* L) {
         @"adaptiveSubdivision",
         @"subdivisionLevel",
         @"name",
-        @"edgeCreasesElement",
-        @"edgeCreasesSource",
         @"tessellator",
         @"materials",
 //         @"levelsOfDetail",

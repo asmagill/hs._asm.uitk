@@ -97,11 +97,6 @@ static int box_new(lua_State *L) {
     CGFloat length  = lua_tonumber(L, numericArgs++) ;
     CGFloat chamfer = (lua_gettop(L) == numericArgs) ? lua_tonumber(L, numericArgs) : 0.0 ;
 
-    if (width <= 0.0)  return luaL_argerror(L, numericArgs - 3, "width must be larger than zero") ;
-    if (height <= 0.0) return luaL_argerror(L, numericArgs - 2, "height must be larger than zero") ;
-    if (length <= 0.0) return luaL_argerror(L, numericArgs - 1, "length must be larger than zero") ;
-    if (chamfer < 0.0) return luaL_argerror(L, numericArgs,     "chamfer cannot be negative") ;
-
     SCNBox *box = [SCNBox boxWithName:name width:width height:height length:length chamferRadius:chamfer] ;
     if (box) {
         [skin pushNSObject:box] ;
@@ -122,7 +117,6 @@ static int box_chamferRadius(lua_State *L) {
         lua_pushnumber(L, box.chamferRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         box.chamferRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -138,7 +132,6 @@ static int box_width(lua_State *L) {
         lua_pushnumber(L, box.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -154,7 +147,6 @@ static int box_height(lua_State *L) {
         lua_pushnumber(L, box.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.height = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -170,7 +162,6 @@ static int box_length(lua_State *L) {
         lua_pushnumber(L, box.length) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         box.length = value ;
         lua_pushvalue(L, 1) ;
     }

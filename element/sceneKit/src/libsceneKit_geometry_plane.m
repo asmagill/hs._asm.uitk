@@ -91,9 +91,6 @@ static int plane_new(lua_State *L) {
     CGFloat width  = lua_tonumber(L, numericArgs++) ;
     CGFloat height = lua_tonumber(L, numericArgs) ;
 
-    if (width <= 0.0)  return luaL_argerror(L, numericArgs - 1, "width must be larger than zero") ;
-    if (height <= 0.0) return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-
     SCNPlane *plane = [SCNPlane planeWithName:name width:width height:height] ;
     if (plane) {
         [skin pushNSObject:plane] ;
@@ -114,7 +111,6 @@ static int plane_cornerRadius(lua_State *L) {
         lua_pushnumber(L, plane.cornerRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         plane.cornerRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -130,7 +126,6 @@ static int plane_width(lua_State *L) {
         lua_pushnumber(L, plane.width) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         plane.width = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -146,7 +141,6 @@ static int plane_height(lua_State *L) {
         lua_pushnumber(L, plane.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be larger than zero") ;
         plane.height = value ;
         lua_pushvalue(L, 1) ;
     }

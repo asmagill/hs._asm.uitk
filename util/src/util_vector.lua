@@ -43,6 +43,8 @@ local quaternionMethods = {}
 
 -- these are written to be as reusable as possible, so we access elements by index in most cases
 
+-- shared methods
+
 vector3Methods.isValid = function(self)
     local result, idx = true, 0
     while result and idx < #self do
@@ -98,6 +100,8 @@ end
 vector4Methods.dotProduct    = vector3Methods.dotProduct
 quaternionMethods.dotProduct = vector3Methods.dotProduct
 
+-- vector3 only methods
+
 vector3Methods.crossProduct = function(self, other)
     if getmetatable(self) ~= getmetatable(other) then
         error("both vectors must be of the same type", 3)
@@ -112,6 +116,8 @@ end
 vector3Methods.pureQuaternion = function(self)
     return module.quaternion{ 0, self.x, self.y, self.z }
 end
+
+-- quaternion only methods
 
 quaternionMethods.product = function(self, other)
     if getmetatable(self) ~= getmetatable(other) then
@@ -137,8 +143,39 @@ end
 
 -- common metamethods
 
+local common_mul = function(self, multiplicand)
+    if type(self) == "number" then
+        self, multiplicand = multiplicand, self
+    end
+    if type(multiplicand) ~= "number" then
+        error("multiplicand must be a scaler", 3)
+    end
+    local answer = self:copy()
+    for i = 1, #self, 1 do answer[i] = self[i] * multiplicand end
+    return answer
+end
+
+local common_div = function(self, divisor)
+    if type(divisor) == "number" then
+        return self * (1 / divisor)
+    else
+        error("dividend cannot be a scaler", 3)
+    end
+end
+
+local common_add = function(self, addend)
+    if getmetatable(self) ~= getmetatable(addend) then
+        error("both vectors must be of the same type", 3)
+    end
+    local answer = self:copy()
+    for i = 1, #self, 1 do answer[i] = self[i] + addend[i] end
+    return answer
+end
+
 local common_unm = function(self) return self * -1 end
+
 local common_sub = function(self, subtrahend) return self + -subtrahend end
+
 local common_eq = function(self, other)
     local result = (getmetatable(self) == getmetatable(other)) and (#self == #other)
     local idx = 0
@@ -149,7 +186,8 @@ local common_eq = function(self, other)
     return result
 end
 
--- store this in the registry so we can easily set it both from Lua and from C functions
+-- store these in the registry so we can easily set it both from Lua and from C functions
+
 debug.getregistry()[USERDATA_TAG .. ".vector3"] = {
     __type     = USERDATA_TAG .. ".vector3",
     __name     = USERDATA_TAG .. ".vector3",
@@ -175,28 +213,9 @@ debug.getregistry()[USERDATA_TAG .. ".vector3"] = {
         end
     end,
     __len = function(self) return 3 end,
-    __mul = function(self, multiplicand)
-        if type(self) == "number" then
-            self, multiplicand = multiplicand, self
-        end
-        if type(multiplicand) ~= "number" then
-            error("multiplicand must be a scaler", 3)
-        end
-        return module.vector3{ self.x * multiplicand, self.y * multiplicand, self.z * multiplicand }
-    end,
-    __div = function(self, divisor)
-        if type(divisor) == "number" then
-            return self * (1 / divisor)
-        else
-            error("dividend cannot be a scaler", 3)
-        end
-    end,
-    __add = function(self, addend)
-        if getmetatable(self) ~= getmetatable(addend) then
-            error("expected two vector3 objects", 3)
-        end
-        return module.vector3{ self.x + addend.x, self.y + addend.y, self.z + addend.z }
-    end,
+    __mul = common_mul,
+    __div = common_div,
+    __add = common_add,
     __unm = common_unm,
     __sub = common_sub,
     __eq  = common_eq,
@@ -229,28 +248,9 @@ debug.getregistry()[USERDATA_TAG .. ".vector4"] = {
         end
     end,
     __len = function(self) return 4 end,
-    __mul = function(self, multiplicand)
-        if type(self) == "number" then
-            self, multiplicand = multiplicand, self
-        end
-        if type(multiplicand) ~= "number" then
-            error("multiplicand must be a scaler", 3)
-        end
-        return module.vector4{ self.x * multiplicand, self.y * multiplicand, self.z * multiplicand, self.w * multiplicand }
-    end,
-    __div = function(self, divisor)
-        if type(divisor) == "number" then
-            return self * (1 / divisor)
-        else
-            error("dividend cannot be a scaler", 3)
-        end
-    end,
-    __add = function(self, addend)
-        if getmetatable(self) ~= getmetatable(addend) then
-            error("expected two vector4 objects", 3)
-        end
-        return module.vector4{ self.x + addend.x, self.y + addend.y, self.z + addend.z, self.w + addend.w }
-    end,
+    __mul = common_mul,
+    __div = common_div,
+    __add = common_add,
     __unm = common_unm,
     __sub = common_sub,
     __eq  = common_eq,
@@ -288,26 +288,15 @@ debug.getregistry()[USERDATA_TAG .. ".quaternion"] = {
             self, multiplicand = multiplicand, self
         end
         if type(multiplicand) == "number" then
-            return module.quaternion{ self.r * multiplicand, self.ix * multiplicand, self.iy * multiplicand, self.iz * multiplicand }
+            return common_mul(self, multiplicand)
         elseif getmetatable(self) == getmetatable(multiplicand) then
             return self:product(multiplicand)
         else
             error("multiplicand must be a quaternion or scaler", 3)
         end
     end,
-    __div = function(self, divisor)
-        if type(divisor) == "number" then
-            return self * (1 / divisor)
-        else
-            error("dividend cannot be a scaler", 3)
-        end
-    end,
-    __add = function(self, addend)
-        if getmetatable(self) ~= getmetatable(addend) then
-            error("expected two vector4 objects", 3)
-        end
-        return module.quaternion{ self.r + addend.r, self.ix + addend.ix, self.iy + addend.iy, self.iz + addend.iz }
-    end,
+    __div = common_div,
+    __add = common_add,
     __unm = common_unm,
     __sub = common_sub,
     __eq  = common_eq,
@@ -404,6 +393,14 @@ module.new = function(...)
         error("arguments not recognized as a valid vector3, vector4, or quaternion", 3)
     end
 end
+
+module.unitX = function() return module.vector3(1, 0, 0) end
+
+module.unitY = function() return module.vector3(0, 1, 0) end
+
+module.unitZ = function() return module.vector3(0, 0, 1) end
+
+module.quaternionIdentity = function() return module.quaternion(1, 0, 0, 0) end
 
 -- Return Module Object --------------------------------------------------
 

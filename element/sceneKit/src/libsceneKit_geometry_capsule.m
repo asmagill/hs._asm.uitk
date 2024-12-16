@@ -91,10 +91,6 @@ static int capsule_new(lua_State *L) {
     CGFloat radius = lua_tonumber(L, numericArgs++) ;
     CGFloat height = lua_tonumber(L, numericArgs) ;
 
-    if (radius <= 0.0)     return luaL_argerror(L, numericArgs - 1, "radius must be larger than zero") ;
-    if (height <= 0.0)     return luaL_argerror(L, numericArgs,     "height must be larger than zero") ;
-    if (radius > height/2) return luaL_argerror(L, numericArgs - 1, "radius must be less than half of the height") ;
-
     SCNCapsule *capsule = [SCNCapsule capsuleWithName:name capRadius:radius height:height] ;
     if (capsule) {
         [skin pushNSObject:capsule] ;
@@ -115,8 +111,6 @@ static int capsule_capRadius(lua_State *L) {
         lua_pushnumber(L, capsule.capRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0)               return luaL_argerror(L, 2, "must be larger than zero") ;
-        if (value > capsule.height / 2) return luaL_argerror(L, 2, "must be less than half of the height") ;
         capsule.capRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -132,8 +126,6 @@ static int capsule_height(lua_State *L) {
         lua_pushnumber(L, capsule.height) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0)                  return luaL_argerror(L, 2, "must be larger than zero") ;
-        if (value < capsule.capRadius * 2) return luaL_argerror(L, 2, "must be greater than double the radius") ;
         capsule.height = value ;
         lua_pushvalue(L, 1) ;
     }

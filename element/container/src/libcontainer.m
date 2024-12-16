@@ -1386,6 +1386,8 @@ static int userdata_gc(lua_State* L) {
             }] ;
             [obj.subviewDetails removeAllObjects] ;
             obj.subviewDetails = nil ;
+
+            for(NSGestureRecognizer *gesture in obj.gestureRecognizers) [skin luaRelease:obj.refTable forNSObject:gesture] ;
         }
         obj = nil ;
     }

@@ -54,7 +54,7 @@ module.reGenerate = function()
     end
 
     -- default orientation for lines
-    local yUnit = vector.vector3(0, 1, 0)
+    local unitY = vector.unitY()
 
     -- add lines
     for i, v in pairs(module.lines) do
@@ -68,14 +68,17 @@ module.reGenerate = function()
         newLine:geometry():height(height)
         newLine:worldPosition((v1 + v2) / 2)
 
-       -- rotate if orientation is not already along yUnit
-       local dir = (v2 - v1):normalized()
-       if dir ~= yUnit and dir ~= -yUnit then
-           local q   = yUnit:crossProduct(dir):pureQuaternion()
-           q.r = math.sqrt((dir:magnitude()^2) * (yUnit:magnitude()^2)) + yUnit:dotProduct(dir)
-           newLine:orientation(q:normalized())
+        -- see https://stackoverflow.com/a/1171995 and https://stackoverflow.com/a/11741520
+        local dir = (v2 - v1):normalized()
+        local q
+        if dir == -unitY then -- if 180 degrees, gimbal lock, so handle separately
+            local t = v1:crossProduct(unitY):normalized()
+            q = vector.quaternion(0, t.x, t.y, t.z)
+        else
+            q = unitY:crossProduct(dir):pureQuaternion()
+            q.r = dir:magnitude() * unitY:magnitude() + unitY:dotProduct(dir)
         end
-
+        newLine:orientation(q:normalized())
         lines:addChildNode(newLine)
     end
 end

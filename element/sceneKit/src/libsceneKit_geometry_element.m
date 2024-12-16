@@ -126,7 +126,6 @@ static int element_maximumPointScreenSpaceRadius(lua_State *L) {
         lua_pushnumber(L, element.maximumPointScreenSpaceRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         element.maximumPointScreenSpaceRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -142,7 +141,6 @@ static int element_minimumPointScreenSpaceRadius(lua_State *L) {
         lua_pushnumber(L, element.minimumPointScreenSpaceRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         element.minimumPointScreenSpaceRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -158,7 +156,6 @@ static int element_pointSize(lua_State *L) {
         lua_pushnumber(L, element.pointSize) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         element.pointSize = value ;
         lua_pushvalue(L, 1) ;
     }

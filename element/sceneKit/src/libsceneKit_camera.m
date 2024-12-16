@@ -239,7 +239,6 @@ static int camera_bloomBlurRadius(lua_State *L) {
         lua_pushnumber(L, camera.bloomBlurRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.bloomBlurRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -255,7 +254,6 @@ static int camera_bloomIntensity(lua_State *L) {
         lua_pushnumber(L, camera.bloomIntensity) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.bloomIntensity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -271,7 +269,6 @@ static int camera_bloomIterationSpread(lua_State *L) {
         lua_pushnumber(L, camera.bloomIterationSpread) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.bloomIterationSpread = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -320,7 +317,6 @@ static int camera_colorFringeStrength(lua_State *L) {
         lua_pushnumber(L, camera.colorFringeStrength) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.colorFringeStrength = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -336,7 +332,6 @@ static int camera_contrast(lua_State *L) {
         lua_pushnumber(L, camera.contrast) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.contrast = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -352,7 +347,6 @@ static int camera_exposureAdaptationBrighteningSpeedFactor(lua_State *L) {
         lua_pushnumber(L, camera.exposureAdaptationBrighteningSpeedFactor) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.exposureAdaptationBrighteningSpeedFactor = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -368,7 +362,6 @@ static int camera_exposureAdaptationDarkeningSpeedFactor(lua_State *L) {
         lua_pushnumber(L, camera.exposureAdaptationDarkeningSpeedFactor) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.exposureAdaptationDarkeningSpeedFactor = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -399,7 +392,6 @@ static int camera_fieldOfView(lua_State *L) {
         lua_pushnumber(L, camera.fieldOfView) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.fieldOfView = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -415,7 +407,6 @@ static int camera_focalLength(lua_State *L) {
         lua_pushnumber(L, camera.focalLength) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.fieldOfView = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -431,7 +422,6 @@ static int camera_focusDistance(lua_State *L) {
         lua_pushnumber(L, camera.focusDistance) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.focusDistance = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -463,7 +453,6 @@ static int camera_grainIntensity(lua_State *L) {
         lua_pushnumber(L, camera.grainIntensity) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.grainIntensity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -540,7 +529,6 @@ static int camera_saturation(lua_State *L) {
         lua_pushnumber(L, camera.saturation) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.saturation = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -556,7 +544,6 @@ static int camera_screenSpaceAmbientOcclusionIntensity(lua_State *L) {
         lua_pushnumber(L, camera.screenSpaceAmbientOcclusionIntensity) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.screenSpaceAmbientOcclusionIntensity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -572,7 +559,6 @@ static int camera_screenSpaceAmbientOcclusionRadius(lua_State *L) {
         lua_pushnumber(L, camera.screenSpaceAmbientOcclusionRadius) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         camera.screenSpaceAmbientOcclusionRadius = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -603,7 +589,6 @@ static int camera_screenSpaceAmbientOcclusionDepthThreshold(lua_State *L) {
         lua_pushnumber(L, camera.screenSpaceAmbientOcclusionDepthThreshold) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.screenSpaceAmbientOcclusionDepthThreshold = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -619,7 +604,6 @@ static int camera_screenSpaceAmbientOcclusionNormalThreshold(lua_State *L) {
         lua_pushnumber(L, camera.screenSpaceAmbientOcclusionNormalThreshold) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.screenSpaceAmbientOcclusionNormalThreshold = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -635,7 +619,6 @@ static int camera_sensorHeight(lua_State *L) {
         lua_pushnumber(L, camera.sensorHeight) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         camera.sensorHeight = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -651,7 +634,6 @@ static int camera_vignettingIntensity(lua_State *L) {
         lua_pushnumber(L, camera.vignettingIntensity) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.vignettingIntensity = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -667,7 +649,6 @@ static int camera_vignettingPower(lua_State *L) {
         lua_pushnumber(L, camera.vignettingPower) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.vignettingPower = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -683,7 +664,6 @@ static int camera_whiteBalanceTemperature(lua_State *L) {
         lua_pushnumber(L, camera.whiteBalanceTemperature) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.whiteBalanceTemperature = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -699,7 +679,6 @@ static int camera_whiteBalanceTint(lua_State *L) {
         lua_pushnumber(L, camera.whiteBalanceTint) ;
     } else {
         CGFloat value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.whiteBalanceTint = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -730,7 +709,6 @@ static int camera_orthographicScale(lua_State *L) {
         lua_pushnumber(L, camera.orthographicScale) ;
     } else {
         double value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.orthographicScale = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -746,7 +724,7 @@ static int camera_zNear(lua_State *L) {
         lua_pushnumber(L, camera.zNear) ;
     } else {
         double value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
+        if (value <= 0.0) return luaL_argerror(L, 2, "must be greater than zero") ;
         camera.zNear = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -762,7 +740,6 @@ static int camera_zFar(lua_State *L) {
         lua_pushnumber(L, camera.zFar) ;
     } else {
         double value = lua_tonumber(L, 2) ;
-        if (value < 0.0) return luaL_argerror(L, 2, "cannot be negative") ;
         camera.zFar = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -778,7 +755,6 @@ static int camera_apertureBladeCount(lua_State *L) {
         lua_pushinteger(L, camera.apertureBladeCount) ;
     } else {
         NSInteger value = lua_tointeger(L, 2) ;
-        if (value < 1) return luaL_argerror(L, 2, "must be greater than zero") ;
         camera.apertureBladeCount = value ;
         lua_pushvalue(L, 1) ;
     }
@@ -809,7 +785,6 @@ static int camera_focalBlurSampleCount(lua_State *L) {
         lua_pushinteger(L, camera.focalBlurSampleCount) ;
     } else {
         NSInteger value = lua_tointeger(L, 2) ;
-        if (value < 1) return luaL_argerror(L, 2, "must be greater than zero") ;
         camera.focalBlurSampleCount = value ;
         lua_pushvalue(L, 1) ;
     }
