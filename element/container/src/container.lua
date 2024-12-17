@@ -42,6 +42,7 @@ local subModules = {
     grid     = true,
     table    = true,
     tabs     = true,
+    split    = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
