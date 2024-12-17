@@ -59,7 +59,7 @@ moduleMT.__index = function(self, key)
 
 -- check to see if its an index to an item of this container
     if math.type(key) == "integer" then
-        local item = self:elements()[key]
+        local item = self:arrangedElements()[key]
         if item then return item end
     end
 
@@ -75,7 +75,7 @@ moduleMT.__newindex = function(self, key, value)
 
         if type(value) == "userdata" and uitk.element.isElementType(value) then
         -- add/insert new element
-            self:insertElement(idx, value)
+            self:insertElement(value, idx)
             return
         elseif type(value) == "nil" then
         -- remove element
@@ -90,7 +90,7 @@ moduleMT.__newindex = function(self, key, value)
     error("attempt to index a " .. USERDATA_TAG, 3)
 end
 
-moduleMT.__len = function(self) return #self:elements() end
+moduleMT.__len = function(self) return #self:arrangedElements() end
 
 moduleMT.__pairs = function(self)
     local keys = {}
@@ -111,7 +111,7 @@ moduleMT.indexOf = function(self, ...)
     if args.n == 1 then
         local idx = nil
         if uitk.element.isElementType(id) then
-            for i, v in ipairs(self:elements()) do
+            for i, v in ipairs(self:arrangedElements()) do
                 if id == v then
                     idx = i
                     break

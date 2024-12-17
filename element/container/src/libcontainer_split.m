@@ -33,6 +33,8 @@ static BOOL oneOfOurElementObjects(NSView *obj) {
 @property (readonly) LSRefTable        refTable ;
 @property            int               callbackRef ;
 @property            int               passThroughRef ;
+@property            BOOL              canCollapse ;
+@property            BOOL              canHideDivider ;
 
 - (NSColor *)dividerColor ;
 - (void)setDividerColor:(NSColor *)color ;
@@ -64,6 +66,8 @@ static BOOL oneOfOurElementObjects(NSView *obj) {
 
         _colorOfDivider = nil ;
         _thickness      = -1 ;
+        _canCollapse    = NO ;
+        _canHideDivider = NO ;
 
         self.delegate            = self ;
         self.arrangesAllSubviews = YES ;
@@ -168,9 +172,17 @@ static BOOL oneOfOurElementObjects(NSView *obj) {
 
 #pragma mark - NSSplitViewDelegate -
 
-// - (BOOL)splitView:(NSSplitView *)splitView canCollapseSubview:(NSView *)subview;
-// - (BOOL)splitView:(NSSplitView *)splitView shouldHideDividerAtIndex:(NSInteger)dividerIndex;
-// - (BOOL)splitView:(NSSplitView *)splitView shouldAdjustSizeOfSubview:(NSView *)view;
+- (BOOL)splitView:(NSSplitView *)splitView canCollapseSubview:(NSView *)subview {
+    return _canCollapse ;
+}
+
+- (BOOL)splitView:(NSSplitView *)splitView shouldHideDividerAtIndex:(NSInteger)dividerIndex {
+    return _canHideDivider ;
+}
+
+- (BOOL)splitView:(NSSplitView *)splitView shouldAdjustSizeOfSubview:(NSView *)view {
+    return YES ;
+}
 
 // - (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMaximumPosition ofSubviewAt:(NSInteger)dividerIndex;
 // - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(NSInteger)dividerIndex;
@@ -228,27 +240,27 @@ static int split_passthroughCallback(lua_State *L) {
     return 1 ;
 }
 
-static int split_callback(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKElementContainerSplitView *splitView = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 2) {
-        splitView.callbackRef = [skin luaUnref:refTable ref:splitView.callbackRef] ;
-        if (lua_type(L, 2) != LUA_TNIL) {
-            lua_pushvalue(L, 2) ;
-            splitView.callbackRef = [skin luaRef:refTable] ;
-        }
-        lua_pushvalue(L, 1) ;
-    } else {
-        if (splitView.callbackRef != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:splitView.callbackRef] ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    }
-    return 1 ;
-}
+// static int split_callback(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TFUNCTION | LS_TNIL | LS_TOPTIONAL, LS_TBREAK] ;
+//     HSUITKElementContainerSplitView *splitView = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 2) {
+//         splitView.callbackRef = [skin luaUnref:refTable ref:splitView.callbackRef] ;
+//         if (lua_type(L, 2) != LUA_TNIL) {
+//             lua_pushvalue(L, 2) ;
+//             splitView.callbackRef = [skin luaRef:refTable] ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     } else {
+//         if (splitView.callbackRef != LUA_NOREF) {
+//             [skin pushLuaRef:refTable ref:splitView.callbackRef] ;
+//         } else {
+//             lua_pushnil(L) ;
+//         }
+//     }
+//     return 1 ;
+// }
 
 // // simplify and just make this YES, otherwise use a different container
 // static int split_arrangesAllSubviews(lua_State *L) {
@@ -276,6 +288,36 @@ static int split_vertical(lua_State *L) {
     } else {
         BOOL value = (BOOL)(lua_toboolean(L, 2)) ;
         splitView.vertical = value ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int split_canCollapse(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementContainerSplitView *splitView = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, splitView.canCollapse) ;
+    } else {
+        BOOL value = (BOOL)(lua_toboolean(L, 2)) ;
+        splitView.canCollapse = value ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
+static int split_canHideDivider(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+    HSUITKElementContainerSplitView *splitView = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        lua_pushboolean(L, splitView.canHideDivider) ;
+    } else {
+        BOOL value = (BOOL)(lua_toboolean(L, 2)) ;
+        splitView.canHideDivider = value ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -632,15 +674,17 @@ static int userdata_gc(lua_State* L) {
 // Metatable for userdata objects
   static const luaL_Reg userdata_metaLib[] = {
     {"passthroughCallback", split_passthroughCallback},
-    {"callback",            split_callback},
+//     {"callback",            split_callback},
     {"vertical",            split_vertical},
     {"autosaveName",        split_autosaveName},
     {"dividerColor",        split_dividerColor},
     {"dividerThickness",    split_dividerThickness},
     {"dividerStyle",        split_dividerStyle},
+    {"canCollapse",         split_canCollapse},
+    {"canHideDivider",      split_canHideDivider},
 
-    {"arrangedSubviews",    split_arrangedSubviews},
-    {"adjustSubviews",      split_adjustSubviews},
+    {"arrangedElements",    split_arrangedSubviews},
+    {"adjustElements",      split_adjustSubviews},
     {"isSubviewCollapsed",  split_isSubviewCollapsed},
     {"maxDividerPosition",  split_maxPossiblePositionOfDividerAtIndex},
     {"minDividerPosition",  split_minPossiblePositionOfDividerAtIndex},
@@ -684,7 +728,7 @@ int luaopen_hs__asm_uitk_element_libcontainer_split(lua_State* L) {
     luaL_getmetatable(L, USERDATA_TAG) ;
     [skin pushNSObject:@[
         @"passthroughCallback",
-        @"callback",
+//         @"callback",
         @"vertical",
         @"autosaveName",
         @"dividerColor",
