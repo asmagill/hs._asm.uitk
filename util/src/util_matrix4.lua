@@ -56,22 +56,6 @@ local module = {
     identity  = methods.identity,
 }
 
-local matrixVectorProduct = function(mat, vec)
-    local valid = (getmetatable(mat) or {}).__name == USERDATA_TAG and
-                  (getmetatable(vec) or {}).__name == "hs._asm.uitk.util.vector.vector4"
-    if valid then
-        local ans = { 0, 0, 0, 0 }
-        for i = 1, 4, 1 do
-            for j = 1, 4, 1 do
-                ans[i] = ans[i] + mat[i][j] * vec[j]
-            end
-        end
-        return vector.vector4(ans)
-    else
-        error("product only valid between matrix4 and vector4", 3)
-    end
-end
-
 local matrixRow = function(self, i)
     local newTable = {}
     return setmetatable(newTable, {
@@ -110,7 +94,7 @@ debug.getregistry()[USERDATA_TAG] = {
     __name     = USERDATA_TAG,
     __index    = function(self, key)
         if methods[key] then
-            return mathods[key]
+            return methods[key]
         elseif math.type(key) == "integer" then
             if key < 1 or key > 4 then
                 return nil
@@ -121,7 +105,7 @@ debug.getregistry()[USERDATA_TAG] = {
             return nil
         end
     end,
-    __mul      = matrixVectorProduct,
+    __mul      = methods.vectorProduct,
     __tostring = function(_)
         return string.format(
             "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..

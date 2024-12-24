@@ -5,7 +5,7 @@ local math   = require("hs.math")
 
 -- I think the matrix-vector product performing the rotation is the next slow spot; will
 -- probably need to move util.vector and util.matrix4 product function into C to make
--- a noticeable difference.
+-- a noticeable difference. Meh, helped some...
 
 -- still, module.rotateYZ(5, 100) produces a cool result...
 
@@ -13,22 +13,22 @@ local module = {}
 
 -- build a tesseract
 
-local fourPoints = {}
+local default4Points = {}
 for i1, v1 in ipairs{ -1, 1 } do
   for i2, v2 in ipairs{ -1, 1 } do
     for i3, v3 in ipairs{ -1, 1 } do
       for i4, v4 in ipairs{ -1, 1 } do
-        table.insert(fourPoints, { v1, v2, v3, v4 })
+        table.insert(default4Points, { v1, v2, v3, v4 })
       end
     end
   end
 end
 
 local fourLines = {}
-for i = 1, #fourPoints, 1 do
-    for j = i, #fourPoints, 1 do
+for i = 1, #default4Points, 1 do
+    for j = i, #default4Points, 1 do
         local diffCount = 0
-        local p1, p2 = fourPoints[i], fourPoints[j]
+        local p1, p2 = default4Points[i], default4Points[j]
         for c = 1, 4, 1 do
             if p1[c] ~= p2[c] then diffCount = diffCount + 1 end
         end
@@ -49,16 +49,7 @@ projectXYZ = function(x,y,z,w)
 end
 
 module.lines = fourLines
-module.fourPoints = fourPoints
-
--- update point positions to reflect their projection into 3space
-module.genPoints = function(fp)
-    module.points = {}
-    for i, v in ipairs(fp) do
-        local x, y, z = projectXYZ(v[1], v[2], v[3], v[4])
-        table.insert(module.points, { x, y, z })
-    end
-end
+module.default4Points = default4Points
 
 -- cache sin and cos
 local oldSin = {}
@@ -106,9 +97,8 @@ local commonRotater = function(coords, increment, count, delay)
                 mat[coords[3][1]][coords[3][2]] =  sinOfD
                 mat[coords[4][1]][coords[4][2]] =  cosOfD
                 local n4p = {}
-                for i = 1, #fourPoints, 1 do n4p[i] = mat * uitk.util.vector.vector4(fourPoints[i]) end
+                for i = 1, #default4Points, 1 do n4p[i] = mat * default4Points[i] end
                 module.genPoints(n4p)
-                module.reGenerate()
 
                 repeat
                     coroutine.applicationYield(delay)
@@ -123,17 +113,16 @@ local commonRotater = function(coords, increment, count, delay)
             end
         end
         fn = nil
-        module.genPoints(fourPoints)
-        module.reGenerate()
+        module.genPoints(default4Points)
     end)
     fn()
 end
 
-local pointRadius = 0.1
-local lineRadius  = 0.05
+module.pointRadius = 0.1
+module.lineRadius  = 0.03
 
-module.pointGeometry = sk.geometry.sphere("pointG", pointRadius)
-module.lineGeometry  = sk.geometry.cylinder("lineG", lineRadius, 1)
+module.pointGeometry = sk.geometry.sphere("pointG", module.pointRadius)
+module.lineGeometry  = sk.geometry.cylinder("lineG", module.lineRadius, 1)
 module.pointNode     = sk.node("point"):geometry(module.pointGeometry)
 module.lineNode      = sk.node("line"):geometry(module.lineGeometry)
 
@@ -148,10 +137,17 @@ module.lineGeometry:firstMaterial():diffuse():contents({green = 1})
 module.lineGeometry:firstMaterial():specular():contents({white = 1})
 module.lineGeometry:firstMaterial():shininess(0.15)
 
-module.reGenerate = function()
+-- update point positions to reflect their projection into 3space
+module.genPoints = function(fp)
+    module.points = {}
+    for i, v in ipairs(fp) do
+        local x, y, z = projectXYZ(v[1], v[2], v[3], v[4])
+        table.insert(module.points, { x, y, z })
+    end
+
     -- in case it's changed
-    module.pointGeometry:radius(pointRadius)
-    module.lineGeometry:radius(lineRadius)
+    module.pointGeometry:radius(module.pointRadius)
+    module.lineGeometry:radius(module.lineRadius)
 
     local points = module.objectNode:childWithName("points")
     local lines  = module.objectNode:childWithName("lines")
@@ -281,8 +277,7 @@ module.rotateXYfixed = function(...)
     commonRotater(coords, ...)
 end
 
-module.genPoints(fourPoints)
-module.reGenerate()
+module.genPoints(default4Points)
 
 return module
 

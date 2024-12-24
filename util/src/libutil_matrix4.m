@@ -374,6 +374,50 @@ static int matrix4_isIdentity(lua_State *L) {
     return 1 ;
 }
 
+static int matrix4_vectorProduct(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TTABLE, LS_TTABLE, LS_TBREAK] ;
+
+    SCNMatrix4 matrix4 = toSCNMatrix4(L, 1) ;
+    CGFloat v1, v2, v3, v4 ;
+    if (lua_geti(L, 2, 1) == LUA_TNUMBER) {
+        v1 = lua_tonumber(L, -1) ;
+    } else {
+        return luaL_argerror(L, 2, "vector must be table of 4 numbers") ;
+    }
+    lua_pop(L, 1) ;
+    if (lua_geti(L, 2, 2) == LUA_TNUMBER) {
+        v2 = lua_tonumber(L, -1) ;
+    } else {
+        return luaL_argerror(L, 2, "vector must be table of 4 numbers") ;
+    }
+    lua_pop(L, 1) ;
+    if (lua_geti(L, 2, 3) == LUA_TNUMBER) {
+        v3 = lua_tonumber(L, -1) ;
+    } else {
+        return luaL_argerror(L, 2, "vector must be table of 4 numbers") ;
+    }
+    lua_pop(L, 1) ;
+    if (lua_geti(L, 2, 4) == LUA_TNUMBER) {
+        v4 = lua_tonumber(L, -1) ;
+    } else {
+        return luaL_argerror(L, 2, "vector must be table of 4 numbers") ;
+    }
+    lua_pop(L, 1) ;
+
+    CGFloat a1 = matrix4.m11 * v1 + matrix4.m12 * v2 + matrix4.m13 * v3 + matrix4.m14 * v4 ;
+    CGFloat a2 = matrix4.m21 * v1 + matrix4.m22 * v2 + matrix4.m23 * v3 + matrix4.m24 * v4 ;
+    CGFloat a3 = matrix4.m31 * v1 + matrix4.m32 * v2 + matrix4.m33 * v3 + matrix4.m34 * v4 ;
+    CGFloat a4 = matrix4.m41 * v1 + matrix4.m42 * v2 + matrix4.m43 * v3 + matrix4.m44 * v4 ;
+
+    lua_newtable(L) ;
+    lua_pushnumber(L, a1) ; lua_rawseti(L, -2, 1) ;
+    lua_pushnumber(L, a2) ; lua_rawseti(L, -2, 2) ;
+    lua_pushnumber(L, a3) ; lua_rawseti(L, -2, 3) ;
+    lua_pushnumber(L, a4) ; lua_rawseti(L, -2, 4) ;
+    return 1 ;
+}
+
 #pragma mark - Module Constants -
 
 #pragma mark - Lua<->NSObject Conversion Functions -
@@ -394,17 +438,18 @@ static int userdata_eq(lua_State *L) {
 
 // Functions for returned object when module loads
 static luaL_Reg moduleLib[] = {
-    {"identity",   matrix4_identity},
-    {"invert",     matrix4_invert},
-    {"append",     matrix4_append},
-    {"prepend",    matrix4_prepend},
-    {"isIdentity", matrix4_isIdentity},
-    {"rotate",     matrix4_rotate},
-    {"translate",  matrix4_translate},
-    {"scale",      matrix4_scale},
+    {"identity",      matrix4_identity},
+    {"invert",        matrix4_invert},
+    {"append",        matrix4_append},
+    {"prepend",       matrix4_prepend},
+    {"isIdentity",    matrix4_isIdentity},
+    {"rotate",        matrix4_rotate},
+    {"translate",     matrix4_translate},
+    {"scale",         matrix4_scale},
+    {"vectorProduct", matrix4_vectorProduct},
 
-    {"__eq",      userdata_eq},
-    {NULL,        NULL}
+    {"__eq",          userdata_eq},
+    {NULL,            NULL}
 };
 
 // // Metatable for module, if needed
