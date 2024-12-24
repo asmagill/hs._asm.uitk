@@ -83,6 +83,8 @@ for d = 1, 360, 1 do
     sin(d)
 end
 
+-- https://math.stackexchange.com/a/3311905
+-- https://en.wikipedia.org/wiki/Rotations_in_4-dimensional_Euclidean_space
 local commonRotater = function(coords, increment, count, delay)
     increment = increment or 5
     count     = count or 1
@@ -249,32 +251,32 @@ module.scene = scene
 module.w = uitk.window{x = 100, y = 100, h = 500, w = 500 }:content(module.scene):show()
 module.scene:rootNode():addChildNode(module.objectNode)
 
-module.rotateZW = function(...)
+module.rotateZWfixed = function(...)
     local coords = { { 1, 1 }, { 1, 2 }, { 2, 1 }, { 2, 2 } }
     commonRotater(coords, ...)
 end
 
-module.rotateYW = function(...)
+module.rotateYWfixed = function(...)
     local coords = { { 1, 1 }, { 1, 3 }, { 3, 1 }, { 3, 3 } }
     commonRotater(coords, ...)
 end
 
-module.rotateYZ = function(...)
+module.rotateYZfixed = function(...)
     local coords = { { 1, 1 }, { 1, 4 }, { 4, 1 }, { 4, 4 } }
     commonRotater(coords, ...)
 end
 
-module.rotateXW = function(...)
+module.rotateXWfixed = function(...)
     local coords = { { 2, 2 }, { 2, 3 }, { 3, 2 }, { 3, 3 } }
     commonRotater(coords, ...)
 end
 
-module.rotateXZ = function(...)
+module.rotateXZfixed = function(...)
     local coords = { { 2, 2 }, { 2, 4 }, { 4, 2 }, { 4, 4 } }
     commonRotater(coords, ...)
 end
 
-module.rotateXY = function(...)
+module.rotateXYfixed = function(...)
     local coords = { { 3, 3 }, { 3, 4 }, { 4, 3 }, { 4, 4 } }
     commonRotater(coords, ...)
 end
