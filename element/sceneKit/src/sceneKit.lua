@@ -47,6 +47,7 @@ local subModules = {
     node             = true,
     geometry         = true,
     material         = true,
+    constraint       = true,
     cameraController = false,
     light            = false,
     camera           = false,

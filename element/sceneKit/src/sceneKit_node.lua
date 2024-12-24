@@ -45,18 +45,54 @@ local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 
 -- Public interface ------------------------------------------------------
 
-local _moduleMT_index = moduleMT.__index
+local mt_prevIndex = moduleMT.__index
 
 moduleMT.__index = function(self, key)
-    if math.type(key) == "integer" then
-        return self:childNodes()[key]
+    local result = nil
+
+    -- check index as it was prior to this function
+    if type(mt_prevIndex) == "function" then
+        result =  mt_prevIndex(self, key)
     else
-        return nil
+        result = mt_prevIndex[key]
     end
+
+    if type(result) ~= "nil" then return result end
+
+    if math.type(key) == "integer" then
+        result = self:childNodes()[key]
+    end
+
+    return result
 end
 
 moduleMT.__len = function(self)
     return #self:childNodes()
+end
+
+local _new = module.new
+module.new = function(...)
+    local args = table.pack(...)
+
+    local lastArg = args[#args]
+    if type(lastArg) == "userdata" then
+        args[#args] = nil
+        args.n = args.n - 1
+    else
+        lastArg = nil
+    end
+    local result = _new(table.unpack(args))
+    if result and lastArg then
+        local resultMT = getmetatable(lastArg)
+        if resultMT == hs.getObjectMetatable("hs._asm.uitk.element.sceneKit.light") then
+            result:light(lastArg)
+        elseif resultMT == hs.getObjectMetatable("hs._asm.uitk.element.sceneKit.camera") then
+            result:camera(lastArg)
+        else
+            result:geometry(lastArg)
+        end
+    end
+    return result
 end
 
 -- Return Module Object --------------------------------------------------

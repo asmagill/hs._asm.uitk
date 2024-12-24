@@ -18,7 +18,7 @@
 +       @class SCNPyramid
  ?      @class SCNShape
 +       @class SCNSphere
-        @class SCNText
++       @class SCNText
 +       @class SCNTorus
 +       @class SCNTube
 +   @class SCNGeometryTessellator
@@ -27,6 +27,16 @@
 +   @class SCNMaterial                      <SCNAnimatable, -SCNShadable>
 +   @class SCNMaterialProperty              <SCNAnimatable>
  ?  @class SCNMorpher                       <SCNAnimatable>
++   @class SCNConstraint                    <SCNAnimatable>
+ ?      @class SCNAccelerationConstraint
+ ?      @class SCNAvoidOccluderConstraint
+ ?      @class SCNBillboardConstraint
+ ?      @class SCNDistanceConstraint
+ ?      @class SCNIKConstraint
++       @class SCNLookAtConstraint
+ ?      @class SCNReplicatorConstraint
+ ?      @class SCNSliderConstraint
+ ?      @class SCNTransformConstraint
 
  ?  @class SCNAction
  ?  @class SCNAnimation                 // probably if supporting animation <SCNAnimation>
@@ -34,16 +44,6 @@
  ?  @class SCNAnimationPlayer           // probably if supporting animation <SCNAnimatable>
  ?  @class SCNAudioPlayer
  ?  @class SCNAudioSource
- ?  @class SCNConstraint                    <SCNAnimatable>
- ?      @class SCNAccelerationConstraint
- ?      @class SCNAvoidOccluderConstraint
- ?      @class SCNBillboardConstraint
- ?      @class SCNDistanceConstraint
- ?      @class SCNIKConstraint
- ?      @class SCNLookAtConstraint
- ?      @class SCNReplicatorConstraint
- ?      @class SCNSliderConstraint
- ?      @class SCNTransformConstraint
  ?  @class SCNHitTestResult                 // probably if supporting animation
  ?  @class SCNLevelOfDetail                 // for providing alternate geometries based on distance
  ?  @class SCNParticlePropertyController

@@ -43,6 +43,8 @@ local USERDATA_TAG = "hs._asm.uitk.util.matrix4"
 local uitk         = require("hs._asm.uitk")
 local methods      = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libutil_"))
 
+local vector       = uitk.util.vector
+
 -- private variables and methods -----------------------------------------
 
 -- Public interface ------------------------------------------------------
@@ -54,11 +56,72 @@ local module = {
     identity  = methods.identity,
 }
 
+local matrixVectorProduct = function(mat, vec)
+    local valid = (getmetatable(mat) or {}).__name == USERDATA_TAG and
+                  (getmetatable(vec) or {}).__name == "hs._asm.uitk.util.vector.vector4"
+    if valid then
+        local ans = { 0, 0, 0, 0 }
+        for i = 1, 4, 1 do
+            for j = 1, 4, 1 do
+                ans[i] = ans[i] + mat[i][j] * vec[j]
+            end
+        end
+        return vector.vector4(ans)
+    else
+        error("product only valid between matrix4 and vector4", 3)
+    end
+end
+
+local matrixRow = function(self, i)
+    local newTable = {}
+    return setmetatable(newTable, {
+        __index = function(_, j)
+            local key = "m" .. tostring(i) .. tostring(j)
+            return self[key]
+        end,
+        __newindex = function(_, j, value)
+            if math.type(j) == "integer" and j > 0 and j < 5 then
+                if type(value) == "number" then
+                    local key = "m" .. tostring(i) .. tostring(j)
+                    self[key] = value
+                else
+                    error("value must be a number", 3)
+                end
+            else
+                error("expected integer key between 1 and 4 inclusive", 3)
+            end
+        end,
+        __tostring = function(_)
+            local str = "[ "
+            for j = 1, 4, 1 do
+                local key = "m" .. tostring(i) .. tostring(j)
+                print(key)
+                str = str .. string.format("% 10.4f ", self[key])
+            end
+            str = str .. "]"
+            return str
+        end,
+    })
+end
+
 -- store this in the registry so we can easily set it both from Lua and from C functions
 debug.getregistry()[USERDATA_TAG] = {
     __type     = USERDATA_TAG,
     __name     = USERDATA_TAG,
-    __index    = methods,
+    __index    = function(self, key)
+        if methods[key] then
+            return mathods[key]
+        elseif math.type(key) == "integer" then
+            if key < 1 or key > 4 then
+                return nil
+            else
+                return matrixRow(self, key)
+            end
+        else
+            return nil
+        end
+    end,
+    __mul      = matrixVectorProduct,
     __tostring = function(_)
         return string.format(
             "[ % 10.4f % 10.4f % 10.4f % 10.4f ]\n" ..

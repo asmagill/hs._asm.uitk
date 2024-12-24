@@ -180,14 +180,14 @@ static int node_childNodes(lua_State *L) {
     return 1 ;
 }
 
-static int node_presentationNode(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-    SCNNode *node = [skin toNSObjectAtIndex:1] ;
-
-    [skin pushNSObject:node.presentationNode] ;
-    return 1 ;
-}
+// static int node_presentationNode(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+//     SCNNode *node = [skin toNSObjectAtIndex:1] ;
+//
+//     [skin pushNSObject:node.presentationNode] ;
+//     return 1 ;
+// }
 
 static int node_eulerAngles(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -722,6 +722,20 @@ static int node_removeChildNode(lua_State *L) {
     } else {
         return luaL_argerror(L, 2, "unable to identify target node") ;
     }
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
+static int node_removeFromParent(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
+    SCNNode *node = [skin toNSObjectAtIndex:1] ;
+
+    if (node.parentNode) {
+        [node removeFromParentNode] ;
+        [skin luaRelease:refTable forNSObject:node] ;
+    }
+    lua_pushvalue(L, 1) ;
     return 1 ;
 }
 
@@ -759,6 +773,33 @@ static int node_childNodeWithName(lua_State *L) {
     return 1 ;
 }
 
+static int node_constraints(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
+    SCNNode  *node       = [skin toNSObjectAtIndex:1] ;
+
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:node.constraints] ;
+    } else {
+        NSArray    *constraints = [skin toNSObjectAtIndex:2] ;
+        BOOL       isGood       = [constraints isKindOfClass:[NSArray class]] ;
+        NSUInteger count        = 0 ;
+        while (isGood && count < constraints.count) {
+            SCNConstraint *item = constraints[count++] ;
+            isGood = [item isKindOfClass:[SCNConstraint class]] ;
+        }
+        if (!isGood) {
+            return luaL_argerror(L, 2, "expected array of sceneKit constraint objects") ;
+        }
+
+        for (SCNConstraint *item in node.constraints) [skin luaRelease:refTable forNSObject:item] ;
+        node.constraints = constraints ;
+        for (SCNConstraint *item in node.constraints) [skin luaRetain:refTable forNSObject:item] ;
+        lua_pushvalue(L, 1) ;
+    }
+    return 1 ;
+}
+
 // - (void)replaceChildNode:(SCNNode *)oldChild with:(SCNNode *)newChild;
 // - (NSArray<SCNNode *> *)childNodesPassingTest:(BOOL (^)(SCNNode *child, BOOL *stop))predicate;
 
@@ -779,7 +820,6 @@ static int node_childNodeWithName(lua_State *L) {
 // - (void)removeAllAudioPlayers;
 // - (void)removeAudioPlayer:(SCNAudioPlayer *)player;
 
-// @property(copy) NSArray<SCNConstraint *> *constraints;
 // @property(nonatomic, copy, nullable) NSArray<CIFilter *> *filters;
 // @property(nonatomic, weak) GKEntity *entity;
 
@@ -887,7 +927,9 @@ static int userdata_gc(lua_State* L) {
             LuaSkin *skin = [LuaSkin sharedWithState:L] ;
             obj.callbackRef = [skin luaUnref:refTable ref:obj.callbackRef] ;
 
-            for (SCNNode *child in obj.childNodes) [skin luaRelease:refTable forNSObject:child] ;
+            for (SCNNode *child      in obj.childNodes)  [skin luaRelease:refTable forNSObject:child] ;
+            for (SCNConstraint *item in obj.constraints) [skin luaRelease:refTable forNSObject:item] ;
+
             if (obj.geometry)     [skin luaRelease:refTable forNSObject:obj.geometry] ;
             if (obj.light)        [skin luaRelease:refTable forNSObject:obj.light] ;
             if (obj.camera)       [skin luaRelease:refTable forNSObject:obj.camera] ;
@@ -915,7 +957,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"worldUp",          node_worldUp},
     {"parentNode",       node_parentNode},
     {"childNodes",       node_childNodes},
-    {"presentationNode", node_presentationNode},
+//     {"presentationNode", node_presentationNode},
     {"addChildNode",     node_addChildNode},
     {"removeChildNode",  node_removeChildNode},
     {"boundingBox",      node_boundingBox},
@@ -923,6 +965,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"clone",            node_clone},
     {"copy",             node_copy},
     {"childWithName",    node_childNodeWithName},
+    {"removeFromParent", node_removeFromParent},
 
     {"eulerAngles",      node_eulerAngles},
     {"position",         node_position},
@@ -946,6 +989,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"light",            node_light},
     {"movabilityHint",   node_movabilityHint},
     {"focusBehavior",    node_focusBehavior},
+    {"constraints",      node_constraints},
 
     {"__tostring",       userdata_tostring},
     {"__eq",             userdata_eq},
@@ -1005,6 +1049,7 @@ int luaopen_hs__asm_uitk_element_libsceneKit_node(lua_State* L) {
         @"light",
         @"movabilityHint",
         @"focusBehavior",
+        @"constraints",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;

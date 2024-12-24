@@ -24,38 +24,28 @@
     until true -- executes once and hides any local variables we create
 -- END REMOVE IF ADDED TO CORE APPLICATION
 
---- === hs._asm.uitk.element.sceneKit.geometry ===
+--- === hs._asm.uitk.element.sceneKit.constraint ===
 ---
 --- Stuff about the module
 
-local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.geometry"
+local USERDATA_TAG = "hs._asm.uitk.element.sceneKit.constraint"
 local uitk         = require("hs._asm.uitk")
 local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w_]+%.([%w_]+)$") }, "libsceneKit_"))
 local fnutils      = require("hs.fnutils")
-
-require("hs.styledtext")
 
 local moduleMT     = hs.getObjectMetatable(USERDATA_TAG)
 
 local subModules = {
 --  name       lua or library?
---     element     = false,
---     source      = false,
-    tessellator = false,
-    box         = false,
-    capsule     = false,
-    cone        = false,
-    cylinder    = false,
-    floor       = false,
-    plane       = false,
-    pyramid     = false,
---     shape       = false, -- uses bezierCurve... can we leverage canvas segments without too much re-write?
-    sphere      = false,
-    text        = false,
-    torus       = false,
-    tube        = false,
-    source      = true,
-    element     = true,
+--     acceleration  = false,
+--     avoidOccluder = false,
+    billboard     = false,
+--     distance      = false,
+--     IK            = false,
+    lookAt        = false,
+--     replicator    = false,
+--     slider        = false,
+--     transform     = false,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -67,15 +57,13 @@ local preload = function(m, isLua)
         local elMT = hs.getObjectMetatable(USERDATA_TAG .. "." .. m)
         if el and elMT then
 
-            if elMT._subclass then
-                -- geometry submodules also inherit geometry's methods and _propertyList
-                for k, v in pairs(moduleMT) do
-                    if type(v) == "function" and not elMT[k] then elMT[k] = v end
-                end
-                for _, v in ipairs(moduleMT._propertyList) do
-                    if not fnutils.contains(elMT._propertyList, v) then
-                        table.insert(elMT._propertyList, v)
-                    end
+            -- constraint submodules also inherit constraint's methods and _propertyList
+            for k, v in pairs(moduleMT) do
+                if type(v) == "function" and not elMT[k] then elMT[k] = v end
+            end
+            for _, v in ipairs(moduleMT._propertyList) do
+                if not fnutils.contains(elMT._propertyList, v) then
+                    table.insert(elMT._propertyList, v)
                 end
             end
 
@@ -100,10 +88,6 @@ for k, v in pairs(subModules) do
     package.preload[USERDATA_TAG .. "." .. k] = preload(k, v)
 end
 
--- make sure these are loaded since they provide types for this module
-module.source  = require(USERDATA_TAG .. ".source")
-module.element = require(USERDATA_TAG .. ".element")
-
 -- settings with periods in them can't be watched via KVO with hs.settings.watchKey, so
 -- in general it's a good idea not to include periods
 -- local SETTINGS_TAG = USERDATA_TAG:gsub("%.", "_")
@@ -117,7 +101,7 @@ module.element = require(USERDATA_TAG .. ".element")
 -- Return Module Object --------------------------------------------------
 
 return setmetatable(module, {
-    __call  = function(self, ...) return self.new(...) end,
+--     __call  = function(self, ...) return self.new(...) end,
     __index = function(self, key)
         if type(subModules[key]) ~= "nil" then
             module[key] = require(USERDATA_TAG .. "." ..key)
