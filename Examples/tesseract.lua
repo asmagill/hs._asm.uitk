@@ -97,7 +97,7 @@ local commonRotater = function(coords, increment, count, delay)
                 mat[coords[3][1]][coords[3][2]] =  sinOfD
                 mat[coords[4][1]][coords[4][2]] =  cosOfD
                 local n4p = {}
-                for i = 1, #default4Points, 1 do n4p[i] = mat * default4Points[i] end
+                for i = 1, #module.default4Points, 1 do n4p[i] = mat * module.default4Points[i] end
                 module.genPoints(n4p)
 
                 repeat
@@ -113,7 +113,7 @@ local commonRotater = function(coords, increment, count, delay)
             end
         end
         fn = nil
-        module.genPoints(default4Points)
+        module.genPoints(module.default4Points)
     end)
     fn()
 end
@@ -277,7 +277,7 @@ module.rotateXYfixed = function(...)
     commonRotater(coords, ...)
 end
 
-module.genPoints(default4Points)
+module.genPoints(module.default4Points)
 
 return module
 

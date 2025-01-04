@@ -21,11 +21,11 @@ module.lines = {
     { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 8 },
 }
 
-local pointRadius = 0.25
-local lineRadius  = 0.1
+module.pointRadius = 0.1
+module.lineRadius  = 0.03
 
-module.pointGeometry = sk.geometry.sphere("pointG", pointRadius)
-module.lineGeometry  = sk.geometry.cylinder("lineG", lineRadius, 1)
+module.pointGeometry = sk.geometry.sphere("pointG", module.pointRadius)
+module.lineGeometry  = sk.geometry.cylinder("lineG", module.lineRadius, 1)
 module.pointNode     = sk.node("point"):geometry(module.pointGeometry)
 module.lineNode      = sk.node("line"):geometry(module.lineGeometry)
 
@@ -34,8 +34,8 @@ module.objectNode  = sk.node("object"):addChildNode(sk.node("points"))
 
 module.reGenerate = function()
     -- in case it's changed
-    module.pointGeometry:radius(pointRadius)
-    module.lineGeometry:radius(lineRadius)
+    module.pointGeometry:radius(module.pointRadius)
+    module.lineGeometry:radius(module.lineRadius)
 
     local points = module.objectNode:childWithName("points")
     local lines  = module.objectNode:childWithName("lines")
