@@ -1,0 +1,52 @@
+@interface NSToolbar : NSObject
+*   - (instancetype)initWithIdentifier:(NSToolbarIdentifier)identifier;
+    @property(copy) NSSet<NSToolbarItemIdentifier> *centeredItemIdentifiers;  macOS 13.0+
+    @property(copy) NSToolbarItemIdentifier centeredItemIdentifier;           macOS 10.14-13.0
+ ?  @property BOOL allowsExtensionItems;
+ ?  - (void)validateVisibleItems;
+
+@protocol NSToolbarDelegate
+ ?  - (BOOL)toolbar:(NSToolbar *)toolbar itemIdentifier:(NSToolbarItemIdentifier)itemIdentifier canBeInsertedAtIndex:(NSInteger)index;
+
+@interface NSToolbarItem : NSObject
+ ?  @property BOOL autovalidates;
+ ?  @property NSSize maxSize;
+ ?  @property NSSize minSize;
+ ?  @property(copy) NSSet<NSString *> *possibleLabels;
+
+-- @interface NSSearchToolbarItem               : NSToolbarItem  macOS 11.0+
+--     - (void)beginSearchInteraction;
+--     - (void)endSearchInteraction;
+--     @property BOOL resignsFirstResponderWithCancel;
+--     @property CGFloat preferredWidthForSearchField;
+--     @property(strong) NSSearchField *searchField;
+--
+-- @interface NSSharingServicePickerToolbarItem : NSToolbarItem  macOS 10.15+
+--     @property(weak) id<NSSharingServicePickerToolbarItemDelegate> delegate;
+--
+-- @interface NSTrackingSeparatorToolbarItem    : NSToolbarItem  macOS 11.0+
+--     @property NSInteger dividerIndex;
+--     @property(strong) NSSplitView *splitView;
+--     + (instancetype)trackingSeparatorToolbarItemWithIdentifier:(NSToolbarItemIdentifier)identifier splitView:(NSSplitView *)splitView dividerIndex:(NSInteger)dividerIndex;
+
+Module
+*   hs.webview.toolbar.new(toolbarName, [toolbarTable]) -> toolbarObject
+ ?  hs.webview.toolbar:selectSearchField([identifier]) -> toolbarObject | false
+ ?  hs.webview.toolbar:copy() -> toolbarObject
+ ?  hs.webview.toolbar:delete() -> none
+ ?  hs.webview.toolbar.uniqueName(toolbarName) -> boolean
+ W? hs.webview.toolbar.attachToolbar([obj1], [obj2]) -> obj1
+
+*   * Each toolbar item is defined as a table of key-value pairs.  The following list describes the valid keys used when describing a toolbar item for this method, the constructor [hs.webview.toolbar.new](#new), and the [hs.webview.toolbar:modifyItem](#modifyItem) method.  Note that the `id` field is **required** for all three uses.
+ ?    * `allowedAlone` - a boolean value, default true, specifying whether or not the toolbar item can be added to the toolbar, programmatically or through the customization panel, (true) or whether it can only be added as a member of a group (false).
++     * `default`      - a boolean value, default matching the value of `allowedAlone` for this item, indicating whether or not this toolbar item or group should be displayed in the toolbar by default, unless overridden by user customization or a saved configuration (when such options are enabled).
+ ?    * `searchfield`  - a boolean (default false) specifying whether or not this toolbar item is a search field. If true, the following additional keys are allowed:
+ ?      * `searchHistory`                - an array (table) of strings, specifying previous searches to automatically include in the search field menu, if `searchPredefinedMenuTitle` is not false
+ ?      * `searchHistoryAutosaveName`    - a string specifying the key name to save search history with in the application defaults (accessible through `hs.settings`). If this value is set, search history will be maintained through restarts of Hammerspoon.
+ ?      * `searchHistoryLimit`           - the maximum number of items to store in the search field history.
+ ?      * `searchPredefinedMenuTitle`    - a string or boolean specifying how a predefined list of search field "response" should be included in the search field menu. If this item is `true`, this list of items specified for `searchPredefinedSearches` will be displayed in a submenu with the title "Predefined Searches". If this item is a string, the list of items will be displayed in a submenu with the title specified by this string value. If this item is `false`, then the search field menu will only contain the items specified in `searchPredefinedSearches` and no search history will be included in the menu.
+ ?      * `searchPredefinedSearches`     - an array (table) of strings specifying the items to be listed in the predefined search submenu. If set to false, any existing menu will be removed and the search field menu will be reset to the default.
+ ?      * `searchReleaseFocusOnCallback` - a boolean, default false, specifying whether or not focus leaves the search field text box when the callback is invoked. Setting this to true can be useful if you want subsequent keypresses to be caught by the webview after reacting to the value entered into the search field by the user.
+ ?      * `searchText`                   - a string specifying the text to display in the search field.
+ ?      * `searchWidth`                  - the width of the search field text entry box.
+
