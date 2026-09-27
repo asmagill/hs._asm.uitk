@@ -189,7 +189,7 @@ static int capsule_radialSegmentCount(lua_State *L) {
 static int pushSCNCapsule(lua_State *L, id obj) {
     SCNCapsule *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCapsule *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNCapsule *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

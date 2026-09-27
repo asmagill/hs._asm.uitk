@@ -1516,31 +1516,32 @@ static int textView_rangesForLines(lua_State *L) {
     BOOL        hardLines = NO ;
 
     switch(lua_gettop(L)) {
-    case 2:
-        [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
-        if (lua_type(L, 2) == LUA_TBOOLEAN) {
-            hardLines = (BOOL)(lua_toboolean(L, 2)) ;
-        } else {
+        case 2:
+            [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
+            if (lua_type(L, 2) == LUA_TBOOLEAN) {
+                hardLines = (BOOL)(lua_toboolean(L, 2)) ;
+            } else {
+                startLine = lua_tointeger(L, 2) ;
+                endLine   = startLine ;
+            }
+            break ;
+        case 3:
+            [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
             startLine = lua_tointeger(L, 2) ;
-            endLine   = startLine ;
-        }
-        break ;
-    case 3:
-        [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER | LS_TBOOLEAN, LS_TBREAK] ;
-        startLine = lua_tointeger(L, 2) ;
-        if (lua_type(L, 3) == LUA_TBOOLEAN) {
-            hardLines = (BOOL)(lua_toboolean(L, 3)) ;
-            endLine   = startLine ;
-        } else {
-            endLine = lua_tointeger(L, 3) ;
-        }
-        break ;
-    case 4:
-        [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER, LS_TBOOLEAN, LS_TBREAK] ;
-        startLine = lua_tointeger(L, 2) ;
-        endLine   = lua_tointeger(L, 3) ;
-        hardLines = (BOOL)(lua_toboolean(L, 4)) ;
-        break ;
+            if (lua_type(L, 3) == LUA_TBOOLEAN) {
+                hardLines = (BOOL)(lua_toboolean(L, 3)) ;
+                endLine   = startLine ;
+            } else {
+                endLine = lua_tointeger(L, 3) ;
+            }
+            break ;
+        case 4:
+            [skin checkArgs:LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TNUMBER | LS_TINTEGER, LS_TBOOLEAN, LS_TBREAK] ;
+            startLine = lua_tointeger(L, 2) ;
+            endLine   = lua_tointeger(L, 3) ;
+            hardLines = (BOOL)(lua_toboolean(L, 4)) ;
+            break ;
+        default: { }
     }
 
     if (startLine != endLine) lua_newtable(L) ;
@@ -1688,7 +1689,7 @@ static int textView_textCheckingTypes(lua_State *L) {
 static int pushHSUITKElementTextView(lua_State *L, id obj) {
     HSUITKElementTextView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementTextView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementTextView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -1812,12 +1813,10 @@ static id lua_toNSAttributedStringKeyDictionary(lua_State *L, int idx) {
             [theAttributes setObject:[skin toNSObjectAtIndex:-1] forKey:NSToolTipAttributeName];
         }
         lua_pop(L, 1);
-        if (@available(macOS 11, *)) {
-            if (lua_getfield(L, idx, "tracking") == LUA_TNUMBER) {
-                [theAttributes setObject:@(lua_tonumber(L, -1)) forKey:NSTrackingAttributeName];
-            }
-            lua_pop(L, 1);
+        if (lua_getfield(L, idx, "tracking") == LUA_TNUMBER) {
+            [theAttributes setObject:@(lua_tonumber(L, -1)) forKey:NSTrackingAttributeName];
         }
+        lua_pop(L, 1);
         if (lua_getfield(L, idx, "verticalGlyphForm") == LUA_TBOOLEAN) {
             if (lua_toboolean(L, -1)) {
                 [theAttributes setObject:@(1) forKey:NSVerticalGlyphFormAttributeName];
@@ -1920,11 +1919,9 @@ static int NSAttributedStringKeyDictionary_toLua(lua_State *L, id obj) {
 //         } else if ([key isEqualToString:NSTextAlternativesAttributeName]) {
         } else {
             BOOL isOK = NO ;
-            if (@available(macOS 11, *)) {
-                if ([key isEqualToString:NSTrackingAttributeName]) {
-                    [skin pushNSObject:value] ; lua_setfield(L, -2, "tracking") ;
-                    isOK = YES ;
-                }
+            if ([key isEqualToString:NSTrackingAttributeName]) {
+                [skin pushNSObject:value] ; lua_setfield(L, -2, "tracking") ;
+                isOK = YES ;
             }
             if (!isOK) {
                 [skin logVerbose:[NSString stringWithFormat:@"NSAttributedStringKeyDictionary_toLua - unhandled attribute %@", key]] ;

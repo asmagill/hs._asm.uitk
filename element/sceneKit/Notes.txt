@@ -30,7 +30,7 @@
 +   @class SCNConstraint                    <SCNAnimatable>
  ?      @class SCNAccelerationConstraint
  ?      @class SCNAvoidOccluderConstraint
- ?      @class SCNBillboardConstraint
++       @class SCNBillboardConstraint
  ?      @class SCNDistanceConstraint
  ?      @class SCNIKConstraint
 +       @class SCNLookAtConstraint

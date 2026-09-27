@@ -54,7 +54,7 @@ static int color_asRGB(lua_State *L) {
     [skin checkArgs:LS_TTABLE, LS_TBREAK] ;
     NSColor *theColor = [skin luaObjectAtIndex:1 toClass:"NSColor"] ;
 
-    NSColor *safeColor = [theColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]]; ;
+    NSColor *safeColor = [theColor colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]] ;
 
     if (safeColor) {
         lua_newtable(L) ;
@@ -362,7 +362,7 @@ static int colorList_removeFile(lua_State *L) {
 static int pushNSColorList(lua_State *L, id obj) {
     NSColorList *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSColorList *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSColorList *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_LIST_TAG);
     lua_setmetatable(L, -2);

@@ -123,6 +123,7 @@ static int popUpButton_new(lua_State *L) {
             menu = [skin toNSObjectAtIndex:1] ;
             pullsDown = (BOOL)(lua_toboolean(L, 2)) ;
             break ;
+        default: { }
     }
 
     HSUITKElementPopUpButton *button = [[HSUITKElementPopUpButton alloc] initWithFrame:NSZeroRect
@@ -280,7 +281,7 @@ static int popUpButton_preferredEdge(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *obj = POPUPBUTTON_EDGES[key] ;
         if (obj) {
-            button.preferredEdge = [obj unsignedIntegerValue] ;
+            button.preferredEdge = obj.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [POPUPBUTTON_EDGES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -303,7 +304,7 @@ static int popUpButton_preferredEdge(lua_State *L) {
 static int pushHSUITKElementPopUpButton(lua_State *L, id obj) {
     HSUITKElementPopUpButton *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementPopUpButton *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementPopUpButton *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

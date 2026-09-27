@@ -17,13 +17,11 @@ static NSDictionary *COLORWELL_STYLE ;
 @end
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 13, *)) {
-        COLORWELL_STYLE = @{
-            @"default"  : @(NSColorWellStyleDefault),
-            @"minimal"  : @(NSColorWellStyleMinimal),
-            @"expanded" : @(NSColorWellStyleExpanded),
-        } ;
-    }
+    COLORWELL_STYLE = @{
+        @"default"  : @(NSColorWellStyleDefault),
+        @"minimal"  : @(NSColorWellStyleMinimal),
+        @"expanded" : @(NSColorWellStyleExpanded),
+    } ;
 }
 
 @implementation HSUITKElementColorWell
@@ -196,29 +194,16 @@ static int colorwell_image(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementColorWell *well = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 13, *)) {
-        if (lua_gettop(L) == 1) {
-            [skin pushNSObject:well.image] ;
-        } else {
-            if (lua_type(L, 2) == LUA_TNIL) {
-                well.image = nil ;
-            } else {
-                [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs.image", LS_TBREAK] ;
-                well.image = [skin toNSObjectAtIndex:2] ;
-            }
-            lua_pushvalue(L, 1) ;
-        }
+    if (lua_gettop(L) == 1) {
+        [skin pushNSObject:well.image] ;
     } else {
-        static int warningCount = 0 ;
-        if (warningCount > 4) {
-            [skin logInfo:[NSString stringWithFormat:@"%s:image - only supported in macOS 13 and newer", USERDATA_TAG]] ;
-            warningCount++ ;
-        }
-        if (lua_gettop(L) == 1) {
-            lua_pushnil(L) ;
+        if (lua_type(L, 2) == LUA_TNIL) {
+            well.image = nil ;
         } else {
-            lua_pushvalue(L, 1) ;
+            [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TUSERDATA, "hs.image", LS_TBREAK] ;
+            well.image = [skin toNSObjectAtIndex:2] ;
         }
+        lua_pushvalue(L, 1) ;
     }
     return 1 ;
 }
@@ -228,37 +213,24 @@ static int colorwell_colorWellStyle(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementColorWell *well = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 13, *)) {
-        if (lua_gettop(L) == 2) {
-            NSString *key = [skin toNSObjectAtIndex:2] ;
-            NSNumber *wellStyle = COLORWELL_STYLE[key] ;
-            if (wellStyle) {
-                well.colorWellStyle = [wellStyle integerValue] ;
-            } else {
-                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORWELL_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
-            }
-            lua_pushvalue(L, 1) ;
+    if (lua_gettop(L) == 2) {
+        NSString *key = [skin toNSObjectAtIndex:2] ;
+        NSNumber *wellStyle = COLORWELL_STYLE[key] ;
+        if (wellStyle) {
+            well.colorWellStyle = wellStyle.integerValue ;
         } else {
-            NSNumber *wellStyle = @(well.colorWellStyle) ;
-            NSArray *temp = [COLORWELL_STYLE allKeysForObject:wellStyle];
-            NSString *answer = [temp firstObject] ;
-            if (answer) {
-                [skin pushNSObject:answer] ;
-            } else {
-                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized colorwell style %@ -- notify developers", USERDATA_TAG, wellStyle]] ;
-                lua_pushnil(L) ;
-            }
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORWELL_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
+        lua_pushvalue(L, 1) ;
     } else {
-        static int warningCount = 0 ;
-        if (warningCount > 5) {
-            [skin logInfo:[NSString stringWithFormat:@"%s:style - only supported in macOS 13 and newer", USERDATA_TAG]] ;
-            warningCount++ ;
-        }
-        if (lua_gettop(L) == 1) {
-            lua_pushnil(L) ;
+        NSNumber *wellStyle = @(well.colorWellStyle) ;
+        NSArray *temp = [COLORWELL_STYLE allKeysForObject:wellStyle];
+        NSString *answer = [temp firstObject] ;
+        if (answer) {
+            [skin pushNSObject:answer] ;
         } else {
-            lua_pushvalue(L, 1) ;
+            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized colorwell style %@ -- notify developers", USERDATA_TAG, wellStyle]] ;
+            lua_pushnil(L) ;
         }
     }
     return 1;
@@ -371,7 +343,7 @@ static int colorwell_color(lua_State *L) {
 static int pushHSUITKElementColorWell(lua_State *L, id obj) {
     HSUITKElementColorWell *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementColorWell *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementColorWell *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

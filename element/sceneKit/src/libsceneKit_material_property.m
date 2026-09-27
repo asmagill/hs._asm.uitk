@@ -123,6 +123,9 @@ static int property_contents(lua_State *L) {
             NSString *type = [NSString stringWithUTF8String:lua_tostring(L, -1)] ;
             lua_pop(L, 2) ;
 // FIXME: Nope, not the view, but the player object. Need to decide if breaking avplayer element into two parts is worth it
+//        could also save view as associated object and switch player "owner", but will have to always check
+//            when clearing this property to reattach for proper lua garbage collection
+//
 //             if ([type isEqualToString:@"hs.image"] || [type isEqualToString:@"hs._asm.uitk.element.avplayer"]) {
 //                 NSObject *contents = [skin toNSObjectAtIndex:2] ;
 //                 if ([contents isKindOfClass:[AVPlayerView class]]) {
@@ -361,7 +364,7 @@ static int property_colorMasks(lua_State *L) {
 static int pushSCNMaterialProperty(lua_State *L, id obj) {
     SCNMaterialProperty *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNMaterialProperty *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNMaterialProperty *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

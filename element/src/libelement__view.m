@@ -314,7 +314,7 @@ static int view_focusRingType(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *focusRingType = VIEW_FOCUSRINGTYPE[key] ;
         if (focusRingType) {
-            view.focusRingType = [focusRingType unsignedIntegerValue] ;
+            view.focusRingType = (NSFocusRingType)focusRingType.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [VIEW_FOCUSRINGTYPE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }

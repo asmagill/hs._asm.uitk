@@ -514,7 +514,7 @@ static int split_setPosition_ofDividerAtIndex(lua_State *L) {
         return luaL_argerror(L, 2, "index out of bounds") ;
     }
 
-    CGFloat position = lua_tointeger(L, 3) ;
+    CGFloat position = (CGFloat)(lua_tointeger(L, 3)) ;
 
     [splitView setPosition:position ofDividerAtIndex:idx] ;
     lua_pushboolean(L, 1) ;
@@ -607,7 +607,7 @@ static int split_holdingPriority(lua_State *L) {
 static int pushHSUITKElementContainerSplitView(lua_State *L, id obj) {
     HSUITKElementContainerSplitView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerSplitView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerSplitView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

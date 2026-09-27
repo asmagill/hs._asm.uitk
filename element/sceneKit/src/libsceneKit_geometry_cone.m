@@ -191,7 +191,7 @@ static int cone_radialSegmentCount(lua_State *L) {
 static int pushSCNCone(lua_State *L, id obj) {
     SCNCone *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCone *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNCone *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

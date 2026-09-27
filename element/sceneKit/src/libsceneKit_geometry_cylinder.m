@@ -173,7 +173,7 @@ static int cylinder_radialSegmentCount(lua_State *L) {
 static int pushSCNCylinder(lua_State *L, id obj) {
     SCNCylinder *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCylinder *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNCylinder *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

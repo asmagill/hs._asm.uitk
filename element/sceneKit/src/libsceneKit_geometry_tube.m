@@ -191,7 +191,7 @@ static int tube_heightSegmentCount(lua_State *L) {
 static int pushSCNTube(lua_State *L, id obj) {
     SCNTube *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNTube *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNTube *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

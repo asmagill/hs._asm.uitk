@@ -173,7 +173,7 @@ static int torus_pipeSegmentCount(lua_State *L) {
 static int pushSCNTorus(lua_State *L, id obj) {
     SCNTorus *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNTorus *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNTorus *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

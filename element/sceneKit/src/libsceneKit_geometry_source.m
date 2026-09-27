@@ -171,7 +171,7 @@ static int source_semantic(lua_State *L) {
 static int pushSCNGeometrySource(lua_State *L, id obj) {
     SCNGeometrySource *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNGeometrySource *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNGeometrySource *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

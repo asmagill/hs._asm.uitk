@@ -1,5 +1,6 @@
 @import Cocoa ;
 @import LuaSkin ;
+@import UniformTypeIdentifiers ;
 
 static const char * const USERDATA_TAG = "hs._asm.uitk.statusbar" ;
 static LSRefTable         refTable     = LUA_NOREF ;
@@ -116,11 +117,11 @@ static NSRect statusItemFrame(NSStatusItem *item) {
 - (void)restoreAutosavePosition:(NSString *)autosaveName {
     if (autosaveName) {
         NSString *keyPrefix     = @"NSStatusItem Preferred Position" ;
-        NSString *key           = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName];;
+        NSString *key           = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName] ;
         NSNumber *autosaveValue = [[NSUserDefaults standardUserDefaults] objectForKey:key];
 
         // Restore the last saved preferred position
-        key = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName];;
+        key = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName] ;
         [[NSUserDefaults standardUserDefaults] setObject:autosaveValue forKey:key];
     }
 }
@@ -128,11 +129,11 @@ static NSRect statusItemFrame(NSStatusItem *item) {
 - (void)storeAutosavePosition:(NSString *)autosaveName {
     if (autosaveName) {
         NSString *keyPrefix     = @"NSStatusItem Preferred Position" ;
-        NSString *key           = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName];;
+        NSString *key           = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName] ;
         NSNumber *autosaveValue = [[NSUserDefaults standardUserDefaults] objectForKey:key];
 
         // Save it under a different key so that macOS doesn't delete it during a Hammerspoon reload, etc
-        key = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName];;
+        key = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName] ;
         [[NSUserDefaults standardUserDefaults] setObject:autosaveValue forKey:key];
     }
 }
@@ -140,11 +141,11 @@ static NSRect statusItemFrame(NSStatusItem *item) {
 - (void)restoreAutosaveVisibility:(NSString *)autosaveName {
     if (autosaveName) {
         NSString *keyPrefix     = @"NSStatusItem Visible" ;
-        NSString *key           = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName];;
+        NSString *key           = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName] ;
         NSNumber *autosaveValue = [[NSUserDefaults standardUserDefaults] objectForKey:key];
 
         // Restore the last saved preferred visibility:
-        key = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName];;
+        key = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName] ;
         [[NSUserDefaults standardUserDefaults] setObject:autosaveValue forKey:key];
     }
 }
@@ -152,11 +153,11 @@ static NSRect statusItemFrame(NSStatusItem *item) {
 - (void)storeAutosaveVisibility:(NSString *)autosaveName {
     if (autosaveName) {
         NSString *keyPrefix     = @"NSStatusItem Visible" ;
-        NSString *key           = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName];;
+        NSString *key           = [NSString stringWithFormat:@"%@ %@", keyPrefix, autosaveName] ;
         NSNumber *autosaveValue = [[NSUserDefaults standardUserDefaults] objectForKey:key];
 
         // Save it under a different key so that macOS doesn't delete it during a Hammerspoon reload, etc
-        key = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName];;
+        key = [NSString stringWithFormat:@"HS%@ %@", keyPrefix, autosaveName] ;
         [[NSUserDefaults standardUserDefaults] setObject:autosaveValue forKey:key];
     }
 }
@@ -532,7 +533,7 @@ static int statusbar_imagePosition(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *imagePosition = IMAGE_POSITIONS[key] ;
         if (imagePosition) {
-            button.imagePosition = [imagePosition unsignedIntegerValue] ;
+            button.imagePosition = (NSCellImagePosition)imagePosition.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_POSITIONS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -578,7 +579,7 @@ static int statusbar_imageScaling(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *imageScaling = IMAGE_SCALING_TYPES[key] ;
         if (imageScaling) {
-            button.imageScaling = [imageScaling unsignedIntegerValue] ;
+            button.imageScaling = (NSImageScaling)imageScaling.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -684,9 +685,9 @@ static int statusbar_allowRemoval(lua_State *L) {
         lua_pushboolean(L, (item.behavior & NSStatusItemBehaviorRemovalAllowed) == NSStatusItemBehaviorRemovalAllowed) ;
     } else {
         if (lua_toboolean(L, 2)) {
-            item.behavior = item.behavior | NSStatusItemBehaviorRemovalAllowed ;
+            item.behavior = (NSStatusItemBehavior)(item.behavior | NSStatusItemBehaviorRemovalAllowed) ;
         } else {
-            item.behavior = item.behavior & ~NSStatusItemBehaviorRemovalAllowed ;
+            item.behavior = (NSStatusItemBehavior)(item.behavior & ~NSStatusItemBehaviorRemovalAllowed) ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -892,7 +893,7 @@ static int statusbar_draggingCallback(lua_State *L) {
         if ([skin luaTypeAtIndex:2] != LUA_TNIL) {
             lua_pushvalue(L, 2);
             wrapper.draggingCallbackRef = [skin luaRef:refTable] ;
-            [wrapper.item.button.window registerForDraggedTypes:@[ (__bridge NSString *)kUTTypeItem ]] ;
+            [wrapper.item.button.window registerForDraggedTypes:@[ (NSString *)UTTypeItem ]] ;
         }
         lua_pushvalue(L, 1);
     } else {
@@ -1050,7 +1051,7 @@ static int menubar_alternateImage(lua_State *L) {
 static int pushHSStatusItemWrapper(lua_State *L, id obj) {
     HSStatusItemWrapper *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSStatusItemWrapper *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSStatusItemWrapper *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

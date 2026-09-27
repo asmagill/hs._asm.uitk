@@ -504,7 +504,7 @@ static int slider_closestTickMarkToValue(lua_State *L) {
     } else {
         // c abhors checking doubles for equality, so check if difference is < 1/2 the difference
         // between tick marks instead
-        double delta = (slider.maxValue - slider.minValue) / (2 * (tickMarks - 1)) ;
+        double delta = (slider.maxValue - slider.minValue) / (double)(2 * (tickMarks - 1)) ;
 
         for (NSInteger i = 0 ; i < tickMarks ; i++) {
             if (fabs(value - [slider tickMarkValueAtIndex:i]) < delta) {
@@ -600,7 +600,7 @@ static int slider_indexOfTickMarkAtPoint(lua_State *L) {
 static int pushHSUITKElementSlider(lua_State *L, id obj) {
     HSUITKElementSlider *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSlider *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSlider *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

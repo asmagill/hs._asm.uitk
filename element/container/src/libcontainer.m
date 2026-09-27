@@ -1,5 +1,6 @@
 @import Cocoa ;
 @import LuaSkin ;
+@import UniformTypeIdentifiers ;
 
 // for our purposes this is 1/1000 of a screen point; small enough that it can't be seen so effectively 0
 #define FLOAT_EQUIVALENT_TO_ZERO 0.001
@@ -214,14 +215,12 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
     NSView *targetView = notification.object ;
     if (targetView) {
         if ([targetView isEqualTo:self]) {
-            [self doFrameChangeCallbackWith:targetView] ;
             for (NSView *view in self.subviews) [self updateFrameFor:view] ;
-        } else {
-            if ([self.subviews containsObject:targetView]) {
-                [self doFrameChangeCallbackWith:targetView] ;
-                [self updateFrameFor:targetView] ;
-            }
+        } else if ([self.subviews containsObject:targetView]) {
+            [self updateFrameFor:targetView] ;
         }
+
+        [self doFrameChangeCallbackWith:targetView] ;
     }
 }
 
@@ -345,7 +344,7 @@ static NSNumber *convertPercentageStringToNumber(NSString *stringValue) {
     if (![skin luaRetain:refTable forNSObject:subview]) {
         [skin logDebug:[NSString stringWithFormat:@"%s:didAddSubview - unrecognized subview added:%@", USERDATA_TAG, subview]] ;
 
-//         [self updateFrameFor:subview] ;
+//         [self updateFrameFor:subview] ; // handled by insertElement method
     }
 }
 
@@ -561,14 +560,6 @@ static void validateElementDetailsTable(lua_State *L, int idx, NSMutableDictiona
             [skin logWarn:[NSString stringWithFormat:@"%s expected number, string, or false for w key in element details, found %s", USERDATA_TAG, lua_typename(L, lua_type(L, -1))]] ;
         }
         lua_pop(L, 1) ;
-
-//         if (lua_getfield(L, idx, "honorCanvasMove") == LUA_TBOOLEAN) {
-//             details[@"honorCanvasMove"] = lua_toboolean(L, -1) ? @(YES) : nil ;
-//         } else if (lua_type(L, -1) != LUA_TNIL) {
-//             [skin logWarn:[NSString stringWithFormat:@"%s expected boolean or nil for honorCanvasMove key in element details, found %s", USERDATA_TAG, lua_typename(L, lua_type(L, -1))]] ;
-//         }
-//         lua_pop(L, 1) ;
-
     } else {
         [skin logWarn:[NSString stringWithFormat:@"%s expected table for element details, found %s", USERDATA_TAG, lua_typename(L, lua_type(L, idx))]] ;
     }
@@ -658,30 +649,6 @@ static int container__debugFrames(lua_State *L) {
     return 1 ;
 }
 
-// /// hs._asm.uitk.element.container:autoPosition() -> containerObject
-// /// Method
-// /// Recalculate the position of all elements in the container and update them if necessary.
-// ///
-// /// Parameters:
-// ///  * None
-// ///
-// /// Returns:
-// ///  * the container object
-// ///
-// /// Notes:
-// ///  * This method recalculates the position of elements whose position in `frameDetails` is specified by the element center or whose position or size are specified by percentages. See [hs._asm.uitk.element.container:elementFrame](#elementFrame) for more information.
-// ///  * This method is invoked automatically anytime the container's parent (usually a `hs._asm.uitk.window`) is resized and you shouldn't need to invoke it manually very often. If you find that you are needing to invoke it manually on a regular basis, try to determine what the specific circumstances are and submit an issue so that it can be evaluated to determine if the situation can be detected and trigger an update automatically.
-// ///
-// /// * See also [hs._asm.uitk.element.container:elementAutoPosition](#elementAutoPosition).
-// static int container_autoPosition(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
-//     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
-//     [container frameChangedNotification:[NSNotification notificationWithName:NSViewFrameDidChangeNotification object:container]] ;
-//     lua_pushvalue(L, 1) ;
-//     return 1 ;
-// }
-
 /// hs._asm.uitk.element.container:insert(element, [frameDetails], [pos]) -> containerObject
 /// Method
 /// Inserts a new element for the container to manage.
@@ -728,18 +695,18 @@ static int container_insertElement(lua_State *L) {
     container.subviews = subviewHolder ;
     adjustElementDetailsTable(L, container, item, details) ;
 
-    // Comparing floats is problematic; but if the item is effectively invisible, warn if not set on purpose
-    id suppressWarnings = [[NSUserDefaults standardUserDefaults] objectForKey:@"uitk_containerSuppressZeroWarnings" ] ;
-    BOOL ignoreZeros = suppressWarnings ? ((NSNumber *)suppressWarnings).boolValue : NO ;
-
-    if (!ignoreZeros) {
-        if ((item.fittingSize.height < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"h"]) {
-            [skin logDebug:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
-        }
-        if ((item.fittingSize.width < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"w"]) {
-            [skin logDebug:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
-        }
-    }
+//     // Comparing floats is problematic; but if the item is effectively invisible, warn if not set on purpose
+//     id suppressWarnings = [[NSUserDefaults standardUserDefaults] objectForKey:@"uitk_containerSuppressZeroWarnings" ] ;
+//     BOOL ignoreZeros = suppressWarnings ? ((NSNumber *)suppressWarnings).boolValue : NO ;
+//
+//     if (!ignoreZeros) {
+//         if ((item.fittingSize.height < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"h"]) {
+//             [skin logDebug:[NSString stringWithFormat:@"%s:insert - height not specified and default height for element is 0", USERDATA_TAG]] ;
+//         }
+//         if ((item.fittingSize.width < FLOAT_EQUIVALENT_TO_ZERO) && !details[@"w"]) {
+//             [skin logDebug:[NSString stringWithFormat:@"%s:insert - width not specified and default width for element is 0", USERDATA_TAG]] ;
+//         }
+//     }
 
     container.needsDisplay = YES ;
     lua_pushvalue(L, 1) ;
@@ -885,7 +852,7 @@ static int container_draggingCallback(lua_State *L) {
         if ([skin luaTypeAtIndex:2] != LUA_TNIL) {
             lua_pushvalue(L, 2);
             container.draggingCallbackRef = [skin luaRef:refTable] ;
-            [container registerForDraggedTypes:@[ (__bridge NSString *)kUTTypeItem ]] ;
+            [container registerForDraggedTypes:@[ (NSString *)UTTypeItem ]] ;
         }
         lua_pushvalue(L, 1);
     } else {
@@ -1094,37 +1061,6 @@ static int container_elements(lua_State *L) {
     return 1 ;
 }
 
-// /// hs._asm.uitk.element.container:elementAutoPosition(element) -> containerObject
-// /// Method
-// /// Recalculate the position of the specified element in the container and update it if necessary.
-// ///
-// /// Parameters:
-// ///  * `element` - the element userdata to recalculate the size and position for.
-// ///
-// /// Returns:
-// ///  * the container object
-// ///
-// /// Notes:
-// ///  * This method recalculates the position of the element if it is defined in `framedDetails` as a percentage or by the elements center and it's size if the element size is specified as a percentage or inherits its size from the element's fitting size (see [hs._asm.uitk.element.container:elementFittingSize](#elementFittingSize).
-// ///
-// ///  * See also [hs._asm.uitk.element.container:autoPosition](#autoPosition).
-// static int container_elementAutoPosition(lua_State *L) {
-//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-//     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TBREAK] ;
-//     HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
-//     NSView *item = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-//
-//     if (!item || !oneOfOurElementObjects(item)) {
-//         return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
-//     }
-//     if (![container.subviews containsObject:item]) {
-//         return luaL_argerror(L, 2, "element not managed by this container") ;
-//     }
-//     [container frameChangedNotification:[NSNotification notificationWithName:NSViewFrameDidChangeNotification object:item]] ;
-//     lua_pushvalue(L, 1) ;
-//     return 1 ;
-// }
-
 /// hs._asm.uitk.element.container:elementFittingSize(element) -> size-table
 /// Method
 /// Returns a table with `h` and `w` keys specifying the element's fitting size as defined by macOS and the element's current properties.
@@ -1178,9 +1114,6 @@ static int container_elementFittingSize(lua_State *L) {
 ///  * The values for keys `x`, `rX`, `cX`, `y`, `bY`, `cY`, `h`, and `w` may be specified as numbers or as strings representing percentages of the element's parent width (for `x`, `rX`, `cX`, and `w`) or height (for `y`, `bY`, `cY`, and `h`). Percentages should specified in the string as defined for your locale or in the `en_US` locale (as a fallback) which is either a number followed by a % sign or a decimal number.
 ///
 ///  * When returning the current frame details table, an additional key-value pair is included: `_effective` will be a table specifying the elements actual frame-table (a table specifying the elements position as key-value pairs specifying the top-left position with `x` and `y`, and the element size with `h` and `w`).  This is provided for reference only: if this key-value pair is included when setting the frame details with this method, it will be ignored.
-
-// ///    * `honorCanvasMove` - A boolean, default nil (false), indicating whether or not the frame wrapper functions for `hs.canvas` objects should honor location changes when made with `hs.canvas:topLeft` or `hs.canvas:frame`. This is a (hopefully temporary) fix because canvas objects are not aware of the `hs._asm.uitk.window` frameDetails model for element placement.
-
 static int container_elementFrame(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TANY, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
@@ -1205,124 +1138,6 @@ static int container_elementFrame(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.container:positionElement(element1, where, element2, [offset], [align]) -> containerObject
-/// Method
-/// Moves element1 above element2 in the container.
-///
-/// Parameters:
-///  * `element1` - the element userdata to adjust the `x` and `y` coordinates of
-///  * `where`    - a string specifying where the element1 is to be moved to in relation to element2. The string must be one of the following:
-///    * "above"  - element1 should be moved above element2
-///    * "below"  - element1 should be moved below element2
-///    * "before" - element1 should be moved to the left of element2
-///    * "after"  - element1 should be moved to the right of element2
-///  * `element2` - the element userdata to anchor element1 to
-///  * `offset`   - a number, default 0.0, specifying the space between element1 and element2 in their new relationship
-///  * `align`    - a string, default "center", specifying how element1 should be aligned along the shared edge with element2. The string must be one of the following:
-///    * "start"  - element1 will be aligned at the beginning of the shared edge.
-///    * "center" - element1 will be centered along the shared edge.
-///    * "end"    - element1 will be aligned at the end of the shared edge.
-///
-/// Returns:
-///  * the container object
-///
-/// Notes:
-///  * This method will set the `x` and `y` fields of `frameDetails` for the element.  See [hs._asm.uitk.element.container:elementFrame](#elementFrame) for the effect of this on other frame details.
-///
-///  * this method moves element1 in relation to element2's current position -- moving element2 at a later point will not cause element1 to follow
-///  * this method will not adjust the postion of any other element which may already be at the new position for element1
-static int container_moveElement(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
-                    LS_TANY,
-                    LS_TSTRING,
-                    LS_TANY,
-                    LS_TNUMBER | LS_TSTRING | LS_TOPTIONAL,
-                    LS_TSTRING | LS_TOPTIONAL,
-                    LS_TBREAK] ;
-    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
-    NSView             *element1 = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
-    NSView             *element2 = (lua_type(L, 4) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:4] : nil ;
-    NSString           *where    = [skin toNSObjectAtIndex:3] ;
-    CGFloat            padding   = ((lua_gettop(L) > 4) && (lua_type(L, 5) == LUA_TNUMBER)) ? lua_tonumber(L, 5) : 0.0 ;
-    NSString           *align    = (lua_type(L, -1) == LUA_TSTRING) ? [skin toNSObjectAtIndex:-1] : @"center" ;
-
-    if (!element1 || !oneOfOurElementObjects(element1)) {
-        return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
-    }
-    if (![container.subviews containsObject:element1]) {
-        return luaL_argerror(L, 2, "element not managed by this container element") ;
-    }
-
-    if (!element2 || !oneOfOurElementObjects(element2)) {
-        return luaL_argerror(L, 4, "expected userdata representing a uitk element") ;
-    }
-    if (![container.subviews containsObject:element2]) {
-        return luaL_argerror(L, 4, "element not managed by this container element") ;
-    }
-
-    NSRect elementFrame = element1.frame ;
-    NSRect anchorFrame  = element2.frame ;
-
-    int alignment = 0 ;
-    if ([align isEqualToString:@"start"]) {
-        alignment = -1 ;
-    } else if ([align isEqualToString:@"center"]) {
-        alignment = 0 ;
-    } else if ([align isEqualToString:@"end"]) {
-        alignment = 1 ;
-    } else {
-        return luaL_argerror(L, lua_gettop(L), "expected start, center, or end") ;
-    }
-
-    if ([where isEqualToString:@"above"] || [where isEqualToString:@"below"]) {
-        if ([where isEqualToString:@"above"]) {
-            elementFrame.origin.y = anchorFrame.origin.y - (elementFrame.size.height + padding) ;
-        } else {
-            elementFrame.origin.y = anchorFrame.origin.y + (anchorFrame.size.height + padding) ;
-        }
-        switch(alignment) {
-            case -1:
-                elementFrame.origin.x = anchorFrame.origin.x ;
-                break ;
-            case  0:
-                elementFrame.origin.x = anchorFrame.origin.x + (anchorFrame.size.width - elementFrame.size.width) / 2 ;
-                break ;
-            case  1:
-                elementFrame.origin.x = anchorFrame.origin.x + anchorFrame.size.width - elementFrame.size.width ;
-                break ;
-        }
-    } else if ([where isEqualToString:@"before"] || [where isEqualToString:@"after"]) {
-        if ([where isEqualToString:@"before"]) {
-            elementFrame.origin.x = anchorFrame.origin.x - (elementFrame.size.width + padding) ;
-        } else {
-            elementFrame.origin.x = anchorFrame.origin.x + (anchorFrame.size.width + padding) ;
-        }
-        switch(alignment) {
-            case -1:
-                elementFrame.origin.y = anchorFrame.origin.y ;
-                break ;
-            case  0:
-                elementFrame.origin.y = anchorFrame.origin.y + (anchorFrame.size.height - elementFrame.size.height) / 2 ;
-                break ;
-            case  1:
-                elementFrame.origin.y = anchorFrame.origin.y + anchorFrame.size.height - elementFrame.size.height ;
-                break ;
-        }
-    } else {
-        return luaL_argerror(L, 3, "expected above, below, before, or after") ;
-    }
-
-    adjustElementDetailsTable(L, container, element1, @{
-        @"x" : @(elementFrame.origin.x),
-        @"y" : @(elementFrame.origin.y)
-    }) ;
-
-    container.needsDisplay = YES ;
-    lua_pushvalue(L, 1) ;
-    return 1 ;
-}
-
 #pragma mark - Module Constants -
 
 #pragma mark - Lua<->NSObject Conversion Functions -
@@ -1332,7 +1147,7 @@ static int container_moveElement(lua_State *L) {
 static int pushHSUITKElementContainerView(lua_State *L, id obj) {
     HSUITKElementContainerView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -1410,12 +1225,8 @@ static const luaL_Reg userdata_metaLib[] = {
     {"trackMouseMove",      container_trackMouseMove},
     {"sizeToFit",           container_sizeToFit},
     {"elementFittingSize",  container_elementFittingSize},
-    {"elementFrame",        container_elementFrame},
-    {"positionElement",     container_moveElement},
 
-// FIXME: are these really needed?
-//     {"elementAutoPosition", container_elementAutoPosition},
-//     {"autoPosition",        container_autoPosition},
+    {"elementFrame",        container_elementFrame},
 
     {"_debugFrames",        container__debugFrames},
 

@@ -703,7 +703,7 @@ static int segmentBar_selectedSegmentBezelColor(lua_State *L) {
 static int pushHSUITKElementSegmentedControl(lua_State *L, id obj) {
     HSUITKElementSegmentedControl *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSegmentedControl *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSegmentedControl *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

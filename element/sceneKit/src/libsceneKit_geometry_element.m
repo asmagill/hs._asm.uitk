@@ -220,7 +220,7 @@ static int element_primitiveRange(lua_State *L) {
 static int pushSCNGeometryElement(lua_State *L, id obj) {
     SCNGeometryElement *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNGeometryElement *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNGeometryElement *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

@@ -1,3 +1,14 @@
+SIMPLIFY -- menus, toolbars probably shouldn't support arbitrary views
+            are all functions/properties easily understood? if not, are the necessary?
+
+
+Container changes:
+    simplify container -- do items need auto sizing?
+
+    add constraint based container
+        start with horizontal/vertical stacks?
+
+
 
   Document
 
@@ -169,7 +180,7 @@ p     menubar rewrite so it can use views for status icon and menu items
 +   @interface NSTabView              : NSView
     @interface NSVisualEffectView     : NSView
 
-+   @interface NSBox                  : NSView
+    @interface NSBox                  : NSView
 *   @interface NSProgressIndicator    : NSView
 +   @interface NSGridView             : NSView
 +   @interface NSScrollView           : NSView
@@ -177,6 +188,8 @@ p     menubar rewrite so it can use views for status icon and menu items
         @interface NSRulerView            : NSView    -- for custom in NSText/NSScrollView
         @interface NSScroller             : NSControl -- for custom in NSScrollView
 +   @interface NSTextView             : NSText
+
++   @interface NSStackView            : NSView
 
 
 +   @interface NSGestureRecognizer        In utils?
@@ -219,3 +232,24 @@ p     menubar rewrite so it can use views for status icon and menu items
     @interface MKZoomControl              : NSView -- MapKit framework
     @interface MTKView                    : NSView -- MapKit framework
 
+
+
+    @interface IOBluetoothPasskeyDisplay              : NSView
+    @interface LAAuthenticationView                   : NSView
+    @interface LPLinkView                             : NSView
+    @interface NSBackgroundExtensionView              : NSView
+    @interface NSCollectionView                       : NSView
+    @interface NSGlassEffectContainerView             : NSView
+    @interface NSGlassEffectView                      : NSView
+    @interface NSTextInsertionIndicator               : NSView
+    @interface PHLivePhotoView                        : NSView
+    @interface QCCompositionParameterView             : NSView
+    @interface QCCompositionPickerView                : NSView
+    @interface QCView                                 : NSView
+    @interface QLPreviewView                          : NSView
+    @interface QuartzFilterView                       : NSView
+    @interface ScreenSaverView                        : NSView
+    @interface SFAuthorizationView                    : NSView
+    @interface SWAttributionView                      : NSView
+    @interface SWCollaborationView                    : NSView
+    @interface VZVirtualMachineView                   : NSView

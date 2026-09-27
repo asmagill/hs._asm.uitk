@@ -531,6 +531,7 @@ static int grid_insertRow(lua_State *L) {
             idx    = lua_tointeger(L, 3) ;
             newRow = [skin toNSObjectAtIndex:3] ;
             break ;
+        default: { /* other cases handled by initial checkArgs: */ }
     }
 
     NSInteger count = grid.numberOfRows ;
@@ -605,6 +606,7 @@ static int grid_insertColumn(lua_State *L) {
             idx = lua_tointeger(L, 3) ;
             newCol = [skin toNSObjectAtIndex:3] ;
             break ;
+        default: { /* other cases handled by initial checkArgs: */ }
     }
 
     NSInteger count = grid.numberOfColumns ;
@@ -1335,7 +1337,7 @@ static int gridCell_yPlacement(lua_State *L) {
 static int pushHSUITKElementContainerGridView(lua_State *L, id obj) {
     HSUITKElementContainerGridView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerGridView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerGridView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -1356,7 +1358,7 @@ static id toHSUITKElementContainerGridView(lua_State *L, int idx) {
 
 static int pushNSGridRow(lua_State *L, id obj) {
     NSGridRow *value = obj;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSGridRow *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSGridRow *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ROW_TAG);
     lua_setmetatable(L, -2);
@@ -1365,7 +1367,7 @@ static int pushNSGridRow(lua_State *L, id obj) {
 
 static int pushNSGridColumn(lua_State *L, id obj) {
     NSGridColumn *value = obj;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSGridColumn *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSGridColumn *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_COL_TAG);
     lua_setmetatable(L, -2);
@@ -1374,7 +1376,7 @@ static int pushNSGridColumn(lua_State *L, id obj) {
 
 static int pushNSGridCell(lua_State *L, id obj) {
     NSGridCell *value = obj;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSGridCell *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSGridCell *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_CELL_TAG);
     lua_setmetatable(L, -2);

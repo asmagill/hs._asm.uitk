@@ -18,15 +18,11 @@ static void defineInternalDictionaries(void) {
         @"none"                   : @(NSImageScaleNone),
         @"proportionallyUpOrDown" : @(NSImageScaleProportionallyUpOrDown),
     } ;
-    if (@available(macOS 13, *)) {
-        COMBO_BUTTON_STYLE = @{
-            @"split" : @(NSComboButtonStyleSplit),
-            @"unified" : @(NSComboButtonStyleUnified),
-        } ;
-    } else {
-        COMBO_BUTTON_STYLE = @{
-        } ;
-    }
+
+    COMBO_BUTTON_STYLE = @{
+        @"split" : @(NSComboButtonStyleSplit),
+        @"unified" : @(NSComboButtonStyleUnified),
+    } ;
 }
 
 @interface NSMenu (assignmentSharing)
@@ -58,14 +54,11 @@ static void defineInternalDictionaries(void) {
 }
 
 + (instancetype)comboButtonWithTitle:(NSString *)title andImage:(NSImage *)image {
-    HSUITKElementComboButton *button = nil ;
-    if (@available(macOS 13, *)) {
-        button = [HSUITKElementComboButton comboButtonWithTitle:title
-                                                           image:image
-                                                            menu:nil
-                                                          target:nil
-                                                          action:nil] ;
-    }
+    HSUITKElementComboButton *button = [HSUITKElementComboButton comboButtonWithTitle:title
+                                                                                image:image
+                                                                                 menu:nil
+                                                                               target:nil
+                                                                               action:nil] ;
     if (button) {
         [button commonInit] ;
     }
@@ -74,13 +67,10 @@ static void defineInternalDictionaries(void) {
 }
 
 + (instancetype)comboButtonWithTitle:(NSString *)title {
-    HSUITKElementComboButton *button = nil ;
-    if (@available(macOS 13, *)) {
-        button = [HSUITKElementComboButton comboButtonWithTitle:title
-                                                            menu:nil
-                                                          target:nil
-                                                          action:nil] ;
-    }
+    HSUITKElementComboButton *button = [HSUITKElementComboButton comboButtonWithTitle:title
+                                                                                 menu:nil
+                                                                               target:nil
+                                                                               action:nil] ;
     if (button) {
         [button commonInit] ;
     }
@@ -89,13 +79,10 @@ static void defineInternalDictionaries(void) {
 }
 
 + (instancetype)comboButtonWithImage:(NSImage *)image {
-    HSUITKElementComboButton *button = nil ;
-    if (@available(macOS 13, *)) {
-        button = [HSUITKElementComboButton comboButtonWithImage:image
-                                                            menu:nil
-                                                          target:nil
-                                                          action:nil] ;
-    }
+    HSUITKElementComboButton *button = [HSUITKElementComboButton comboButtonWithImage:image
+                                                                                 menu:nil
+                                                                               target:nil
+                                                                               action:nil] ;
     if (button) {
         [button commonInit] ;
     }
@@ -224,7 +211,7 @@ static int comboButton_imageScaling(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *imageScaling = IMAGE_SCALING_TYPES[key] ;
         if (imageScaling) {
-            ((NSButtonCell *)button.cell).imageScaling = [imageScaling unsignedIntegerValue] ;
+            ((NSButtonCell *)button.cell).imageScaling = imageScaling.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -252,7 +239,7 @@ static int comboButton_style(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *style = COMBO_BUTTON_STYLE[key] ;
         if (style) {
-            button.style = [style integerValue] ;
+            button.style = style.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COMBO_BUTTON_STYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -324,7 +311,7 @@ static int comboButton_image(lua_State *L) {
 static int pushHSUITKElementComboButton(lua_State *L, id obj) {
     HSUITKElementComboButton *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementComboButton *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementComboButton *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -389,34 +376,30 @@ static luaL_Reg moduleLib[] = {
 int luaopen_hs__asm_uitk_libelement_comboButton(lua_State* L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
 
-    if (@available(macOS 13, *)) {
-        refTable = [skin registerLibraryWithObject:USERDATA_TAG
-                                         functions:moduleLib
-                                     metaFunctions:nil
-                                   objectFunctions:userdata_metaLib];
+    refTable = [skin registerLibraryWithObject:USERDATA_TAG
+                                     functions:moduleLib
+                                 metaFunctions:nil
+                               objectFunctions:userdata_metaLib];
 
-        defineInternalDictionaries() ;
+    defineInternalDictionaries() ;
 
-        [skin registerPushNSHelper:pushHSUITKElementComboButton  forClass:"HSUITKElementComboButton"];
-        [skin registerLuaObjectHelper:toHSUITKElementComboButton forClass:"HSUITKElementComboButton"
-                                                      withUserdataMapping:USERDATA_TAG];
+    [skin registerPushNSHelper:pushHSUITKElementComboButton  forClass:"HSUITKElementComboButton"];
+    [skin registerLuaObjectHelper:toHSUITKElementComboButton forClass:"HSUITKElementComboButton"
+                                                  withUserdataMapping:USERDATA_TAG];
 
-        // properties for this item that can be modified through container metamethods
-        luaL_getmetatable(L, USERDATA_TAG) ;
-        [skin pushNSObject:@[
-            @"title",
-            @"image",
-            @"imageScaling",
-            @"style",
-            @"menu",
-        ]] ;
-        lua_setfield(L, -2, "_propertyList") ;
-        // (all elements inherit from _view)
-        lua_pushboolean(L, YES) ; lua_setfield(L, -2, "_inheritControl") ; // inherit from _control
-        lua_pop(L, 1) ;
-    } else {
-        [skin logWarn:[NSString stringWithFormat:@"%s only available in macOS 13 or newer", USERDATA_TAG]] ;
-        lua_pushnil(L) ;
-    }
+    // properties for this item that can be modified through container metamethods
+    luaL_getmetatable(L, USERDATA_TAG) ;
+    [skin pushNSObject:@[
+        @"title",
+        @"image",
+        @"imageScaling",
+        @"style",
+        @"menu",
+    ]] ;
+    lua_setfield(L, -2, "_propertyList") ;
+    // (all elements inherit from _view)
+    lua_pushboolean(L, YES) ; lua_setfield(L, -2, "_inheritControl") ; // inherit from _control
+    lua_pop(L, 1) ;
+
     return 1;
 }

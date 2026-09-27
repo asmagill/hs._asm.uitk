@@ -241,7 +241,7 @@ static int box_lengthSegmentCount(lua_State *L) {
 static int pushSCNBox(lua_State *L, id obj) {
     SCNBox *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNBox *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNBox *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

@@ -56,15 +56,13 @@ static void defineInternalDictionaries(void) {
         @"large"   : @(NSTableViewRowSizeStyleLarge),
     } ;
 
-    if (@available(macOS 11, *)) {
-        TABLE_VIEWSTYLE = @{
-            @"automatic"  : @(NSTableViewStyleAutomatic),
-            @"fullWidth"  : @(NSTableViewStyleFullWidth),
-            @"inset"      : @(NSTableViewStyleInset),
-            @"sourceList" : @(NSTableViewStyleSourceList),
-            @"plain"      : @(NSTableViewStylePlain),
-        } ;
-    }
+    TABLE_VIEWSTYLE = @{
+        @"automatic"  : @(NSTableViewStyleAutomatic),
+        @"fullWidth"  : @(NSTableViewStyleFullWidth),
+        @"inset"      : @(NSTableViewStyleInset),
+        @"sourceList" : @(NSTableViewStyleSourceList),
+        @"plain"      : @(NSTableViewStylePlain),
+    } ;
 
     INTERFACE_LAYOUTDIRECTION = @{
         @"leftToRight" : @(NSUserInterfaceLayoutDirectionLeftToRight),
@@ -816,44 +814,35 @@ static int table_style(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TSTRING | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKElementContainerTableView *table  = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 11, *)) {
-        if (lua_gettop(L) == 1) {
-            NSNumber *value  = @(table.style) ;
-            NSArray  *temp   = [TABLE_VIEWSTYLE allKeysForObject:value] ;
-            NSString *answer = [temp firstObject] ;
-            if (answer) {
-                [skin pushNSObject:answer] ;
-            } else {
-                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized table view style type %@ -- notify developers", USERDATA_TAG, value]] ;
-                lua_pushnil(L) ;
-            }
-
-            value  = @(table.effectiveStyle) ;
-            temp   = [TABLE_VIEWSTYLE allKeysForObject:value] ;
-            answer = [temp firstObject] ;
-            if (answer) {
-                [skin pushNSObject:answer] ;
-            } else {
-                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized effective table view style type %@ -- notify developers", USERDATA_TAG, value]] ;
-                lua_pushnil(L) ;
-            }
-            return 2 ;
+    if (lua_gettop(L) == 1) {
+        NSNumber *value  = @(table.style) ;
+        NSArray  *temp   = [TABLE_VIEWSTYLE allKeysForObject:value] ;
+        NSString *answer = [temp firstObject] ;
+        if (answer) {
+            [skin pushNSObject:answer] ;
         } else {
-            NSString *key   = [skin toNSObjectAtIndex:2] ;
-            NSNumber *value = TABLE_VIEWSTYLE[key] ;
-            if (value) {
-                table.style = value.integerValue ;
-                lua_pushvalue(L, 1) ;
-            } else {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TABLE_VIEWSTYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
-            }
-        }
-    } else {
-        [skin logInfo:[NSString stringWithFormat:@"%s:style - Requires macOS 11.0 or newer", USERDATA_TAG]] ;
-        if (lua_gettop(L) == 1) {
+            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized table view style type %@ -- notify developers", USERDATA_TAG, value]] ;
             lua_pushnil(L) ;
+        }
+
+        value  = @(table.effectiveStyle) ;
+        temp   = [TABLE_VIEWSTYLE allKeysForObject:value] ;
+        answer = [temp firstObject] ;
+        if (answer) {
+            [skin pushNSObject:answer] ;
         } else {
+            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized effective table view style type %@ -- notify developers", USERDATA_TAG, value]] ;
+            lua_pushnil(L) ;
+        }
+        return 2 ;
+    } else {
+        NSString *key   = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value = TABLE_VIEWSTYLE[key] ;
+        if (value) {
+            table.style = value.integerValue ;
             lua_pushvalue(L, 1) ;
+        } else {
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [TABLE_VIEWSTYLE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
 
@@ -1804,7 +1793,7 @@ static int tableColumn_index(lua_State *L) {
 static int pushHSUITKElementContainerTableView(lua_State *L, id obj) {
     HSUITKElementContainerTableView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerTableView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerTableView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -1825,7 +1814,7 @@ static id toHSUITKElementContainerTableView(lua_State *L, int idx) {
 
 static int pushNSTableColumn(lua_State *L, id obj) {
     NSTableColumn *value = obj;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSTableColumn *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSTableColumn *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_COLUMN_TAG);
     lua_setmetatable(L, -2);
@@ -1847,7 +1836,7 @@ static id toNSTableColumn(lua_State *L, int idx) {
 static int pushNSTableRowView(lua_State *L, id obj) {
     NSTableRowView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSTableRowView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSTableRowView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ROW_TAG);
     lua_setmetatable(L, -2);

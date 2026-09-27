@@ -98,7 +98,8 @@ static void defineInternalDictionaries(void) {
         @"small"   : @(NSToolbarSizeModeSmall),
     } ;
 
-    ITEM_TYPES = @[ @"item", @"group", @"menu" ] ;
+//     ITEM_TYPES = @[ @"item", @"group", @"menu" ] ;
+    ITEM_TYPES = @[ @"item", @"group" ] ;
 
     GROUP_SELECTION_MODES = @{
         @"momentary" : @(NSToolbarItemGroupSelectionModeMomentary),
@@ -122,11 +123,11 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
 @interface NSMenu (HammerspoonAdditions)
 @property (weak) NSResponder *assignedTo ;
 
-- (instancetype)copyWithState:(lua_State *)L ;
+// - (instancetype)copyWithState:(lua_State *)L ;
 @end
 
 @interface NSMenuItem (HammerspoonAdditions)
-- (instancetype)copyWithState:(lua_State *)L ;
+// - (instancetype)copyWithState:(lua_State *)L ;
 @end
 
 @interface HSUITKToolbar : NSToolbar
@@ -165,13 +166,13 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
 @property (readonly) NSMenuItem *initialMenuFormRepresentation ;
 @end
 
-@interface HSUITKMenuToolbarItem: NSMenuToolbarItem
-@property          int          selfRefCount ;
-@property          BOOL         enableOverrideDictionary ;
-@property            NSMenuItem *ourMenuFormRepresentation ;
-@property (readonly) NSMenuItem *initialMenuFormRepresentation ;
-@property (readonly) NSMenu     *initialMenu ;
-@end
+// @interface HSUITKMenuToolbarItem: NSMenuToolbarItem
+// @property          int          selfRefCount ;
+// @property          BOOL         enableOverrideDictionary ;
+// @property            NSMenuItem *ourMenuFormRepresentation ;
+// @property (readonly) NSMenuItem *initialMenuFormRepresentation ;
+// @property (readonly) NSMenu     *initialMenu ;
+// @end
 
 // @interface HSUITKSearchToolbarItem : NSSearchToolbarItem
 // @interface HSUITKSharingServicePickerToolbarItem : NSSharingServicePickerToolbarItem
@@ -382,8 +383,8 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
 
     if ([type isEqualToString:@"group"]) {
         toolbarItem = (NSToolbarItem *)[[HSUITKToolbarItemGroup alloc] initWithItemIdentifier:itemIdentifier] ;
-    } else if ([type isEqualToString:@"menu"]) {
-        toolbarItem = (NSToolbarItem *)[[HSUITKMenuToolbarItem alloc] initWithItemIdentifier:itemIdentifier] ;
+//     } else if ([type isEqualToString:@"menu"]) {
+//         toolbarItem = (NSToolbarItem *)[[HSUITKMenuToolbarItem alloc] initWithItemIdentifier:itemIdentifier] ;
     } else { // it's an item
         toolbarItem = (NSToolbarItem *)[[HSUITKToolbarItem alloc] initWithItemIdentifier:itemIdentifier] ;
     }
@@ -594,21 +595,21 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                     errMsg = @"expected a string for groupSelectionMode key" ;
                 }
 // NSMenuToolbarItem
-            } else if ([keyName isEqualToString:@"menu"]) {
-                if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs._asm.uitk.menu")) {
-                    value = [skin toNSObjectAtIndex:-1] ;
-                    [skin luaRetain:refTable forNSObject:value] ;
-                } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
-                    value = @((BOOL)(lua_toboolean(L, -1))) ;
-                } else {
-                    errMsg = @"expected hs._asm.uitk.menu object for menu key or false to remove" ;
-                }
-            } else if ([keyName isEqualToString:@"menuIndicator"]) {
-                if (lua_type(L, -1) == LUA_TBOOLEAN) {
-                    value = @((BOOL)(lua_toboolean(L, -1))) ;
-                } else {
-                    errMsg = @"expected boolean for menuIndicator key" ;
-                }
+//             } else if ([keyName isEqualToString:@"menu"]) {
+//                 if (lua_type(L, -1) == LUA_TUSERDATA && luaL_testudata(L, -1, "hs._asm.uitk.menu")) {
+//                     value = [skin toNSObjectAtIndex:-1] ;
+//                     [skin luaRetain:refTable forNSObject:value] ;
+//                 } else if (lua_type(L, -1) == LUA_TBOOLEAN && !lua_toboolean(L, -1)) {
+//                     value = @((BOOL)(lua_toboolean(L, -1))) ;
+//                 } else {
+//                     errMsg = @"expected hs._asm.uitk.menu object for menu key or false to remove" ;
+//                 }
+//             } else if ([keyName isEqualToString:@"menuIndicator"]) {
+//                 if (lua_type(L, -1) == LUA_TBOOLEAN) {
+//                     value = @((BOOL)(lua_toboolean(L, -1))) ;
+//                 } else {
+//                     errMsg = @"expected boolean for menuIndicator key" ;
+//                 }
 // NSSearchToolbarItem
 //    Need to understand better and see about replicating for pre 11.
 //    Use mld hs.webview.toolbar method?
@@ -684,11 +685,11 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
         if ([key isEqualToString:@"callback"]) {
             NSNumber *callback = details[key] ;
             if (!isNSNumberActuallyABoolean(callback)) [skin luaUnref:refTable ref:callback.intValue] ;
-        } else if ( [key isEqualToString:@"menuForm"] ||
-//                     [key isEqualToString:@"element"] ||
-                    [key isEqualToString:@"menu"] )
-        {
-            [skin luaRelease:refTable forNSObject:details[key]] ;
+//         } else if ( [key isEqualToString:@"menuForm"] ||
+// //                     [key isEqualToString:@"element"] ||
+//                     [key isEqualToString:@"menu"] )
+//         {
+//             [skin luaRelease:refTable forNSObject:details[key]] ;
         }
     }
 }
@@ -771,11 +772,11 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
                                 if ([key isEqualToString:@"callback"]) {
                                     NSNumber *callback = (NSNumber *)oldValue ;
                                     [skin luaUnref:refTable ref:callback.intValue] ;
-                                } else if ( [key isEqualToString:@"menuForm"] ||
-//                                             [key isEqualToString:@"element"] ||
-                                            [key isEqualToString:@"menu"] )
-                                {
-                                    [skin luaRelease:refTable forNSObject:oldValue] ;
+//                                 } else if ( [key isEqualToString:@"menuForm"] ||
+// //                                             [key isEqualToString:@"element"] ||
+//                                             [key isEqualToString:@"menu"] )
+//                                 {
+//                                     [skin luaRelease:refTable forNSObject:oldValue] ;
                                 }
                             }
                             if ([key isEqualToString:@"callback"] && isNSNumberActuallyABoolean((NSNumber *)value)) {
@@ -880,12 +881,12 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     @synchronized (self) {
         NSMutableDictionary *itemDefinition = _itemDefinitions[identifier] ;
         if (itemDefinition) {
-            NSNumber *temp = itemDefinition[@"menuForm"] ;
-            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menuForm"] = nil ;
+//             NSNumber *temp = itemDefinition[@"menuForm"] ;
+//             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menuForm"] = nil ;
 //             temp = itemDefinition[@"element"] ;
 //             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"element"]  = nil ;
-            temp = itemDefinition[@"menu"] ;
-            if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menu"]     = nil ;
+//             temp = itemDefinition[@"menu"] ;
+//             if ([temp isKindOfClass:[NSNumber class]] && !temp.boolValue) itemDefinition[@"menu"]     = nil ;
 
             _itemDefinitions[identifier] = itemDefinition ;
         }
@@ -908,7 +909,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     NSNumber   *enabled          = itemDefinition[@"enabled"] ;
     NSNumber   *bordered         = itemDefinition[@"bordered"] ;
     NSNumber   *navigational     = itemDefinition[@"navigational"] ;
-    NSMenuItem *menuForm         = itemDefinition[@"menuForm"] ;
+//     NSMenuItem *menuForm         = itemDefinition[@"menuForm"] ;
 //     NSString   *title            = itemDefinition[@"title"] ;
 //     NSView     *element          = itemDefinition[@"element"] ;
 
@@ -946,25 +947,23 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     if (bordered) {
         asItem.bordered = bordered.boolValue ;
     }
-    if (@available(macOS 11.0, *)) {
-        if (navigational) {
-            asItem.navigational = navigational.boolValue ;
-        }
+    if (navigational) {
+        asItem.navigational = navigational.boolValue ;
     }
-    if (menuForm) {
-        NSMenuItem *oldValue = asItem.menuFormRepresentation ;
-        if (oldValue && ![oldValue isEqualTo:asItem.initialMenuFormRepresentation]) {
-            [skin luaRelease:refTable forNSObject:oldValue] ;
-            asItem.menuFormRepresentation    = asItem.initialMenuFormRepresentation ;
-            asItem.ourMenuFormRepresentation = nil ;
-        }
-        if ([menuForm isKindOfClass:[NSMenuItem class]]) {
-            NSMenuItem *newValue = [menuForm copyWithState:L] ;
-            [skin luaRetain:refTable forNSObject:newValue] ;
-            asItem.menuFormRepresentation    = newValue ;
-            asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
-        } // else it's false and we've already removed it
-    }
+//     if (menuForm) {
+//         NSMenuItem *oldValue = asItem.menuFormRepresentation ;
+//         if (oldValue && ![oldValue isEqualTo:asItem.initialMenuFormRepresentation]) {
+//             [skin luaRelease:refTable forNSObject:oldValue] ;
+//             asItem.menuFormRepresentation    = asItem.initialMenuFormRepresentation ;
+//             asItem.ourMenuFormRepresentation = nil ;
+//         }
+//         if ([menuForm isKindOfClass:[NSMenuItem class]]) {
+//             NSMenuItem *newValue = [menuForm copyWithState:L] ;
+//             [skin luaRetain:refTable forNSObject:newValue] ;
+//             asItem.menuFormRepresentation    = newValue ;
+//             asItem.ourMenuFormRepresentation = newValue ; // see notes in HSUITKToolbarItem dealloc
+//         } // else it's false and we've already removed it
+//     }
 //     if (element) {
 //         NSView *oldValue = asItem.view ;
 //         if (oldValue) {
@@ -1024,37 +1023,37 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
             asGroupItem.subitems = newSubItems.copy ;
         }
         if (groupRepresentation) {
-            asGroupItem.controlRepresentation = groupRepresentation.longLongValue ;
+            asGroupItem.controlRepresentation = (NSToolbarItemGroupControlRepresentation)groupRepresentation.longLongValue ;
         }
         if (groupSelectionMode) {
-            asGroupItem.selectionMode = groupSelectionMode.longLongValue ;
+            asGroupItem.selectionMode = (NSToolbarItemGroupSelectionMode)groupSelectionMode.longLongValue ;
         }
     }
 
-    if ([toolbarItem isKindOfClass:[NSMenuToolbarItem class]]) {
-        HSUITKMenuToolbarItem *asMenuItem = (HSUITKMenuToolbarItem *)toolbarItem ;
-
-        NSMenu   *menu          = itemDefinition[@"menu"] ;
-        NSNumber *menuIndicator = itemDefinition[@"menuIndicator"] ;
-
-        if (menu) {
-            NSMenu *oldValue = asMenuItem.menu ;
-            if (oldValue && ![oldValue isEqualTo:asMenuItem.initialMenu]) {
-                [skin luaRelease:refTable forNSObject:oldValue] ;
-                oldValue.assignedTo = nil ;
-                asMenuItem.menu = asMenuItem.initialMenu ;
-            }
-            if ([menu isKindOfClass:[NSMenu class]]) {
-                NSMenu *newValue = [menu copyWithState:L] ;
-                newValue.assignedTo = (NSResponder *)toolbar ;
-                [skin luaRetain:refTable forNSObject:newValue] ;
-                asMenuItem.menu = newValue ;
-            } // else it's false and we've already removed it
-        }
-        if (menuIndicator) {
-            asMenuItem.showsIndicator = menuIndicator.boolValue ;
-        }
-    }
+//     if ([toolbarItem isKindOfClass:[NSMenuToolbarItem class]]) {
+//         HSUITKMenuToolbarItem *asMenuItem = (HSUITKMenuToolbarItem *)toolbarItem ;
+//
+//         NSMenu   *menu          = itemDefinition[@"menu"] ;
+//         NSNumber *menuIndicator = itemDefinition[@"menuIndicator"] ;
+//
+//         if (menu) {
+//             NSMenu *oldValue = asMenuItem.menu ;
+//             if (oldValue && ![oldValue isEqualTo:asMenuItem.initialMenu]) {
+//                 [skin luaRelease:refTable forNSObject:oldValue] ;
+//                 oldValue.assignedTo = nil ;
+//                 asMenuItem.menu = asMenuItem.initialMenu ;
+//             }
+//             if ([menu isKindOfClass:[NSMenu class]]) {
+//                 NSMenu *newValue = [menu copyWithState:L] ;
+//                 newValue.assignedTo = (NSResponder *)toolbar ;
+//                 [skin luaRetain:refTable forNSObject:newValue] ;
+//                 asMenuItem.menu = newValue ;
+//             } // else it's false and we've already removed it
+//         }
+//         if (menuIndicator) {
+//             asMenuItem.showsIndicator = menuIndicator.boolValue ;
+//         }
+//     }
 
 // NSSearchToolbarItem
 //    Need to understand better and see about replicating for pre 11.
@@ -1121,11 +1120,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     [LuaSkin logBreadcrumb:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification] ;
 
     NSToolbarItem *item = nil ;
-    if (@available(macos 13.0, *)) {
-        item = notification.userInfo[NSToolbarItemKey] ;
-    } else {
-        item = notification.userInfo[@"item"] ;
-    }
+    item = notification.userInfo[NSToolbarItemKey] ;
     HSUITKToolbar *toolbar = (HSUITKToolbar *)item.toolbar ;
     if (toolbar && toolbar.notifyToolbarChanges) [toolbar callbackHamster:@[ toolbar, @"remove", item ]] ;
 }
@@ -1134,11 +1129,7 @@ static BOOL isNSNumberActuallyABoolean(NSNumber *num) {
     [LuaSkin logBreadcrumb:@"%s:%@ - %@", UD_DICT_TAG, NSStringFromSelector(_cmd), notification] ;
 
     NSToolbarItem *item = nil ;
-    if (@available(macos 13.0, *)) {
-        item = notification.userInfo[NSToolbarItemKey] ;
-    } else {
-        item = notification.userInfo[@"item"] ;
-    }
+    item = notification.userInfo[NSToolbarItemKey] ;
     HSUITKToolbar *toolbar = (HSUITKToolbar *)item.toolbar ;
     if (toolbar && toolbar.notifyToolbarChanges) [toolbar callbackHamster:@[ toolbar, @"add", item ]] ;
 }
@@ -1253,48 +1244,48 @@ static BOOL validateToolbarItem(HSUITKToolbarItem *item) {
 }
 @end
 
-@implementation HSUITKMenuToolbarItem
-
-- (instancetype)initWithItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier {
-    self = [super initWithItemIdentifier:itemIdentifier] ;
-    if (self) {
-        _selfRefCount                  = 0 ;
-        _enableOverrideDictionary      = NO ;
-        _ourMenuFormRepresentation     = nil ;
-        _initialMenuFormRepresentation = self.menuFormRepresentation ;
-        _initialMenu                   = self.menu ;
-    }
-    return self ;
-}
-
-- (void)dealloc {
-    LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
-    // dealloc crashes if trying to access self.menuFormRepresentation, so we track
-    // if we've changed it another way...
-    if (_ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:_ourMenuFormRepresentation] ;
-    _ourMenuFormRepresentation = nil ;
-    // TODO: see if menu has the same issue as menuFormRepresentation
-    if (![self.menu isEqualTo:_initialMenu]) {
-        [skin luaRelease:refTable forNSObject:self.menu] ;
-        self.menu = _initialMenu ;
-    }
-
-}
-
-// the default implementation ignores items with a view set, plus we're putting the enabled onus on the user, so...
-- (void)validate {
-    self.enabled = validateToolbarItem((HSUITKToolbarItem *)self) ;
-}
-
-// if toolbar mode set to labels only, argument will be group object, not item object, so we intervene
-- (void)toolbarItemCallback:(NSToolbarItem *)toolbarItem {
-    NSToolbar *toolbar = self.toolbar ;
-    if (toolbar) {
-        HSUITKToolbarDictionary *dictionary = toolbar.delegate ;
-        if (dictionary) [dictionary toolbarItemCallback:self] ;
-    }
-}
-@end
+// @implementation HSUITKMenuToolbarItem
+//
+// - (instancetype)initWithItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier {
+//     self = [super initWithItemIdentifier:itemIdentifier] ;
+//     if (self) {
+//         _selfRefCount                  = 0 ;
+//         _enableOverrideDictionary      = NO ;
+//         _ourMenuFormRepresentation     = nil ;
+//         _initialMenuFormRepresentation = self.menuFormRepresentation ;
+//         _initialMenu                   = self.menu ;
+//     }
+//     return self ;
+// }
+//
+// - (void)dealloc {
+//     LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
+//     // dealloc crashes if trying to access self.menuFormRepresentation, so we track
+//     // if we've changed it another way...
+//     if (_ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:_ourMenuFormRepresentation] ;
+//     _ourMenuFormRepresentation = nil ;
+//     // TODO: see if menu has the same issue as menuFormRepresentation
+//     if (![self.menu isEqualTo:_initialMenu]) {
+//         [skin luaRelease:refTable forNSObject:self.menu] ;
+//         self.menu = _initialMenu ;
+//     }
+//
+// }
+//
+// // the default implementation ignores items with a view set, plus we're putting the enabled onus on the user, so...
+// - (void)validate {
+//     self.enabled = validateToolbarItem((HSUITKToolbarItem *)self) ;
+// }
+//
+// // if toolbar mode set to labels only, argument will be group object, not item object, so we intervene
+// - (void)toolbarItemCallback:(NSToolbarItem *)toolbarItem {
+//     NSToolbar *toolbar = self.toolbar ;
+//     if (toolbar) {
+//         HSUITKToolbarDictionary *dictionary = toolbar.delegate ;
+//         if (dictionary) [dictionary toolbarItemCallback:self] ;
+//     }
+// }
+// @end
 
 #pragma mark - Module Functions -
 
@@ -1745,13 +1736,13 @@ static int toolbar_sizeMode(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         NSArray  *keys   = [SIZE_MODES allKeysForObject:@(toolbar.sizeMode)] ;
-        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", toolbar.sizeMode] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", toolbar.sizeMode] ;
         [skin pushNSObject:answer] ;
     } else {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = SIZE_MODES[key] ;
         if (value) {
-            toolbar.sizeMode = value.unsignedLongLongValue ;
+            toolbar.sizeMode = (NSToolbarSizeMode)value.unsignedLongLongValue ;
         } else {
             NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [SIZE_MODES.allKeys componentsJoinedByString:@", "]] ;
             return luaL_argerror(L, 2, errMsg.UTF8String) ;
@@ -1784,13 +1775,13 @@ static int toolbar_displayMode(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         NSArray  *keys   = [DISPLAY_MODES allKeysForObject:@(toolbar.displayMode)] ;
-        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", toolbar.displayMode] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", toolbar.displayMode] ;
         [skin pushNSObject:answer] ;
     } else {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = DISPLAY_MODES[key] ;
         if (value) {
-            toolbar.displayMode = value.unsignedLongLongValue ;
+            toolbar.displayMode = (NSToolbarDisplayMode)value.unsignedLongLongValue ;
         } else {
             NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [DISPLAY_MODES.allKeys componentsJoinedByString:@", "]] ;
             return luaL_argerror(L, 2, errMsg.UTF8String) ;
@@ -2228,7 +2219,7 @@ static int dictionary_deleteItem(lua_State *L) {
 ///
 /// The following key-value pairs apply to all toolbar item types:
 ///   * `id`                  - a string specifying the item identifier for the definition. This key is only used by the [hs._asm.uitk.toolbar.dictionary:addItem](#addItem) and [hs._asm.uitk.toolbar.dictionary:modifyItem](#modifyItem) methods and is ignored in all other contexts.
-///   * `type`                - a string, default "item" if not provided, specifying the toolbar item type. Currently recognized types are "item", "group", and "menu".
+///   * `type`                - a string, default "item" if not provided, specifying the toolbar item type. Currently recognized types are "item" and "group".
 ///   * `label`               - a string specifying the label that appears for this item in the toolbar when text is displayed.
 ///   * `paletteLabel`        - a string specifying the label that appears in the customization palette for this item. If this is not set, or is set to the empty string, then the value for `label` will be used.
 ///   * `tooltip`             - a string specifying the tooltip to display when someone hovers over the item in the toolbar
@@ -2238,7 +2229,6 @@ static int dictionary_deleteItem(lua_State *L) {
 ///   * `enabled`             - a boolean, default true, indicating whether or not the toolbar item is enabled and can receive button clicks from the user.
 ///   * `bordered`            - a boolean, default false, indicating whether or not the toolbar item has a bordered style.
 ///   * `navigational`        - a boolean indicating whether or not the item is used to navigate within the attached window's content. Navigational items may be treated separately from the other toolbar items for positioning and overflow purposes by the macOS.
-///   * `menuForm`            - an `hs._asm.uitk.menu.item` object that should be used for the item when the item is moved into the toolbar overflow menu. You do not have to set this attribute unless you wish to modify the default behavior of showing a menu item with a title matching the item's `label`.
 ///   * `selectable`          - a boolean, default false, indicating whether or not this item is selectable; selectable items will show a highlight around the last selectable item that was clicked on, clearing any previously selected item, if one exists.
 ///   * `immovable`           - a boolean, default false, indicating that the item cannot be moved or removed from the toolbar by the user using the customization palette. Items with this attribute set to false should also be listed as part of the default items -- see [hs._asm.uitk.toolbar:defaultItems](#defaultItems) to ensure that they are presented in the toolbar.
 ///   * `callback`            - a callback function unique to this toolbar item that will be called when the user interacts with this item. The callback function should expect three arguments (`toolbarObject, "action", toolbarItemObject`) and return none. If this attribute is not set, the `hs._asm.uitk.toolbar:callback` function will act as a fallback, if defined.
@@ -2253,8 +2243,10 @@ static int dictionary_deleteItem(lua_State *L) {
 ///   * `menuIndicator`       -
 
 // disabled for now... requires copyWithState: -- lets see if it's missed
+// ///   * `type`                - a string, default "item" if not provided, specifying the toolbar item type. Currently recognized types are "item", "group", and "menu".
 // ///   * `title`               - a string specifying the title for this toolbar item when the toolbar item has a custom element assigned.
 // ///   * `element`             - an `hs._asm.uitk.element` object that will be displayed for the toolbar item instead of the default label or icon.
+// ///   * `menuForm`            - an `hs._asm.uitk.menu.item` object that should be used for the item when the item is moved into the toolbar overflow menu. You do not have to set this attribute unless you wish to modify the default behavior of showing a menu item with a title matching the item's `label`.
 
 #pragma mark - Item Methods -
 
@@ -2274,7 +2266,8 @@ static int dictionary_deleteItem(lua_State *L) {
 ///  * a string specifying the type of toolbar item
 ///
 /// Notes:
-///  * the current possible return values for this method are "item", "group", and "menu"
+///  * the current possible return values for this method are "item" or "group"
+// ///  * the current possible return values for this method are "item", "group", and "menu"
 static int item_type(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
@@ -2284,8 +2277,8 @@ static int item_type(lua_State *L) {
         lua_pushstring(L, "item") ;
     } else if ([item isKindOfClass:[HSUITKToolbarItemGroup class]]) {
         lua_pushstring(L, "group") ;
-    } else if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-        lua_pushstring(L, "menu") ;
+//     } else if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
+//         lua_pushstring(L, "menu") ;
     } else {
         [skin pushNSObject:[NSString stringWithFormat:@"*** %@", item.className]] ;
     }
@@ -2327,16 +2320,7 @@ static int item_isVisible(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBREAK] ;
     NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 12, *)) {
-        lua_pushboolean(L, item.visible) ;
-    } else {
-        NSToolbar *toolbar = item.toolbar ;
-        if (toolbar) {
-            lua_pushboolean(L, [toolbar.visibleItems containsObject:item]) ;
-        } else {
-            lua_pushboolean(L, NO) ;
-        }
-    }
+    lua_pushboolean(L, item.visible) ;
     return 1 ;
 }
 
@@ -2542,15 +2526,9 @@ static int item_isNavigational(lua_State *L) {
     NSToolbarItem *item = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 11, *)) {
-            lua_pushboolean(L, item.navigational) ;
-        } else {
-            lua_pushnil(L) ;
-        }
+        lua_pushboolean(L, item.navigational) ;
     } else {
-        if (@available(macOS 11, *)) {
-            item.navigational = (BOOL)(lua_toboolean(L, 2)) ;
-        }
+        item.navigational = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -2575,29 +2553,29 @@ static int item_image(lua_State *L) {
     return 1 ;
 }
 
-static int item_menuFormRepresentation(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        [skin pushNSObject:item.menuFormRepresentation] ;
-    } else {
-        if (lua_type(L, 2) == LUA_TNIL) {
-            if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
-            item.ourMenuFormRepresentation = nil ;
-            item.menuFormRepresentation = item.initialMenuFormRepresentation ;
-        } else {
-            [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
-            if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
-            item.menuFormRepresentation = [skin toNSObjectAtIndex:2] ;
-            item.ourMenuFormRepresentation = item.menuFormRepresentation ;
-            [skin luaRetain:refTable forNSObject:item.menuFormRepresentation] ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
+// static int item_menuFormRepresentation(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         [skin pushNSObject:item.menuFormRepresentation] ;
+//     } else {
+//         if (lua_type(L, 2) == LUA_TNIL) {
+//             if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
+//             item.ourMenuFormRepresentation = nil ;
+//             item.menuFormRepresentation = item.initialMenuFormRepresentation ;
+//         } else {
+//             [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu.item", LS_TBREAK] ;
+//             if (item.ourMenuFormRepresentation) [skin luaRelease:refTable forNSObject:item.menuFormRepresentation] ;
+//             item.menuFormRepresentation = [skin toNSObjectAtIndex:2] ;
+//             item.ourMenuFormRepresentation = item.menuFormRepresentation ;
+//             [skin luaRetain:refTable forNSObject:item.menuFormRepresentation] ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
 
 // static int item_view(lua_State *L) {
 //     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -2761,7 +2739,7 @@ static int groupitem_controlRepresentation(lua_State *L) {
             NSString *key = [skin toNSObjectAtIndex:2] ;
             NSNumber *value = GROUP_REPRESENTATION[key] ;
             if (value) {
-                item.controlRepresentation = value.longLongValue ;
+                item.controlRepresentation = (NSToolbarItemGroupControlRepresentation)value.longLongValue ;
             } else {
                 NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [GROUP_REPRESENTATION.allKeys componentsJoinedByString:@", "]] ;
                 return luaL_argerror(L, 2, errMsg.UTF8String) ;
@@ -2792,7 +2770,7 @@ static int groupitem_selectionMode(lua_State *L) {
             NSString *key = [skin toNSObjectAtIndex:2] ;
             NSNumber *value = GROUP_SELECTION_MODES[key] ;
             if (value) {
-                item.selectionMode = value.longLongValue ;
+                item.selectionMode = (NSToolbarItemGroupSelectionMode)value.longLongValue ;
             } else {
                 NSString *errMsg = [NSString stringWithFormat:@"expected one of %@", [GROUP_SELECTION_MODES.allKeys componentsJoinedByString:@", "]] ;
                 return luaL_argerror(L, 2, errMsg.UTF8String) ;
@@ -2807,57 +2785,57 @@ static int groupitem_selectionMode(lua_State *L) {
 
 # pragma mark Menu item specific methods
 
-static int menuitem_menu(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-            [skin pushNSObject:item.menu] ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    } else {
-        if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-            if (lua_type(L, 2) == LUA_TNIL) {
-                if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
-                item.menu = item.initialMenu ;
-            } else {
-                [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
-                if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
-                item.menu = [skin toNSObjectAtIndex:2] ;
-                [skin luaRetain:refTable forNSObject:item.menu] ;
-            }
-        } else {
-            return luaL_error(L, "method only valid for menu type items") ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
-
-static int menuitem_showsIndicator(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
-    HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
-
-    if (lua_gettop(L) == 1) {
-        if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-            lua_pushboolean(L, item.showsIndicator) ;
-        } else {
-            lua_pushnil(L) ;
-        }
-    } else {
-        if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
-            item.showsIndicator = (BOOL)(lua_toboolean(L, 2)) ;
-        } else {
-            return luaL_error(L, "method only valid for menu type items") ;
-        }
-        lua_pushvalue(L, 1) ;
-    }
-    return 1 ;
-}
+// static int menuitem_menu(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TANY | LS_TOPTIONAL, LS_TBREAK] ;
+//     HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
+//             [skin pushNSObject:item.menu] ;
+//         } else {
+//             lua_pushnil(L) ;
+//         }
+//     } else {
+//         if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
+//             if (lua_type(L, 2) == LUA_TNIL) {
+//                 if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
+//                 item.menu = item.initialMenu ;
+//             } else {
+//                 [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TUSERDATA, "hs._asm.uitk.menu", LS_TBREAK] ;
+//                 if (![item.menu isEqualTo:item.initialMenu]) [skin luaRelease:refTable forNSObject:item.menu] ;
+//                 item.menu = [skin toNSObjectAtIndex:2] ;
+//                 [skin luaRetain:refTable forNSObject:item.menu] ;
+//             }
+//         } else {
+//             return luaL_error(L, "method only valid for menu type items") ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
+//
+// static int menuitem_showsIndicator(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TUSERDATA, UD_ITEM_TAG, LS_TBOOLEAN | LS_TOPTIONAL, LS_TBREAK] ;
+//     HSUITKMenuToolbarItem *item = [skin toNSObjectAtIndex:1] ;
+//
+//     if (lua_gettop(L) == 1) {
+//         if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
+//             lua_pushboolean(L, item.showsIndicator) ;
+//         } else {
+//             lua_pushnil(L) ;
+//         }
+//     } else {
+//         if ([item isKindOfClass:[HSUITKMenuToolbarItem class]]) {
+//             item.showsIndicator = (BOOL)(lua_toboolean(L, 2)) ;
+//         } else {
+//             return luaL_error(L, "method only valid for menu type items") ;
+//         }
+//         lua_pushvalue(L, 1) ;
+//     }
+//     return 1 ;
+// }
 
 // NSSearchToolbarItem methods
 // MAYBE: NSSharingServicePickerToolbarItem methods
@@ -2892,9 +2870,7 @@ static int toolbar_systemToolbarItems(lua_State *L) {
 //     [skin pushNSObject:NSToolbarToggleSidebarItemIdentifier] ;              lua_setfield(L, -2, "toggleSidebar") ;
 //     [skin pushNSObject:NSToolbarPrintItemIdentifier] ;                      lua_setfield(L, -2, "print") ;
     [skin pushNSObject:NSToolbarCloudSharingItemIdentifier] ;               lua_setfield(L, -2, "cloudSharing") ;
-//     if (@available(macOS 11, *)) {
-//         [skin pushNSObject:NSToolbarSidebarTrackingSeparatorItemIdentifier] ;   lua_setfield(L, -2, "sidebarTrackingSeparator") ;
-//     }
+//     [skin pushNSObject:NSToolbarSidebarTrackingSeparatorItemIdentifier] ;   lua_setfield(L, -2, "sidebarTrackingSeparator") ;
 //     if (@available(macOS 14, *)) {
 //         [skin pushNSObject:NSToolbarInspectorTrackingSeparatorItemIdentifier] ; lua_setfield(L, -2, "inspectorTrackingSeparator") ;
 //         [skin pushNSObject:NSToolbarToggleInspectorItemIdentifier] ;            lua_setfield(L, -2, "toggleInspector") ;
@@ -2927,7 +2903,7 @@ static int toolbar_itemPriorities(lua_State *L) {
 static int pushHSUITKToolbar(lua_State *L, id obj) {
     HSUITKToolbar *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKToolbar *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKToolbar *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -2949,7 +2925,7 @@ static id toHSUITKToolbar(lua_State *L, int idx) {
 static int pushHSUITKToolbarDictionary(lua_State *L, id obj) {
     HSUITKToolbarDictionary *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKToolbarDictionary *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKToolbarDictionary *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_DICT_TAG);
     lua_setmetatable(L, -2);
@@ -2973,7 +2949,7 @@ static id toHSUITKToolbarDictionary(lua_State *L, int idx) {
 static int pushHSUITKToolbarItem(lua_State *L, id obj) {
     HSUITKToolbarItem *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKToolbarItem *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKToolbarItem *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ITEM_TAG);
     lua_setmetatable(L, -2);
@@ -3083,7 +3059,7 @@ static int ud_item_tostring(lua_State* L) {
     HSUITKToolbarItem *obj = [skin toNSObjectAtIndex:1] ;
     NSString *title = obj.itemIdentifier ;
     if ([obj isKindOfClass:[HSUITKToolbarItemGroup class]]) title = [@"group " stringByAppendingString:title] ;
-    if ([obj isKindOfClass:[HSUITKMenuToolbarItem class]])  title = [@"group " stringByAppendingString:title] ;
+//     if ([obj isKindOfClass:[HSUITKMenuToolbarItem class]])  title = [@"menu " stringByAppendingString:title] ;
     [skin pushNSObject:[NSString stringWithFormat:@"%s: %@ (%p)", UD_ITEM_TAG, title, lua_topointer(L, 1)]] ;
     return 1 ;
 }
@@ -3186,7 +3162,7 @@ static const luaL_Reg ud_item_metaLib[] = {
     {"bordered",            item_isBordered},
     {"navigational",        item_isNavigational},
     {"image",               item_image},
-    {"menuForm",            item_menuFormRepresentation},
+//     {"menuForm",            item_menuFormRepresentation},
     {"enabled",             item_enabled},
 //     {"title",               item_title},
 //     {"element",             item_view},
@@ -3195,8 +3171,8 @@ static const luaL_Reg ud_item_metaLib[] = {
     {"groupRepresentation", groupitem_controlRepresentation},
     {"selectionMode",       groupitem_selectionMode},
 
-    {"menu",                menuitem_menu},
-    {"menuIndicator",       menuitem_showsIndicator},
+//     {"menu",                menuitem_menu},
+//     {"menuIndicator",       menuitem_showsIndicator},
 
     {"__tostring",          ud_item_tostring},
     {"__eq",                ud_item_eq},
@@ -3269,7 +3245,7 @@ int luaopen_hs__asm_uitk_libtoolbar(lua_State* L) {
 
     [skin registerPushNSHelper:pushHSUITKToolbarItem  forClass:"HSUITKToolbarItem"];
     [skin registerPushNSHelper:pushHSUITKToolbarItem  forClass:"HSUITKToolbarItemGroup"];
-    [skin registerPushNSHelper:pushHSUITKToolbarItem  forClass:"HSUITKMenuToolbarItem"];
+//     [skin registerPushNSHelper:pushHSUITKToolbarItem  forClass:"HSUITKMenuToolbarItem"];
 
 // hs.webview.toolbar doesn't define this, so we can
     [skin registerLuaObjectHelper:toHSUITKToolbarItem forClass:"NSToolbarItem"
@@ -3285,7 +3261,7 @@ int luaopen_hs__asm_uitk_libtoolbar(lua_State* L) {
         @"bordered",
         @"navigational",
         @"image",
-        @"menuForm",
+//         @"menuForm",
         @"enabled",
 //         @"title",
 //         @"element",
@@ -3294,8 +3270,8 @@ int luaopen_hs__asm_uitk_libtoolbar(lua_State* L) {
         @"groupRepresentation",
         @"selectionMode",
 
-        @"menu",
-        @"menuIndicator",
+//         @"menu",
+//         @"menuIndicator",
     ]] ;
     lua_setfield(L, -2, "_propertyList") ;
     lua_pop(L, 1) ;

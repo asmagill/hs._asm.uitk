@@ -166,6 +166,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
         case NSTextMovementUp:      reason = @"up" ;      break ;
         case NSTextMovementDown:    reason = @"down" ;    break ;
         case NSTextMovementCancel:  reason = @"cancel" ;  break ;
+        default: { /* default value defined above */ }
     }
 
     [self callbackHamster:@[ self, @"didEndEditing", self.stringValue, reason]] ;
@@ -329,7 +330,7 @@ static int comboBox_numberOfItems(lua_State *L) {
 static int pushHSUITKElementComboBox(lua_State *L, id obj) {
     HSUITKElementComboBox *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementComboBox *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementComboBox *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

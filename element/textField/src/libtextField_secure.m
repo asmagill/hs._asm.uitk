@@ -163,6 +163,7 @@ static LSRefTable         refTable     = LUA_NOREF ;
         case NSTextMovementUp:      reason = @"up" ;      break ;
         case NSTextMovementDown:    reason = @"down" ;    break ;
         case NSTextMovementCancel:  reason = @"cancel" ;  break ;
+        default: { /* default value defined above */ }
     }
 
     [self callbackHamster:@[ self, @"didEndEditing", self.stringValue, reason]] ;
@@ -217,7 +218,7 @@ static int secureTextField_echosBullets(lua_State *L) {
 static int pushHSUITKElementSecureTextField(lua_State *L, id obj) {
     HSUITKElementSecureTextField *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSecureTextField *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSecureTextField *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

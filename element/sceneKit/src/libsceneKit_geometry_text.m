@@ -311,7 +311,7 @@ static int text_truncationMode(lua_State *L) {
 static int pushSCNText(lua_State *L, id obj) {
     SCNText *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNText *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNText *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

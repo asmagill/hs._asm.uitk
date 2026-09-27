@@ -1,5 +1,6 @@
 @import Cocoa ;
 @import LuaSkin ;
+@import UniformTypeIdentifiers ;
 
 static const char * const USERDATA_TAG = "hs._asm.uitk.element.canvas" ;
 static LSRefTable         refTable     = LUA_NOREF ;
@@ -1222,7 +1223,6 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
 - (void)doMouseCallback:(NSString *)message for:(NSObject *)elementIdentifier at:(NSPoint)location {
     if (elementIdentifier && _mouseCallbackRef != LUA_NOREF) {
         LuaSkin *skin = [LuaSkin sharedWithState:NULL];
-        _lua_stackguard_entry(skin.L);
         [skin pushLuaRef:refTable ref:_mouseCallbackRef];
         [skin pushNSObject:self] ;
         [skin pushNSObject:message] ;
@@ -1230,7 +1230,6 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         lua_pushnumber(skin.L, location.x) ;
         lua_pushnumber(skin.L, location.y) ;
         [skin protectedCallAndError:[NSString stringWithFormat:@"%s:clickCallback for %@", USERDATA_TAG, message] nargs:5 nresults:0];
-        _lua_stackguard_exit(skin.L);
     }
 }
 
@@ -1390,7 +1389,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         [coordinates enumerateObjectsUsingBlock:^(NSDictionary *aPoint, __unused NSUInteger idx2, __unused BOOL *stop2) {
             NSNumber *xNumber   = aPoint[@"x"] ;
             NSNumber *yNumber   = aPoint[@"y"] ;
-            [elementPath appendBezierPathWithRect:NSMakeRect([xNumber doubleValue], [yNumber doubleValue], 1.0, 1.0)] ;
+            [elementPath appendBezierPathWithRect:NSMakeRect(xNumber.doubleValue, yNumber.doubleValue, 1.0, 1.0)] ;
         }] ;
     } else
 #pragma mark SEGMENTS
@@ -1407,13 +1406,13 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             NSNumber *c2yNumber = aPoint[@"c2y"] ;
             BOOL goodForCurve = (c1xNumber) && (c1yNumber) && (c2xNumber) && (c2yNumber) ;
             if (idx2 == 0) {
-                [elementPath moveToPoint:NSMakePoint([xNumber doubleValue], [yNumber doubleValue])] ;
+                [elementPath moveToPoint:NSMakePoint(xNumber.doubleValue, yNumber.doubleValue)] ;
             } else if (!goodForCurve) {
-                [elementPath lineToPoint:NSMakePoint([xNumber doubleValue], [yNumber doubleValue])] ;
+                [elementPath lineToPoint:NSMakePoint(xNumber.doubleValue, yNumber.doubleValue)] ;
             } else {
-                [elementPath curveToPoint:NSMakePoint([xNumber doubleValue], [yNumber doubleValue])
-                            controlPoint1:NSMakePoint([c1xNumber doubleValue], [c1yNumber doubleValue])
-                            controlPoint2:NSMakePoint([c2xNumber doubleValue], [c2yNumber doubleValue])] ;
+                [elementPath curveToPoint:NSMakePoint(xNumber.doubleValue, yNumber.doubleValue)
+                            controlPoint1:NSMakePoint(c1xNumber.doubleValue, c1yNumber.doubleValue)
+                            controlPoint2:NSMakePoint(c2xNumber.doubleValue, c2yNumber.doubleValue)] ;
             }
         }] ;
         if ([(NSNumber *)[self getElementValueFor:@"closed" atIndex:idx] boolValue]) {
@@ -1482,7 +1481,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             if (hasShadow) [(NSShadow *)[self getElementValueFor:@"shadow" atIndex:idx] set] ;
 
             NSNumber *shouldAntialias = (NSNumber *)[self getElementValueFor:@"antialias" atIndex:idx onlyIfSet:YES] ;
-            if (shouldAntialias) gc.shouldAntialias = [shouldAntialias boolValue] ;
+            if (shouldAntialias) gc.shouldAntialias = shouldAntialias.boolValue ;
 
             NSString *compositingString = (NSString *)[self getElementValueFor:@"compositeRule" atIndex:idx onlyIfSet:YES] ;
             if (compositingString) gc.compositingOperation = [(NSNumber *)COMPOSITING_TYPES[compositingString] unsignedIntValue] ;
@@ -1541,7 +1540,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                         theParagraphStyle.alignment = [(NSNumber *)TEXTALIGNMENT_TYPES[alignment] unsignedIntValue] ;
                         NSString *wrap = (NSString *)[self getElementValueFor:@"textLineBreak" atIndex:idx onlyIfSet:NO] ;
                         theParagraphStyle.lineBreakMode = [(NSNumber *)TEXTWRAP_TYPES[wrap] unsignedIntValue] ;
-                        NSFont *theFont = [NSFont fontWithName:myFont size:[mySize doubleValue]] ;
+                        NSFont *theFont = [NSFont fontWithName:myFont size:mySize.doubleValue] ;
                         NSDictionary *attributes = @{
                             NSForegroundColorAttributeName : [self getElementValueFor:@"textColor" atIndex:idx onlyIfSet:NO],
                             NSFontAttributeName            : theFont,
@@ -1579,10 +1578,10 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
 #pragma mark Render Logic
             if (elementPath) {
                 NSNumber *miterLimit = (NSNumber *)[self getElementValueFor:@"miterLimit" atIndex:idx onlyIfSet:YES] ;
-                if (miterLimit) elementPath.miterLimit = [miterLimit doubleValue] ;
+                if (miterLimit) elementPath.miterLimit = miterLimit.doubleValue ;
 
                 NSNumber *flatness = (NSNumber *)[self getElementValueFor:@"flatness" atIndex:idx onlyIfSet:YES] ;
-                if (flatness) elementPath.flatness = [flatness doubleValue] ;
+                if (flatness) elementPath.flatness = flatness.doubleValue ;
 
                 if ([(NSNumber *)[self getElementValueFor:@"flattenPath" atIndex:idx] boolValue]) {
                     elementPath = elementPath.bezierPathByFlatteningPath ;
@@ -1637,7 +1636,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
 
                     if ([action isEqualToString:@"stroke"] || [action isEqualToString:@"strokeAndFill"]) {
                         NSNumber *strokeWidth = (NSNumber *)[self getElementValueFor:@"strokeWidth" atIndex:idx onlyIfSet:YES] ;
-                        if (strokeWidth) renderPath.lineWidth  = [strokeWidth doubleValue] ;
+                        if (strokeWidth) renderPath.lineWidth  = strokeWidth.doubleValue ;
 
                         NSString *lineJoinStyle = (NSString *)[self getElementValueFor:@"strokeJoinStyle" atIndex:idx onlyIfSet:YES] ;
                         if (lineJoinStyle) renderPath.lineJoinStyle = [(NSNumber *)STROKE_JOIN_STYLES[lineJoinStyle] unsignedIntValue] ;
@@ -1865,33 +1864,33 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         if ([keyName isEqualToString:@"radius"]) {
             if ([foundObject isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObject) ;
-                foundObject = [NSNumber numberWithDouble:([percentage doubleValue] * paddedWidth)] ;
+                foundObject = [NSNumber numberWithDouble:(percentage.doubleValue * paddedWidth)] ;
             }
         } else if ([keyName isEqualToString:@"center"]) {
             if ([(NSObject *)foundObjectAsMDictionary[@"x"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"x"]) ;
-                foundObjectAsMDictionary[@"x"] = [NSNumber numberWithDouble:(padding + [percentage doubleValue] * paddedWidth)] ;
+                foundObjectAsMDictionary[@"x"] = [NSNumber numberWithDouble:(padding + percentage.doubleValue * paddedWidth)] ;
             }
             if ([(NSObject *)foundObjectAsMDictionary[@"y"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"y"]) ;
-                foundObjectAsMDictionary[@"y"] = [NSNumber numberWithDouble:(padding + [percentage doubleValue] * paddedHeight)] ;
+                foundObjectAsMDictionary[@"y"] = [NSNumber numberWithDouble:(padding + percentage.doubleValue * paddedHeight)] ;
             }
         } else if ([keyName isEqualToString:@"frame"]) {
             if ([(NSObject *)foundObjectAsMDictionary[@"x"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"x"]) ;
-                foundObjectAsMDictionary[@"x"] = [NSNumber numberWithDouble:(padding + [percentage doubleValue] * paddedWidth)] ;
+                foundObjectAsMDictionary[@"x"] = [NSNumber numberWithDouble:(padding + percentage.doubleValue * paddedWidth)] ;
             }
             if ([(NSObject *)foundObjectAsMDictionary[@"y"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"y"]) ;
-                foundObjectAsMDictionary[@"y"] = [NSNumber numberWithDouble:(padding + [percentage doubleValue] * paddedHeight)] ;
+                foundObjectAsMDictionary[@"y"] = [NSNumber numberWithDouble:(padding + percentage.doubleValue * paddedHeight)] ;
             }
             if ([(NSObject *)foundObjectAsMDictionary[@"w"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"w"]) ;
-                foundObjectAsMDictionary[@"w"] = [NSNumber numberWithDouble:([percentage doubleValue] * paddedWidth)] ;
+                foundObjectAsMDictionary[@"w"] = [NSNumber numberWithDouble:(percentage.doubleValue * paddedWidth)] ;
             }
             if ([(NSObject *)foundObjectAsMDictionary[@"h"] isKindOfClass:[NSString class]]) {
                 NSNumber *percentage = convertPercentageStringToNumber((NSString *)foundObjectAsMDictionary[@"h"]) ;
-                foundObjectAsMDictionary[@"h"] = [NSNumber numberWithDouble:([percentage doubleValue] * paddedHeight)] ;
+                foundObjectAsMDictionary[@"h"] = [NSNumber numberWithDouble:(percentage.doubleValue * paddedHeight)] ;
             }
         } else if ([keyName isEqualToString:@"coordinates"]) {
         // make sure we adjust a copy and not the actual items as defined; this is necessary because the copy above just does the top level element; this attribute is an array of objects unlike above attributes
@@ -1902,7 +1901,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                     if (subItem[field] && [(NSString *)subItem[field] isKindOfClass:[NSString class]]) {
                         NSNumber *percentage = convertPercentageStringToNumber(subItem[field]) ;
                         CGFloat ourPadding = [field hasSuffix:@"x"] ? paddedWidth : paddedHeight ;
-                        targetItem[field] = [NSNumber numberWithDouble:(padding + [percentage doubleValue] * ourPadding)] ;
+                        targetItem[field] = [NSNumber numberWithDouble:(padding + percentage.doubleValue * ourPadding)] ;
                     } else {
                         targetItem[field] = subItem[field] ;
                     }
@@ -2026,8 +2025,8 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                             if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
                                 NSNumber *maxFrames = [representation valueForProperty:NSImageFrameCount] ;
                                 if (maxFrames) {
-                                    lua_Integer newFrame = [(NSNumber *)keyValue integerValue] % [maxFrames integerValue] ;
-                                    while (newFrame < 0) newFrame = [maxFrames integerValue] + newFrame ;
+                                    lua_Integer newFrame = [(NSNumber *)keyValue integerValue] % maxFrames.integerValue ;
+                                    while (newFrame < 0) newFrame = maxFrames.integerValue + newFrame ;
                                     [representation setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithInteger:newFrame]] ;
                                     break ;
                                 }
@@ -2097,7 +2096,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
                             if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
                                 NSNumber *maxFrames = [representation valueForProperty:NSImageFrameCount] ;
                                 if (maxFrames) {
-                                    lua_Integer newFrame = [imageFrame integerValue] % [maxFrames integerValue] ;
+                                    lua_Integer newFrame = imageFrame.integerValue % maxFrames.integerValue ;
                                     [representation setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithInteger:newFrame]] ;
                                     break ;
                                 }
@@ -2194,7 +2193,6 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     if (_draggingCallbackRef != LUA_NOREF) {
         LuaSkin *skin = [LuaSkin sharedWithState:NULL] ;
         lua_State *L = skin.L ;
-        _lua_stackguard_entry(L);
         int argCount = 2 ;
         [skin pushLuaRef:refTable ref:_draggingCallbackRef] ;
         [skin pushNSObject:self] ;
@@ -2241,7 +2239,6 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
             // No need to lua_pop() the error because nresults is 1, so the call below gets it whether it's a successful result or an error message
         }
         lua_pop(L, 1) ;
-        _lua_stackguard_exit(L);
     }
     return isAllGood ;
 }
@@ -2379,7 +2376,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
   [theImage drawInRect:rect
               fromRect:NSMakeRect(0, 0, realImageSize.width, realImageSize.height)
              operation:compositeType
-              fraction:[alpha doubleValue]
+              fraction:alpha.doubleValue
         respectFlipped:YES
                  hints:nil];
 
@@ -2417,7 +2414,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
         if (!_isRunning) {
             NSNumber *frameDuration  = [animatingRepresentation valueForProperty:NSImageCurrentFrameDuration] ;
             if (!frameDuration) frameDuration = @(0.1) ;
-            [NSTimer scheduledTimerWithTimeInterval:[frameDuration doubleValue]
+            [NSTimer scheduledTimerWithTimeInterval:frameDuration.doubleValue
                                              target:self
                                            selector:@selector(animateFrame:)
                                            userInfo:nil
@@ -2443,7 +2440,7 @@ static inline NSSize scaleProportionally(NSSize imageSize, NSSize canvasSize, BO
     if (animatingRepresentation && inCanvas) {
         NSNumber *maxFrames = [animatingRepresentation valueForProperty:NSImageFrameCount] ;
         NSNumber *curFrame  = [animatingRepresentation valueForProperty:NSImageCurrentFrame] ;
-        NSInteger newFrame  = ([curFrame integerValue] + 1) % [maxFrames integerValue] ;
+        NSInteger newFrame  = (curFrame.integerValue + 1) % maxFrames.integerValue ;
         [animatingRepresentation setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithInteger:newFrame]] ;
         inCanvas.needsDisplay = YES ;
 
@@ -2626,7 +2623,7 @@ static int canvas_draggingCallback(lua_State *L) {
         if ([skin luaTypeAtIndex:2] != LUA_TNIL) {
             lua_pushvalue(L, 2);
             canvasView.draggingCallbackRef = [skin luaRef:refTable] ;
-            [canvasView registerForDraggedTypes:@[ (__bridge NSString *)kUTTypeItem ]] ;
+            [canvasView registerForDraggedTypes:@[ (NSString *)UTTypeItem ]] ;
         }
 
         lua_pushvalue(L, 1);
@@ -2664,7 +2661,7 @@ static int canvas_getTextElementSize(lua_State *L) {
         }
         elementIndex = (NSUInteger)lua_tointeger(L, 2) - 1 ;
         if ((NSInteger)elementIndex < 0 || elementIndex >= [canvasView.elementList count]) {
-            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"index %ld out of bounds", elementIndex + 1] UTF8String]) ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"index %lu out of bounds", elementIndex + 1] UTF8String]) ;
         }
         textIndex = 3 ;
     } else {
@@ -2698,7 +2695,7 @@ static int canvas_getTextElementSize(lua_State *L) {
         NSColor *color = (elementIndex == NSNotFound) ?
             (NSColor *)[canvasView getDefaultValueFor:@"textColor" onlyIfSet:NO] :
             (NSColor *)[canvasView getElementValueFor:@"textColor" atIndex:elementIndex onlyIfSet:NO] ;
-        NSFont *theFont = [NSFont fontWithName:myFont size:[mySize doubleValue]] ;
+        NSFont *theFont = [NSFont fontWithName:myFont size:mySize.doubleValue] ;
         NSDictionary *attributes = @{
             NSForegroundColorAttributeName : color,
             NSFontAttributeName            : theFont,
@@ -3414,8 +3411,8 @@ static int canvas_size(lua_State *L) {
             NSNumber *absPos = (NSNumber *)[canvasView getElementValueFor:@"absolutePosition" atIndex:i] ;
             NSNumber *absSiz = (NSNumber *)[canvasView getElementValueFor:@"absoluteSize" atIndex:i] ;
             if (absPos && absSiz) {
-                BOOL absolutePosition = absPos ? [absPos boolValue] : YES ;
-                BOOL absoluteSize     = absSiz ? [absSiz boolValue] : YES ;
+                BOOL absolutePosition = absPos ? absPos.boolValue : YES ;
+                BOOL absoluteSize     = absSiz ? absSiz.boolValue : YES ;
                 NSMutableDictionary *attributeDefinition = canvasView.elementList[i] ;
                 if (!absolutePosition) {
                     [attributeDefinition enumerateKeysAndObjectsUsingBlock:^(NSString *keyName, NSObject *keyValue, __unused BOOL *stop) {
@@ -3511,7 +3508,7 @@ static int canvas_compositeTypes(lua_State *L) {
 static int pushHSUITKElementCanvas(lua_State *L, id obj) {
     HSUITKElementCanvas *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementCanvas *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementCanvas *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

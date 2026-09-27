@@ -14,19 +14,12 @@ static NSDictionary *BEZEL_STYLES ;
 #pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 11, *)) {
-        LINE_BREAK_STRATEGIES = @{
-            @"none"       : @(NSLineBreakStrategyNone),
-            @"pushOut"    : @(NSLineBreakStrategyPushOut),
-            @"hangulWord" : @(NSLineBreakStrategyHangulWordPriority),
-            @"standard"   : @(NSLineBreakStrategyStandard),
-        } ;
-    } else {
-        LINE_BREAK_STRATEGIES = @{
-            @"none"       : @(NSLineBreakStrategyNone),
-            @"pushOut"    : @(NSLineBreakStrategyPushOut),
-        } ;
-    }
+    LINE_BREAK_STRATEGIES = @{
+        @"none"       : @(NSLineBreakStrategyNone),
+        @"pushOut"    : @(NSLineBreakStrategyPushOut),
+        @"hangulWord" : @(NSLineBreakStrategyHangulWordPriority),
+        @"standard"   : @(NSLineBreakStrategyStandard),
+    } ;
     BEZEL_STYLES = @{
         @"square" : @(NSTextFieldSquareBezel),
         @"round"  : @(NSTextFieldRoundedBezel),
@@ -252,6 +245,7 @@ BOOL oneOfOurTextfieldObjects(NSTextField *obj) {
         case NSTextMovementUp:      reason = @"up" ;      break ;
         case NSTextMovementDown:    reason = @"down" ;    break ;
         case NSTextMovementCancel:  reason = @"cancel" ;  break ;
+        default: { /* default value defined above */ }
     }
 
     [self callbackHamster:@[ self, @"didEndEditing", self.stringValue, reason]] ;
@@ -713,7 +707,7 @@ static int textField_selectable(lua_State *L) {
     return 1 ;
 }
 
-/// hs._asm.uitk.element.textField:expandIntoTooltip([state]) -> textFieldObject | boolean
+/// hs._asm.uitk.element.textField:expansionToolTip([state]) -> textFieldObject | boolean
 /// Method
 /// Get or set whether the textField contents will be expanded into a tooltip if the contents are longer than the textField is wide and the mouse pointer hovers over the textField.
 ///
@@ -1021,7 +1015,7 @@ static int textField_bezelStyle(lua_State *L) {
         NSString *key    = [skin toNSObjectAtIndex:2] ;
         NSNumber *number = BEZEL_STYLES[key] ;
         if (number) {
-            element.bezelStyle = [number unsignedIntegerValue] ;
+            element.bezelStyle = number.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [BEZEL_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -1052,7 +1046,7 @@ static int textField_lineBreakStrategy(lua_State *L) {
         NSString *key    = [skin toNSObjectAtIndex:2] ;
         NSNumber *number = LINE_BREAK_STRATEGIES[key] ;
         if (number) {
-            element.lineBreakStrategy = [number unsignedIntegerValue] ;
+            element.lineBreakStrategy = number.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LINE_BREAK_STRATEGIES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -1143,7 +1137,7 @@ static int textField_value(lua_State *L) {
 static int pushHSUITKElementTextField(lua_State *L, id obj) {
     HSUITKElementTextField *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementTextField *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementTextField *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

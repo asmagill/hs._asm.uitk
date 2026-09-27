@@ -2,10 +2,8 @@
 @import LuaSkin ;
 
 // TODO:
-//     if (@available(macOS 11, *)) {
 //         @property(copy) NSImageSymbolConfiguration *symbolConfiguration;
 //         @property BOOL hasDestructiveAction;
-//     }
 
 static const char * const USERDATA_TAG = "hs._asm.uitk.element.button" ;
 static LSRefTable         refTable     = LUA_NOREF ;
@@ -280,7 +278,7 @@ static int button_newButtonType(lua_State *L) {
         NSRect frameRect = (lua_gettop(L) == 2) ? [skin tableToRectAtIndex:2] : NSZeroRect ;
         HSUITKElementButton *button = [[HSUITKElementButton alloc] initWithFrame:frameRect] ;
         if (button) {
-            [button setButtonType:[buttonStyle unsignedIntegerValue]] ;
+            [button setButtonType:(NSButtonType)buttonStyle.unsignedIntegerValue] ;
             button.action     = @selector(performCallback:) ;
             button.target     = button ;
             button.bezelStyle = NSBezelStyleRounded ;
@@ -696,7 +694,7 @@ static int button_bezelStyle(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *bezelStyle = BEZEL_STYLES[key] ;
         if (bezelStyle) {
-            button.bezelStyle = [bezelStyle unsignedIntegerValue] ;
+            button.bezelStyle = (NSBezelStyle)bezelStyle.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [BEZEL_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -743,7 +741,7 @@ static int button_imagePosition(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *imagePosition = IMAGE_POSITIONS[key] ;
         if (imagePosition) {
-            button.imagePosition = [imagePosition unsignedIntegerValue] ;
+            button.imagePosition = (NSCellImagePosition)imagePosition.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_POSITIONS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -784,7 +782,7 @@ static int button_imageScaling(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *imageScaling = IMAGE_SCALING_TYPES[key] ;
         if (imageScaling) {
-            ((NSButtonCell *)button.cell).imageScaling = [imageScaling unsignedIntegerValue] ;
+            ((NSButtonCell *)button.cell).imageScaling = (NSImageScaling)imageScaling.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -924,7 +922,7 @@ static int button_state(lua_State *L) {
         } else {
             NSNumber *state = BUTTON_STATES[key] ;
             if (state) {
-                button.state = [state integerValue] ;
+                button.state = state.integerValue ;
             } else {
                 return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@, or next", [BUTTON_STATES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
             }
@@ -981,9 +979,9 @@ static int button_value(lua_State *L) {
     HSUITKElementButton *button = [skin toNSObjectAtIndex:1] ;
 
     if ((lua_type(L, 2) == LUA_TBOOLEAN) && lua_toboolean(L, 2)) {
-        lua_pushnumber(L, [button doubleValue]) ;
+        lua_pushnumber(L, button.doubleValue) ;
     } else {
-        lua_pushinteger(L, [button integerValue]) ;
+        lua_pushinteger(L, button.integerValue) ;
     }
     return 1 ;
 }
@@ -1140,7 +1138,7 @@ static int button_keyEquivalentModifierMask(lua_State *L) {
 static int pushHSUITKElementButton(lua_State *L, id obj) {
     HSUITKElementButton *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementButton *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementButton *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

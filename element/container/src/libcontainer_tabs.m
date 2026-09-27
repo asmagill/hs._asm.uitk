@@ -15,20 +15,12 @@ static NSDictionary *TAB_BORDER ;
 #pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 11, *)) {
-        CONTROL_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-            @"large"   : @(NSControlSizeLarge),
-        } ;
-    } else {
-        CONTROL_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-        } ;
-    }
+    CONTROL_SIZE = @{
+        @"regular" : @(NSControlSizeRegular),
+        @"small"   : @(NSControlSizeSmall),
+        @"mini"    : @(NSControlSizeMini),
+        @"large"   : @(NSControlSizeLarge),
+    } ;
 
     TAB_POSITION = @{
         @"bottom" : @(NSTabPositionBottom),
@@ -411,7 +403,7 @@ static int tabs_controlSize(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = CONTROL_SIZE[key] ;
         if (value) {
-            tabView.controlSize = [value unsignedIntegerValue] ;
+            tabView.controlSize = value.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [CONTROL_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
@@ -439,7 +431,7 @@ static int tabs_tabPosition(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = TAB_POSITION[key] ;
         if (value) {
-            tabView.tabPosition = [value unsignedIntegerValue] ;
+            tabView.tabPosition = value.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TAB_POSITION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
@@ -468,7 +460,7 @@ static int tabs_tabViewBorderType(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = TAB_BORDER[key] ;
         if (value) {
-            tabView.tabViewBorderType = [value unsignedIntegerValue] ;
+            tabView.tabViewBorderType = value.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TAB_BORDER.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
@@ -756,7 +748,7 @@ static int tabs_item_tabView(lua_State *L) {
 static int pushHSUITKElementContainerTabView(lua_State *L, id obj) {
     HSUITKElementContainerTabView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerTabView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerTabView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -778,7 +770,7 @@ static id toHSUITKElementContainerTabView(lua_State *L, int idx) {
 static int pushHSUITKElementContainerTabViewItem(lua_State *L, id obj) {
     HSUITKElementContainerTabViewItem *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerTabViewItem *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerTabViewItem *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ITEM_TAG);
     lua_setmetatable(L, -2);

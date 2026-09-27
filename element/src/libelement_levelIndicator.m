@@ -404,7 +404,7 @@ static int levelIndicator_placeholderVisibility(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *number = LEVELINDICATOR_PLACEHOLDER_VISIBILITY[key] ;
         if (number) {
-            element.placeholderVisibility = [number integerValue] ;
+            element.placeholderVisibility = number.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_PLACEHOLDER_VISIBILITY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -432,7 +432,7 @@ static int levelIndicator_levelIndicatorStyle(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *number = LEVELINDICATOR_STYLES[key] ;
         if (number) {
-            element.levelIndicatorStyle = [number unsignedIntegerValue] ;
+            element.levelIndicatorStyle = number.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -460,7 +460,7 @@ static int levelIndicator_tickMarkPosition(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *number = LEVELINDICATOR_TICKMARK_POSITION[key] ;
         if (number) {
-            element.tickMarkPosition = [number unsignedIntegerValue] ;
+            element.tickMarkPosition = number.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [LEVELINDICATOR_TICKMARK_POSITION.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -478,7 +478,7 @@ static int levelIndicator_tickMarkPosition(lua_State *L) {
 static int pushHSUITKElementLevelIndicator(lua_State *L, id obj) {
     HSUITKElementLevelIndicator *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementLevelIndicator *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementLevelIndicator *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

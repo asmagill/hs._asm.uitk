@@ -304,18 +304,18 @@ static int geometry_materials(lua_State *L) {
     return 1 ;
 }
 
-// we're treating this as read only since it follows first item of materials array
-static int geometry_firstMaterial(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-    [skin checkArgs:LS_TANY, LS_TBREAK] ;
-    SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
-    if (!geometry || !oneOfOurGeometryObjects(geometry)) {
-        return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
-    }
-
-    [skin pushNSObject:geometry.firstMaterial] ;
-    return 1 ;
-}
+// // we're treating this as read only since it follows first item of materials array
+// static int geometry_firstMaterial(lua_State *L) {
+//     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//     [skin checkArgs:LS_TANY, LS_TBREAK] ;
+//     SCNGeometry *geometry = (lua_type(L, 1) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:1] : nil ;
+//     if (!geometry || !oneOfOurGeometryObjects(geometry)) {
+//         return luaL_argerror(L, 1, "expected userdata representing a sceneKit geometry object") ;
+//     }
+//
+//     [skin pushNSObject:geometry.firstMaterial] ;
+//     return 1 ;
+// }
 
 static int geometry_materialWithName(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
@@ -410,7 +410,7 @@ static int geometry_copy(lua_State *L) {
 static int pushSCNGeometry(lua_State *L, id obj) {
     SCNGeometry *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNGeometry *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNGeometry *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -490,7 +490,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"sources",             geometry_geometrySources},
     {"sourcesForSemantic",  geometry_geometrySourcesForSemantic},
     {"elementAtIndex",      geometry_geometryElementAtIndex},
-    {"firstMaterial",       geometry_firstMaterial},
+//     {"firstMaterial",       geometry_firstMaterial},
     {"boundingBox",         geometry_boundingBox},
     {"boundingSphere",      geometry_boundingSphere},
     {"materialWithName",    geometry_materialWithName},

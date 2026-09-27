@@ -155,7 +155,7 @@ static int constraint_freeAxes(lua_State *L) {
 static int pushSCNBillboardConstraint(lua_State *L, id obj) {
     SCNBillboardConstraint *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNBillboardConstraint *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNBillboardConstraint *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

@@ -310,7 +310,7 @@ static int sceneKit_antialiasingMode(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         NSArray  *keys   = [ANTIALIASING_MODE allKeysForObject:@(view.antialiasingMode)] ;
-        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", view.antialiasingMode] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", view.antialiasingMode] ;
         [skin pushNSObject:answer] ;
     } else {
         NSString *key = [skin toNSObjectAtIndex:2] ;
@@ -828,7 +828,7 @@ static int sceneRenderer_renderingAPI(lua_State *L) {
     HSUITKElementSCNView *view = [skin toNSObjectAtIndex:1] ;
 
     NSArray  *keys   = [RENDERING_API allKeysForObject:@(view.renderingAPI)] ;
-    NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", view.renderingAPI] ;
+    NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", view.renderingAPI] ;
     [skin pushNSObject:answer] ;
     return 1 ;
 }
@@ -904,7 +904,7 @@ static int sceneRenderer_debugMasks(lua_State *L) {
 static int pushHSUITKElementSCNView(lua_State *L, id obj) {
     HSUITKElementSCNView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSCNView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSCNView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

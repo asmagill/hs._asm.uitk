@@ -541,7 +541,7 @@ static int controller_frameNodes(lua_State *L) {
 static int pushSCNCameraController(lua_State *L, id obj) {
     SCNCameraController *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNCameraController *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNCameraController *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

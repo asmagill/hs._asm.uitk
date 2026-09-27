@@ -15,15 +15,13 @@ static NSDictionary *ANIMATION_BEHAVIORS ;
 #pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 11.0, *)) {
-        TOOLBAR_STYLES = @{
-            @"automatic"      : @(NSWindowToolbarStyleAutomatic),
-            @"expanded"       : @(NSWindowToolbarStyleExpanded),
-            @"preference"     : @(NSWindowToolbarStylePreference),
-            @"unified"        : @(NSWindowToolbarStyleUnified),
-            @"unifiedCompact" : @(NSWindowToolbarStyleUnifiedCompact),
-        } ;
-    }
+    TOOLBAR_STYLES = @{
+        @"automatic"      : @(NSWindowToolbarStyleAutomatic),
+        @"expanded"       : @(NSWindowToolbarStyleExpanded),
+        @"preference"     : @(NSWindowToolbarStylePreference),
+        @"unified"        : @(NSWindowToolbarStyleUnified),
+        @"unifiedCompact" : @(NSWindowToolbarStyleUnifiedCompact),
+    } ;
 
     WINDOW_APPEARANCES = @{
         @"aqua"                 : NSAppearanceNameAqua,
@@ -149,7 +147,7 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 
 - (NSTimeInterval)animationResizeTime:(NSRect)newWindowFrame {
     if (_animationTime) {
-        return [_animationTime doubleValue] ;
+        return _animationTime.doubleValue ;
     } else {
         return [super animationResizeTime:newWindowFrame] ;
     }
@@ -361,10 +359,10 @@ static inline NSRect RectWithFlippedYCoordinate(NSRect theRect) {
 
 @end
 
-static NSWindowStyleMask defaultWindowMask = NSWindowStyleMaskTitled         |
-                                             NSWindowStyleMaskClosable       |
-                                             NSWindowStyleMaskResizable      |
-                                             NSWindowStyleMaskMiniaturizable ;
+static NSWindowStyleMask defaultWindowMask = (enum NSWindowStyleMask)(NSWindowStyleMaskTitled         |
+                                                                      NSWindowStyleMaskClosable       |
+                                                                      NSWindowStyleMaskResizable      |
+                                                                      NSWindowStyleMaskMiniaturizable) ;
 
 static int window_orderHelper(lua_State *L, NSWindowOrderingMode mode) {
     LuaSkin *skin = [LuaSkin sharedWithState:L];
@@ -405,8 +403,8 @@ static int window_orderHelper(lua_State *L, NSWindowOrderingMode mode) {
 static int window_minFrameWidthWithTitle(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TSTRING, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    NSString   *title = [skin toNSObjectAtIndex:1] ;
-    NSUInteger style  = (lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask ;
+    NSString          *title = [skin toNSObjectAtIndex:1] ;
+    NSWindowStyleMask style  = (NSWindowStyleMask)((lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask) ;
 
     lua_pushnumber(L, [NSWindow minFrameWidthWithTitle:title styleMask:style]) ;
     return 1 ;
@@ -427,8 +425,8 @@ static int window_minFrameWidthWithTitle(lua_State *L) {
 static int window_contentRectForFrameRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    NSRect     fRect  = [skin tableToRectAtIndex:1] ;
-    NSUInteger style  = (lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask ;
+    NSRect            fRect  = [skin tableToRectAtIndex:1] ;
+    NSWindowStyleMask style  = (NSWindowStyleMask)((lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask) ;
 
     [skin pushNSRect:[NSWindow contentRectForFrameRect:fRect styleMask:style]] ;
     return 1 ;
@@ -449,8 +447,8 @@ static int window_contentRectForFrameRect(lua_State *L) {
 static int window_frameRectForContentRect(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
-    NSRect     cRect  = [skin tableToRectAtIndex:1] ;
-    NSUInteger style  = (lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask ;
+    NSRect            cRect  = [skin tableToRectAtIndex:1] ;
+    NSWindowStyleMask style  = (NSWindowStyleMask)((lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask) ;
 
     [skin pushNSRect:[NSWindow frameRectForContentRect:cRect styleMask:style]] ;
     return 1 ;
@@ -475,10 +473,10 @@ static int window_new(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TTABLE, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
 
-    NSUInteger windowStyle = (lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask ;
+    NSWindowStyleMask style  = (NSWindowStyleMask)((lua_gettop(L) == 2) ? (NSUInteger)lua_tointeger(L, 2) : defaultWindowMask) ;
 
     HSUITKWindow *window = [[HSUITKWindow alloc] initWithContentRect:[skin tableToRectAtIndex:1]
-                                                             styleMask:windowStyle] ;
+                                                           styleMask:style] ;
     if (window) {
         [skin pushNSObject:window] ;
     } else {
@@ -641,16 +639,16 @@ static int window_styleMask(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER | LS_TINTEGER | LS_TOPTIONAL, LS_TBREAK] ;
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
-    NSString   *theTitle = window.title ;     // NSPanel resets title when style changes
-    NSUInteger oldStyle  = window.styleMask ; // in case we have to reset it
+    NSString          *theTitle = window.title ;     // NSPanel resets title when style changes
+    NSWindowStyleMask oldStyle  = window.styleMask ; // in case we have to reset it
 
     if (lua_type(L, 2) == LUA_TNONE) {
         lua_pushinteger(L, (lua_Integer)oldStyle) ;
     } else {
         // ??? can we determine this through logic or do we have to use try/catch?
         @try {
-            window.styleMask = 0 ;  // some styles don't get properly set unless we start from a clean slate
-            window.styleMask = (NSUInteger)luaL_checkinteger(L, 2) ;
+            window.styleMask = (NSWindowStyleMask)0 ;  // some styles don't get properly set unless we start from a clean slate
+            window.styleMask = (NSWindowStyleMask)(luaL_checkinteger(L, 2)) ;
             if (theTitle) window.title = theTitle ;
         }
         @catch (NSException *exception) {
@@ -827,31 +825,23 @@ static int window_toolbarStyle(lua_State *L) {
     HSUITKWindow *window = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 11.0, *)) {
-            NSNumber *value = @(window.toolbarStyle) ;
-            NSArray *temp = [TOOLBAR_STYLES allKeysForObject:value];
-            NSString *answer = [temp firstObject] ;
-            if (answer) {
-                [skin pushNSObject:answer] ;
-            } else {
-                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized toolbar style %@ -- notify developers", USERDATA_TAG, value]] ;
-                lua_pushnil(L) ;
-            }
+        NSNumber *value = @(window.toolbarStyle) ;
+        NSArray *temp = [TOOLBAR_STYLES allKeysForObject:value];
+        NSString *answer = [temp firstObject] ;
+        if (answer) {
+            [skin pushNSObject:answer] ;
         } else {
+            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized toolbar style %@ -- notify developers", USERDATA_TAG, value]] ;
             lua_pushnil(L) ;
         }
     } else {
-        if (@available(macOS 11.0, *)) {
-            NSString *key = [skin toNSObjectAtIndex:2] ;
-            NSNumber *value = TOOLBAR_STYLES[key] ;
-            if (value) {
-                window.toolbarStyle = value.integerValue ;
-                lua_pushvalue(L, 1) ;
-            } else {
-                return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TOOLBAR_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
-            }
-        } else {
+        NSString *key = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value = TOOLBAR_STYLES[key] ;
+        if (value) {
+            window.toolbarStyle = (NSWindowToolbarStyle)(value.integerValue) ;
             lua_pushvalue(L, 1) ;
+        } else {
+            return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TOOLBAR_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
     }
     return 1 ;
@@ -1068,7 +1058,7 @@ static int window_animationBehavior(lua_State *L) {
     } else {
         NSNumber *value = ANIMATION_BEHAVIORS[[skin toNSObjectAtIndex:2]] ;
         if (value) {
-            window.animationBehavior = [value integerValue] ;
+            window.animationBehavior = (NSWindowAnimationBehavior)(value.integerValue) ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of '%@'", [ANIMATION_BEHAVIORS.allKeys componentsJoinedByString:@"', '"]] UTF8String]) ;
@@ -1116,7 +1106,7 @@ static int window_collectionBehavior(lua_State *L) {
     } else {
 // ??? can we check this through logic or do we have to use try/catch?
         @try {
-            window.collectionBehavior = (NSUInteger)lua_tointeger(L, 2) ;
+            window.collectionBehavior = (NSWindowCollectionBehavior)(lua_tointeger(L, 2)) ;
         }
         @catch ( NSException *theException ) {
             window.collectionBehavior = oldBehavior ;
@@ -1633,7 +1623,6 @@ static int window_windowMasksTable(lua_State *L) {
     lua_pushinteger(L, NSWindowStyleMaskClosable) ;               lua_setfield(L, -2, "closable") ;
     lua_pushinteger(L, NSWindowStyleMaskMiniaturizable) ;         lua_setfield(L, -2, "miniaturizable") ;
     lua_pushinteger(L, NSWindowStyleMaskResizable) ;              lua_setfield(L, -2, "resizable") ;
-    lua_pushinteger(L, NSWindowStyleMaskTexturedBackground) ;     lua_setfield(L, -2, "texturedBackground") ;
     lua_pushinteger(L, NSWindowStyleMaskUnifiedTitleAndToolbar) ; lua_setfield(L, -2, "unifiedTitleAndToolbar") ;
     lua_pushinteger(L, NSWindowStyleMaskFullScreen) ;             lua_setfield(L, -2, "fullScreen") ;
     lua_pushinteger(L, NSWindowStyleMaskFullSizeContentView) ;    lua_setfield(L, -2, "fullSizeContentView") ;
@@ -1729,7 +1718,7 @@ static int window_notifications(lua_State *L) {
 static int pushHSUITKWindow(lua_State *L, id obj) {
     HSUITKWindow *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKWindow *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKWindow *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

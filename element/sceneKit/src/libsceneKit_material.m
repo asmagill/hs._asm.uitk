@@ -330,7 +330,7 @@ static int material_fillMode(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         NSArray  *keys   = [FILL_MODE allKeysForObject:@(material.fillMode)] ;
-        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", material.fillMode] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", material.fillMode] ;
         [skin pushNSObject:answer] ;
     } else {
         NSString *key = [skin toNSObjectAtIndex:2] ;
@@ -548,7 +548,7 @@ static int material_transparent(lua_State *L) {
 static int pushSCNMaterial(lua_State *L, id obj) {
     SCNMaterial *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNMaterial *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNMaterial *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

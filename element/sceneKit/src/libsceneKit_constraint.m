@@ -141,7 +141,7 @@ static int constraint_incremental(lua_State *L) {
 static int pushSCNConstraint(lua_State *L, id obj) {
     SCNConstraint *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNConstraint *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNConstraint *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

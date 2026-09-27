@@ -876,7 +876,7 @@ static int node_boundingSphere(lua_State *L) {
 static int pushSCNNode(lua_State *L, id obj) {
     SCNNode *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNNode *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNNode *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

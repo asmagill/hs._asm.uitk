@@ -1009,7 +1009,7 @@ static int gesture_rotation_rotation(lua_State *L) {
 static int pushHSUITKUtilGestureClick(lua_State *L, id obj) {
     HSUITKUtilGestureClick *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKUtilGestureClick *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKUtilGestureClick *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_CLICK_TAG);
     lua_setmetatable(L, -2);
@@ -1031,7 +1031,7 @@ static id toHSUITKUtilGestureClick(lua_State *L, int idx) {
 static int pushHSUITKUtilGestureMagnification(lua_State *L, id obj) {
     HSUITKUtilGestureMagnification *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKUtilGestureMagnification *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKUtilGestureMagnification *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_MAGNIFICATION_TAG);
     lua_setmetatable(L, -2);
@@ -1053,7 +1053,7 @@ static id toHSUITKUtilGestureMagnification(lua_State *L, int idx) {
 static int pushHSUITKUtilGesturePan(lua_State *L, id obj) {
     HSUITKUtilGesturePan *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKUtilGesturePan *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKUtilGesturePan *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_PAN_TAG);
     lua_setmetatable(L, -2);
@@ -1075,7 +1075,7 @@ static id toHSUITKUtilGesturePan(lua_State *L, int idx) {
 static int pushHSUITKUtilGesturePress(lua_State *L, id obj) {
     HSUITKUtilGesturePress *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKUtilGesturePress *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKUtilGesturePress *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_PRESS_TAG);
     lua_setmetatable(L, -2);
@@ -1097,7 +1097,7 @@ static id toHSUITKUtilGesturePress(lua_State *L, int idx) {
 static int pushHSUITKUtilGestureRotation(lua_State *L, id obj) {
     HSUITKUtilGestureRotation *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKUtilGestureRotation *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKUtilGestureRotation *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_ROTATION_TAG);
     lua_setmetatable(L, -2);

@@ -203,7 +203,7 @@ static int tessellator_tessellationPartitionMode(lua_State *L) {
 
     if (lua_gettop(L) == 1) {
         NSArray  *keys   = [PARTITION_MODE allKeysForObject:@(tessellator.tessellationPartitionMode)] ;
-        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %ld", tessellator.tessellationPartitionMode] ;
+        NSString *answer = (keys.count > 0) ? keys[0] : [NSString stringWithFormat:@"*** %lu", tessellator.tessellationPartitionMode] ;
         [skin pushNSObject:answer] ;
     } else {
         NSString *key = [skin toNSObjectAtIndex:2] ;
@@ -251,7 +251,7 @@ static int tessellator_smoothingMode(lua_State *L) {
 static int pushSCNGeometryTessellator(lua_State *L, id obj) {
     SCNGeometryTessellator *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNGeometryTessellator *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNGeometryTessellator *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

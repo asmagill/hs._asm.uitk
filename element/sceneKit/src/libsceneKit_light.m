@@ -828,7 +828,7 @@ static int light_areaPolygonVertices(lua_State *L) {
 static int pushSCNLight(lua_State *L, id obj) {
     SCNLight *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNLight *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNLight *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

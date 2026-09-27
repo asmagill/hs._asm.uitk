@@ -133,7 +133,7 @@ static int switch_state(lua_State *L) {
 static int pushHSUITKElementSwitch(lua_State *L, id obj) {
     HSUITKElementSwitch *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSwitch *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSwitch *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

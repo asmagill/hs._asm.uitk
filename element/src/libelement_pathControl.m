@@ -278,7 +278,7 @@ static int pathControl_placeholder(lua_State *L) {
 static int pushHSUITKElementPathControl(lua_State *L, id obj) {
     HSUITKElementPathControl *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementPathControl *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementPathControl *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

@@ -59,14 +59,12 @@ static void defineInternalDictionaries(void) {
             if (self->_callbackRef != LUA_NOREF) {
                 LuaSkin   *skin = [LuaSkin sharedWithState:NULL] ;
                 lua_State *L    = skin.L ;
-                _lua_stackguard_entry(L);
                 [skin pushLuaRef:refTable ref:self->_callbackRef] ;
                 [skin pushNSObject:colorPanel.color] ;
                 lua_pushboolean(L, isClosing) ;
                 [skin protectedCallAndError:[NSString stringWithFormat:@"%s:callback", USERDATA_TAG]
                                       nargs:2
                                    nresults:0] ;
-                _lua_stackguard_exit(L);
             }
         }) ;
     }
@@ -118,7 +116,7 @@ static int color_mode(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *value = COLORPANEL_MODES[key] ;
         if (value) {
-            colorPanel.mode = [value integerValue] ;
+            colorPanel.mode = (NSColorPanelMode)(value.integerValue) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [COLORPANEL_MODES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }

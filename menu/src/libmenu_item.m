@@ -53,7 +53,7 @@ static void defineInternalDictionaries(void) {
 - (void)setValidateCallback:(int)value ;
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem;
-- (instancetype)copyWithState:(lua_State *)L ;
+// - (instancetype)copyWithState:(lua_State *)L ;
 @end
 
 @implementation NSMenuItem (HammerspoonAdditions)
@@ -74,27 +74,27 @@ static void defineInternalDictionaries(void) {
     return item ;
 }
 
-- (instancetype)copyWithState:(lua_State *)L {
-    NSMenuItem *newItem = [self copy] ;
-    if (newItem) {
-        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-        if (self.callbackRef != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:self.callbackRef] ;
-            newItem.callbackRef = [skin luaRef:refTable] ;
-        } else {
-            newItem.callbackRef = LUA_NOREF ;
-        }
-        if (self.validateCallback != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:self.validateCallback] ;
-            newItem.validateCallback = [skin luaRef:refTable] ;
-        } else {
-            newItem.validateCallback = LUA_NOREF ;
-        }
-        newItem.selfRefCount = 0 ;
-        newItem.target = newItem ;
-    }
-    return newItem ;
-}
+// - (instancetype)copyWithState:(lua_State *)L {
+//     NSMenuItem *newItem = [self copy] ;
+//     if (newItem) {
+//         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//         if (self.callbackRef != LUA_NOREF) {
+//             [skin pushLuaRef:refTable ref:self.callbackRef] ;
+//             newItem.callbackRef = [skin luaRef:refTable] ;
+//         } else {
+//             newItem.callbackRef = LUA_NOREF ;
+//         }
+//         if (self.validateCallback != LUA_NOREF) {
+//             [skin pushLuaRef:refTable ref:self.validateCallback] ;
+//             newItem.validateCallback = [skin luaRef:refTable] ;
+//         } else {
+//             newItem.validateCallback = LUA_NOREF ;
+//         }
+//         newItem.selfRefCount = 0 ;
+//         newItem.target = newItem ;
+//     }
+//     return newItem ;
+// }
 
 - (void)setCallbackRef:(int)value {
     NSNumber *valueWrapper = [NSNumber numberWithInt:value];
@@ -290,7 +290,7 @@ static int menuitem_state(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *state = MENU_ITEM_STATES[key] ;
         if (state) {
-            item.state = [state integerValue] ;
+            item.state = state.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [MENU_ITEM_STATES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -1043,7 +1043,7 @@ static int menuitem_keyEquivalentModifierMask(lua_State *L) {
 //             lua_pushboolean(L, YES) ; lua_setfield(L, -2, "fn") ;
 //         }
     } else {
-        NSEventModifierFlags flags = 0 ; //(NSEventModifierFlags)0 ;
+        NSEventModifierFlags flags = (NSEventModifierFlags)0 ;
         if ((lua_getfield(L, 2, "shift") != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagShift ;
         if ((lua_getfield(L, 2, "ctrl")  != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagControl ;
         if ((lua_getfield(L, 2, "alt")   != LUA_TNIL) && lua_toboolean(L, -1)) flags |= NSEventModifierFlagOption ;
@@ -1195,7 +1195,7 @@ static int pushSpecialCharacters(lua_State *L) {
     c = kEscapeCharCode           ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "escape") ;
     c = kSpaceCharCode            ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "space") ;
 
-    c = 0x232B ;                  ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "delete") ;
+    c = 0x232B                    ; [skin pushNSObject:[NSString stringWithCharacters:&c length:1]] ; lua_setfield(L, -2, "delete") ;
 
 // FIXME: see following comments:
 
@@ -1265,7 +1265,7 @@ static int pushSpecialCharacters(lua_State *L) {
 static int pushNSMenuItem(lua_State *L, id obj) {
     NSMenuItem *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(NSMenuItem *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(NSMenuItem *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

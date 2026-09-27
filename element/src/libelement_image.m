@@ -544,7 +544,7 @@ static int image_imageAlignment(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *type = IMAGE_ALIGNMENTS[key] ;
         if (type) {
-            image.imageAlignment = [type unsignedIntegerValue] ;
+            image.imageAlignment = type.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_ALIGNMENTS.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -590,7 +590,7 @@ static int image_imageFrameStyle(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *type = IMAGE_FRAME_STYLES[key] ;
         if (type) {
-            image.imageFrameStyle = [type unsignedIntegerValue] ;
+            image.imageFrameStyle = type.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_FRAME_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -632,7 +632,7 @@ static int image_imageScaling(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *type = IMAGE_SCALING_TYPES[key] ;
         if (type) {
-            image.imageScaling = [type unsignedIntegerValue] ;
+            image.imageScaling = type.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [IMAGE_SCALING_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -682,7 +682,7 @@ static int image_image(lua_State *L) {
 static int pushHSUITKElementImageViewControl(lua_State *L, id obj) {
     HSUITKElementImageViewControl *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementImageViewControl *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementImageViewControl *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

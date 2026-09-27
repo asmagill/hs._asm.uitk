@@ -773,10 +773,11 @@ static int scroller_contentInsets(lua_State *L) {
             lua_pop(L, 1) ;
         } else {
             switch(lua_gettop(L)) {
-                case 5: if (lua_type(L, 5) == LUA_TNUMBER) newInset.bottom = lua_tonumber(L, 5) ;
-                case 4: if (lua_type(L, 4) == LUA_TNUMBER) newInset.right  = lua_tonumber(L, 4) ;
-                case 3: if (lua_type(L, 3) == LUA_TNUMBER) newInset.left   = lua_tonumber(L, 3) ;
-                case 2: if (lua_type(L, 2) == LUA_TNUMBER) newInset.top    = lua_tonumber(L, 2) ;
+                case 5: if (lua_type(L, 5) == LUA_TNUMBER) newInset.bottom = lua_tonumber(L, 5) ; __attribute__((fallthrough));
+                case 4: if (lua_type(L, 4) == LUA_TNUMBER) newInset.right  = lua_tonumber(L, 4) ; __attribute__((fallthrough));
+                case 3: if (lua_type(L, 3) == LUA_TNUMBER) newInset.left   = lua_tonumber(L, 3) ; __attribute__((fallthrough));
+                case 2: if (lua_type(L, 2) == LUA_TNUMBER) newInset.top    = lua_tonumber(L, 2) ; __attribute__((fallthrough));
+                default: { /* other cases handled by checkArgs: */ }
             }
         }
 
@@ -833,10 +834,11 @@ static int scroller_scrollerInsets(lua_State *L) {
             lua_pop(L, 1) ;
         } else {
             switch(lua_gettop(L)) {
-                case 5: if (lua_type(L, 5) == LUA_TNUMBER) newInset.bottom = lua_tonumber(L, 5) ;
-                case 4: if (lua_type(L, 4) == LUA_TNUMBER) newInset.right  = lua_tonumber(L, 4) ;
-                case 3: if (lua_type(L, 3) == LUA_TNUMBER) newInset.left   = lua_tonumber(L, 3) ;
-                case 2: if (lua_type(L, 2) == LUA_TNUMBER) newInset.top    = lua_tonumber(L, 2) ;
+                case 5: if (lua_type(L, 5) == LUA_TNUMBER) newInset.bottom = lua_tonumber(L, 5) ; __attribute__((fallthrough));
+                case 4: if (lua_type(L, 4) == LUA_TNUMBER) newInset.right  = lua_tonumber(L, 4) ; __attribute__((fallthrough));
+                case 3: if (lua_type(L, 3) == LUA_TNUMBER) newInset.left   = lua_tonumber(L, 3) ; __attribute__((fallthrough));
+                case 2: if (lua_type(L, 2) == LUA_TNUMBER) newInset.top    = lua_tonumber(L, 2) ; __attribute__((fallthrough));
+                default: { /* other cases handled by checkArgs: */ }
             }
         }
 
@@ -967,7 +969,7 @@ static int scroller_scrollRectToVisible(lua_State *L) {
 static int pushHSUITKElementContainerScrollView(lua_State *L, id obj) {
     HSUITKElementContainerScrollView *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementContainerScrollView *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementContainerScrollView *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

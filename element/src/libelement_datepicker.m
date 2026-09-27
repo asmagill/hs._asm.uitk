@@ -12,9 +12,9 @@ static NSDictionary *DATEPICKER_STYLES ;
 
 static void defineInternalDictionaries(void) {
     DATEPICKER_STYLES = @{
-        @"textFieldAndStepper" : @(NSTextFieldAndStepperDatePickerStyle),
-        @"clockAndCalendar"    : @(NSClockAndCalendarDatePickerStyle),
-        @"textField"           : @(NSTextFieldDatePickerStyle),
+        @"textFieldAndStepper" : @(NSDatePickerStyleTextFieldAndStepper),
+        @"clockAndCalendar"    : @(NSDatePickerStyleClockAndCalendar),
+        @"textField"           : @(NSDatePickerStyleTextField),
     } ;
 }
 
@@ -276,9 +276,9 @@ static int datepicker_datePickerMode(lua_State *L) {
     HSUITKElementDatePicker *picker = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        lua_pushboolean(L, (picker.datePickerMode == NSRangeDateMode)) ;
+        lua_pushboolean(L, (picker.datePickerMode == NSDatePickerModeRange)) ;
     } else {
-        picker.datePickerMode = (lua_toboolean(L, 2) ? NSRangeDateMode : NSSingleDateMode) ;
+        picker.datePickerMode = (lua_toboolean(L, 2) ? NSDatePickerModeRange : NSDatePickerModeSingle) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -315,7 +315,7 @@ static int datepicker_datePickerStyle(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *datePickerStyle = DATEPICKER_STYLES[key] ;
         if (datePickerStyle) {
-            picker.datePickerStyle = [datePickerStyle unsignedIntegerValue] ;
+            picker.datePickerStyle = datePickerStyle.unsignedIntegerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [DATEPICKER_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -349,36 +349,36 @@ static int datepicker_datePickerElements(lua_State *L) {
     if (lua_gettop(L) == 1) {
         NSDatePickerElementFlags flags = picker.datePickerElements ;
         lua_newtable(L) ;
-        if ((flags & NSHourMinuteSecondDatePickerElementFlag) == NSHourMinuteSecondDatePickerElementFlag) {
+        if ((flags & NSDatePickerElementFlagHourMinuteSecond) == NSDatePickerElementFlagHourMinuteSecond) {
             lua_pushstring(L, "HMS") ;
-        } else if ((flags & NSHourMinuteDatePickerElementFlag) == NSHourMinuteDatePickerElementFlag) {
+        } else if ((flags & NSDatePickerElementFlagHourMinute) == NSDatePickerElementFlagHourMinute) {
             lua_pushstring(L, "HM") ;
         } else {
             lua_pushstring(L, "off") ;
         }
         lua_setfield(L, -2, "timeElement") ;
 // Per docs, currently does nothing
-//         lua_pushboolean(L, ((flags & NSTimeZoneDatePickerElementFlag) == NSTimeZoneDatePickerElementFlag)) ;
+//         lua_pushboolean(L, ((flags & NSDatePickerElementFlagTimeZone) == NSDatePickerElementFlagTimeZone)) ;
 //         lua_setfield(L, -2, "includeTimeZone") ;
-        if ((flags & NSYearMonthDayDatePickerElementFlag) == NSYearMonthDayDatePickerElementFlag) {
+        if ((flags & NSDatePickerElementFlagYearMonthDay) == NSDatePickerElementFlagYearMonthDay) {
             lua_pushstring(L, "YMD") ;
-        } else if ((flags & NSYearMonthDatePickerElementFlag) == NSYearMonthDatePickerElementFlag) {
+        } else if ((flags & NSDatePickerElementFlagYearMonth) == NSDatePickerElementFlagYearMonth) {
             lua_pushstring(L, "YM") ;
         } else {
             lua_pushstring(L, "off") ;
         }
         lua_setfield(L, -2, "dateElement") ;
 // Per docs, currently does nothing
-//         lua_pushboolean(L, ((flags & NSEraDatePickerElementFlag) == NSEraDatePickerElementFlag)) ;
+//         lua_pushboolean(L, ((flags & NSDatePickerElementFlagEra) == NSDatePickerElementFlagEra)) ;
 //         lua_setfield(L, -2, "includeEra") ;
     } else {
         NSDatePickerElementFlags flags = (NSDatePickerElementFlags)0 ;
         if (lua_getfield(L, 2, "timeElement") == LUA_TSTRING) {
             NSString *value = [skin toNSObjectAtIndex:-1] ;
             if ([value isEqualToString:@"HMS"]) {
-                flags |= NSHourMinuteSecondDatePickerElementFlag ;
+                flags |= NSDatePickerElementFlagHourMinuteSecond ;
             } else if ([value isEqualToString:@"HM"]) {
-                flags |= NSHourMinuteDatePickerElementFlag ;
+                flags |= NSDatePickerElementFlagHourMinute ;
             } else if (![value isEqualToString:@"off"]) {
                 return luaL_argerror(L, 2, "expected HMS, HM, or off for timeElement key") ;
             }
@@ -389,9 +389,9 @@ static int datepicker_datePickerElements(lua_State *L) {
         if (lua_getfield(L, 2, "dateElement") == LUA_TSTRING) {
             NSString *value = [skin toNSObjectAtIndex:-1] ;
             if ([value isEqualToString:@"YMD"]) {
-                flags |= NSYearMonthDayDatePickerElementFlag ;
+                flags |= NSDatePickerElementFlagYearMonthDay ;
             } else if ([value isEqualToString:@"YM"]) {
-                flags |= NSYearMonthDatePickerElementFlag ;
+                flags |= NSDatePickerElementFlagYearMonth ;
             } else if (![value isEqualToString:@"off"]) {
                 return luaL_argerror(L, 2, "expected YMD, YM, or off for dateElement key") ;
             }
@@ -401,13 +401,13 @@ static int datepicker_datePickerElements(lua_State *L) {
         lua_pop(L, 1) ;
 // Per docs, currently does nothing
 //         if (lua_getfield(L, 2, "includeTimeZone") == LUA_TBOOLEAN) {
-//             if (lua_toboolean(L, -1)) flags |= NSTimeZoneDatePickerElementFlag ;
+//             if (lua_toboolean(L, -1)) flags |= NSDatePickerElementFlagTimeZone ;
 //         } else if (lua_type(L, -1) != LUA_TNIL) {
 //             return luaL_argerror(L, 2, "expected boolean value for inclueTimeZone key") ;
 //         }
 //         lua_pop(L, 1) ;
 //         if (lua_getfield(L, 2, "includeEra") == LUA_TBOOLEAN) {
-//             if (lua_toboolean(L, -1)) flags |= NSEraDatePickerElementFlag ;
+//             if (lua_toboolean(L, -1)) flags |= NSDatePickerElementFlagEra ;
 //         } else if (lua_type(L, -1) != LUA_TNIL) {
 //             return luaL_argerror(L, 2, "expected boolean value for includeEra key") ;
 //         }
@@ -484,6 +484,7 @@ static int datepicker_timezone(lua_State *L) {
                 if (!newTimeZone) newTimeZone = [NSTimeZone timeZoneWithAbbreviation:label] ;
                 if (!newTimeZone) return luaL_argerror(L, 2, [[NSString stringWithFormat:@"unrecognized timezone label '%@'", label] UTF8String]) ;
             } break ;
+            default: { /* other types ruled out by checkArgs: above */ }
         }
         picker.timeZone = newTimeZone ;
         lua_pushvalue(L, 1) ;
@@ -720,7 +721,7 @@ static int datepicker_timeZoneNames(lua_State *L) {
 static int pushHSUITKElementDatePicker(lua_State *L, id obj) {
     HSUITKElementDatePicker *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementDatePicker *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementDatePicker *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

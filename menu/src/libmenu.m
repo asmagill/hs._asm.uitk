@@ -13,7 +13,7 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
 }
 
 @interface NSMenuItem (HammerspoonAdditions)
-- (instancetype)copyWithState:(lua_State *)L ;
+// - (instancetype)copyWithState:(lua_State *)L ;
 @end
 
 @interface HSUITKMenu : NSMenu <NSMenuDelegate>
@@ -46,48 +46,48 @@ static inline NSPoint PointWithFlippedYCoordinate(NSPoint thePoint) {
     return self ;
 }
 
-- (instancetype)copyWithState:(lua_State *)L {
-    HSUITKMenu *newMenu = [[HSUITKMenu alloc] initWithTitle:self.title] ;
-    if (newMenu) {
-        LuaSkin *skin = [LuaSkin sharedWithState:L] ;
-
-        if (_callbackRef != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:_callbackRef] ;
-            newMenu.callbackRef = [skin luaRef:refTable] ;
-        }
-        if (_passthroughCallback != LUA_NOREF) {
-            [skin pushLuaRef:refTable ref:_passthroughCallback] ;
-            newMenu.passthroughCallback = [skin luaRef:refTable] ;
-        }
-
-        newMenu.trackOpen                    = _trackOpen ;
-        newMenu.trackClose                   = _trackClose ;
-        newMenu.trackUpdate                  = _trackUpdate ;
-        newMenu.trackHighlight               = _trackHighlight ;
-
-        newMenu.allowsContextMenuPlugIns     = self.allowsContextMenuPlugIns ;
-        newMenu.showsStateColumn             = self.showsStateColumn ;
-        newMenu.minimumWidth                 = self.minimumWidth ;
-        newMenu.title                        = self.title ;
-        newMenu.font                         = self.font ;
-
-        // may implement later, so copy them just in case
-        if (@available(macos 14.0, *)) {
-            newMenu.presentationStyle        = self.presentationStyle ;
-            newMenu.selectionMode            = self.selectionMode ;
-        }
-        newMenu.userInterfaceLayoutDirection = self.userInterfaceLayoutDirection ;
-
-        NSMutableArray *newItemArray = [NSMutableArray arrayWithCapacity:self.itemArray.count] ;
-        for (NSMenuItem *item in self.itemArray) {
-            NSMenuItem *newItem = [item copyWithState:L] ;
-            [newItemArray addObject:newItem] ;
-            [skin luaRetain:refTable forNSObject:newItem] ;
-        }
-        newMenu.itemArray = newItemArray.copy ;
-    }
-    return newMenu ;
-}
+// - (instancetype)copyWithState:(lua_State *)L {
+//     HSUITKMenu *newMenu = [[HSUITKMenu alloc] initWithTitle:self.title] ;
+//     if (newMenu) {
+//         LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+//
+//         if (_callbackRef != LUA_NOREF) {
+//             [skin pushLuaRef:refTable ref:_callbackRef] ;
+//             newMenu.callbackRef = [skin luaRef:refTable] ;
+//         }
+//         if (_passthroughCallback != LUA_NOREF) {
+//             [skin pushLuaRef:refTable ref:_passthroughCallback] ;
+//             newMenu.passthroughCallback = [skin luaRef:refTable] ;
+//         }
+//
+//         newMenu.trackOpen                    = _trackOpen ;
+//         newMenu.trackClose                   = _trackClose ;
+//         newMenu.trackUpdate                  = _trackUpdate ;
+//         newMenu.trackHighlight               = _trackHighlight ;
+//
+//         newMenu.allowsContextMenuPlugIns     = self.allowsContextMenuPlugIns ;
+//         newMenu.showsStateColumn             = self.showsStateColumn ;
+//         newMenu.minimumWidth                 = self.minimumWidth ;
+//         newMenu.title                        = self.title ;
+//         newMenu.font                         = self.font ;
+//
+//         // may implement later, so copy them just in case
+//         if (@available(macos 14.0, *)) {
+//             newMenu.presentationStyle        = self.presentationStyle ;
+//             newMenu.selectionMode            = self.selectionMode ;
+//         }
+//         newMenu.userInterfaceLayoutDirection = self.userInterfaceLayoutDirection ;
+//
+//         NSMutableArray *newItemArray = [NSMutableArray arrayWithCapacity:self.itemArray.count] ;
+//         for (NSMenuItem *item in self.itemArray) {
+//             NSMenuItem *newItem = [item copyWithState:L] ;
+//             [newItemArray addObject:newItem] ;
+//             [skin luaRetain:refTable forNSObject:newItem] ;
+//         }
+//         newMenu.itemArray = newItemArray.copy ;
+//     }
+//     return newMenu ;
+// }
 
 - (void)passCallbackUpWith:(NSArray *)arguments {
     NSMenu *nextMenu = self.supermenu ;
@@ -508,7 +508,7 @@ static int menu_popupMenu(lua_State *L) {
                 }
                 item = [skin toNSObjectAtIndex:itemIdx] ;
                 break ;
-            case LUA_TNUMBER:
+            case LUA_TNUMBER: {
                 if (itemIdx == 3) {
                     [skin checkArgs:LS_TANY, LS_TANY, LS_TNUMBER | LS_TINTEGER, LS_TBREAK] ;
                 } else {
@@ -519,7 +519,7 @@ static int menu_popupMenu(lua_State *L) {
                     return luaL_argerror(L, itemIdx, "index out of bounds") ;
                 }
                 item = [menu itemAtIndex:(idx - 1)] ;
-                break ;
+            } break ;
             default:
                 return luaL_argerror(L, itemIdx, "expected integer index or hs._asm.uitk.menu.item userdata") ;
         }
@@ -529,7 +529,7 @@ static int menu_popupMenu(lua_State *L) {
     // support darkMode for popup menus
     NSRect contentRect = NSMakeRect(location.x, location.y, 0, 0) ;
     NSWindow *tmpWindow = [[NSWindow alloc] initWithContentRect:contentRect
-                                                      styleMask:0
+                                                      styleMask:(NSWindowStyleMask)0
                                                         backing:NSBackingStoreBuffered
                                                           defer:NO] ;
     tmpWindow.releasedWhenClosed = NO ;
@@ -961,7 +961,7 @@ static int menu_performActionForItemAtIndex(lua_State *L) {
 static int pushHSUITKMenu(lua_State *L, id obj) {
     HSUITKMenu *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKMenu *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKMenu *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

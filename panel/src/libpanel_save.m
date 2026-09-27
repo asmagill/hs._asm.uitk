@@ -605,50 +605,39 @@ static int saveOpen_allowedContentTypes(lua_State *L) {
             return luaL_argerror(L, 2, "expected array of strings") ;
         }
     }
-    if (@available(macOS 11, *)) {
-        if (lua_gettop(L) == 1) {
-            NSMutableArray *tags = [NSMutableArray array] ;
-            for (UTType *uti in panel.panel.allowedContentTypes) {
-                NSString *identifier = uti.preferredFilenameExtension ;
-                if (!identifier) identifier = uti.preferredMIMEType ;
-                if (!identifier) identifier = uti.identifier ;
-                [tags addObject:identifier] ;
-            }
-            [skin pushNSObject:tags] ;
-        } else {
-            if (lua_type(L, 2) == LUA_TNIL) newTypes = [NSArray array] ;
-            NSMutableArray *UTITypes = [NSMutableArray array] ;
-            for (NSString *tag in newTypes) {
-                UTType *uti = nil ;
-                if ([tag containsString:@"/"]) {
-                    uti = [UTType typeWithMIMEType:tag] ;
-                } else if ([tag containsString:@"."]) {
-                    uti = [UTType typeWithIdentifier:tag] ;
-                }
-                if (!uti) {
-                    uti = [UTType typeWithFilenameExtension:tag] ;
-                }
-                if (uti) {
-                    [UTITypes addObject:uti] ;
-                } else {
-                    [skin logInfo:[NSString stringWithFormat:@"%s:contentTypes - unable to parse %@ into a recognized type", USERDATA_TAG, tag]] ;
-                }
-            }
-            panel.panel.allowedContentTypes = UTITypes ;
-            lua_pushvalue(L, 1) ;
+
+    if (lua_gettop(L) == 1) {
+        NSMutableArray *tags = [NSMutableArray array] ;
+        for (UTType *uti in panel.panel.allowedContentTypes) {
+            NSString *identifier = uti.preferredFilenameExtension ;
+            if (!identifier) identifier = uti.preferredMIMEType ;
+            if (!identifier) identifier = uti.identifier ;
+            [tags addObject:identifier] ;
         }
+        [skin pushNSObject:tags] ;
     } else {
-        if (lua_gettop(L) == 1) {
-            [skin pushNSObject:panel.panel.allowedFileTypes] ;
-        } else {
-            if (lua_type(L, 2) == LUA_TNIL || newTypes.count == 0) {
-                panel.panel.allowedFileTypes = nil ;
-            } else {
-                panel.panel.allowedFileTypes = newTypes ;
+        if (lua_type(L, 2) == LUA_TNIL) newTypes = [NSArray array] ;
+        NSMutableArray *UTITypes = [NSMutableArray array] ;
+        for (NSString *tag in newTypes) {
+            UTType *uti = nil ;
+            if ([tag containsString:@"/"]) {
+                uti = [UTType typeWithMIMEType:tag] ;
+            } else if ([tag containsString:@"."]) {
+                uti = [UTType typeWithIdentifier:tag] ;
             }
-            lua_pushvalue(L, 1) ;
+            if (!uti) {
+                uti = [UTType typeWithFilenameExtension:tag] ;
+            }
+            if (uti) {
+                [UTITypes addObject:uti] ;
+            } else {
+                [skin logInfo:[NSString stringWithFormat:@"%s:contentTypes - unable to parse %@ into a recognized type", USERDATA_TAG, tag]] ;
+            }
         }
+        panel.panel.allowedContentTypes = UTITypes ;
+        lua_pushvalue(L, 1) ;
     }
+
     return 1 ;
 }
 
@@ -1308,7 +1297,7 @@ static int open_accessoryViewDisclosed(lua_State *L) {
 static int pushHSUITKPanelSave(lua_State *L, id obj) {
     HSUITKPanelSave *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKPanelSave *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKPanelSave *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
@@ -1330,7 +1319,7 @@ static id toHSUITKPanelSave(lua_State *L, int idx) {
 static int pushHSUITKPanelOpen(lua_State *L, id obj) {
     HSUITKPanelOpen *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKPanelOpen *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKPanelOpen *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, UD_OPEN_TAG);
     lua_setmetatable(L, -2);

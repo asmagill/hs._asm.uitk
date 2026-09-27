@@ -43,22 +43,19 @@ static void defineInternalDictionaries(void) {
         } ;
     }
 
-    if (@available(macOS 12, *)) {
-        BACKGROUND_POLICY = @{
-            @"automatic" : @(AVPlayerAudiovisualBackgroundPlaybackPolicyAutomatic),
-            @"continue"  : @(AVPlayerAudiovisualBackgroundPlaybackPolicyContinuesIfPossible),
-            @"pause"     : @(AVPlayerAudiovisualBackgroundPlaybackPolicyPauses),
-        } ;
+    BACKGROUND_POLICY = @{
+        @"automatic" : @(AVPlayerAudiovisualBackgroundPlaybackPolicyAutomatic),
+        @"continue"  : @(AVPlayerAudiovisualBackgroundPlaybackPolicyContinuesIfPossible),
+        @"pause"     : @(AVPlayerAudiovisualBackgroundPlaybackPolicyPauses),
+    } ;
 
-        WAITING_REASON = @{
-            AVPlayerWaitingWhileEvaluatingBufferingRateReason : @"evaluatingBufferingRate",
-            AVPlayerWaitingWithNoItemToPlayReason             : @"noItemToPlay",
-            AVPlayerWaitingToMinimizeStallsReason             : @"minimizingStalls",
-            AVPlayerWaitingDuringInterstitialEventReason      : @"interstitialEvent",
-            AVPlayerWaitingForCoordinatedPlaybackReason       : @"coordinatingPlayback",
-        } ;
-    }
-
+    WAITING_REASON = @{
+        AVPlayerWaitingWhileEvaluatingBufferingRateReason : @"evaluatingBufferingRate",
+        AVPlayerWaitingWithNoItemToPlayReason             : @"noItemToPlay",
+        AVPlayerWaitingToMinimizeStallsReason             : @"minimizingStalls",
+        AVPlayerWaitingDuringInterstitialEventReason      : @"interstitialEvent",
+        AVPlayerWaitingForCoordinatedPlaybackReason       : @"coordinatingPlayback",
+    } ;
 }
 
 @interface NSMenu (assignmentSharing)
@@ -112,9 +109,7 @@ static void defineInternalDictionaries(void) {
         self.showsFullScreenToggleButton = NO ;
         self.actionPopUpButtonMenu       = nil ;
         self.pictureInPictureDelegate    = self ;
-        if (@available(macOS 12, *)) {
-            self.delegate                = self ;
-        }
+        self.delegate                = self ;
 
         self.player                      = [[AVPlayer alloc] init] ;
         self.player.actionAtItemEnd      = AVPlayerActionAtItemEndPause ;
@@ -184,31 +179,29 @@ static void defineInternalDictionaries(void) {
             }
             return ;
         } else if ([keyPath isEqualToString:@"timeControlStatus"]) {
-            if (@available(macOS 12, *)) {
-                if (_trackPlayback) {
-                    NSMutableArray *args = [NSMutableArray arrayWithArray:@[ self, @"playback" ]] ;
-                    switch(self.player.timeControlStatus) {
-                        case AVPlayerTimeControlStatusPaused:
-                            [args addObject:@"paused"] ;
-                            break ;
-                        case AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate:
-                            [args addObject:@"waiting"] ;
-                            break ;
-                        case AVPlayerTimeControlStatusPlaying:
-                            [args addObject:@"playing"] ;
-                            break ;
-                        default:
-                            [args addObjectsFromArray:@[ @"unrecognized", @(self.player.timeControlStatus) ]] ;
-                            break ;
-                    }
-                    NSString *reason = self.player.reasonForWaitingToPlay ;
-                    if (reason) {
-                        NSString *message = WAITING_REASON[reason] ;
-                        if (!message) message = [NSString stringWithFormat:@"unrecognized reason '%@'", reason] ;
-                        [args addObject:message] ;
-                    }
-                    [self callbackHamster:args] ;
+            if (_trackPlayback) {
+                NSMutableArray *args = [NSMutableArray arrayWithArray:@[ self, @"playback" ]] ;
+                switch(self.player.timeControlStatus) {
+                    case AVPlayerTimeControlStatusPaused:
+                        [args addObject:@"paused"] ;
+                        break ;
+                    case AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate:
+                        [args addObject:@"waiting"] ;
+                        break ;
+                    case AVPlayerTimeControlStatusPlaying:
+                        [args addObject:@"playing"] ;
+                        break ;
+                    default:
+                        [args addObjectsFromArray:@[ @"unrecognized", @(self.player.timeControlStatus) ]] ;
+                        break ;
                 }
+                NSString *reason = self.player.reasonForWaitingToPlay ;
+                if (reason) {
+                    NSString *message = WAITING_REASON[reason] ;
+                    if (!message) message = [NSString stringWithFormat:@"unrecognized reason '%@'", reason] ;
+                    [args addObject:message] ;
+                }
+                [self callbackHamster:args] ;
             }
             return ;
         } else {
@@ -337,7 +330,7 @@ static int avplayerview_controlsStyle(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *controlsStyle = CONTROLS_STYLES[key] ;
         if (controlsStyle) {
-            playerView.controlsStyle = [controlsStyle integerValue] ;
+            playerView.controlsStyle = (AVPlayerViewControlsStyle)controlsStyle.integerValue ;
             lua_pushvalue(L, 1) ;
         } else {
             return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [CONTROLS_STYLES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -503,17 +496,9 @@ static int avplayerview_allowsMagnification(lua_State *L) {
     HSUITKElementAVPlayer *playerView = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 13, *)) {
-            lua_pushboolean(L, playerView.allowsMagnification) ;
-        } else {
-            lua_pushboolean(L, false) ;
-        }
+        lua_pushboolean(L, playerView.allowsMagnification) ;
     } else {
-        if (@available(macOS 13, *)) {
-            playerView.allowsMagnification = (BOOL)(lua_toboolean(L, 2)) ;
-        } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:allowMagnification - only supported in macOS 13 and newer", USERDATA_TAG]] ;
-        }
+        playerView.allowsMagnification = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -539,17 +524,9 @@ static int avplayerview_allowsVideoFrameAnalysis(lua_State *L) {
     HSUITKElementAVPlayer *playerView = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 13, *)) {
-            lua_pushboolean(L, playerView.allowsVideoFrameAnalysis) ;
-        } else {
-            lua_pushboolean(L, false) ;
-        }
+        lua_pushboolean(L, playerView.allowsVideoFrameAnalysis) ;
     } else {
-        if (@available(macOS 13, *)) {
-            playerView.allowsVideoFrameAnalysis = (BOOL)(lua_toboolean(L, 2)) ;
-        } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:allowFrameAnalysis - only supported in macOS 13 and newer", USERDATA_TAG]] ;
-        }
+        playerView.allowsVideoFrameAnalysis = (BOOL)(lua_toboolean(L, 2)) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -592,23 +569,15 @@ static int avplayerview_magnification(lua_State *L) {
     HSUITKElementAVPlayer *playerView = [skin toNSObjectAtIndex:1] ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 13, *)) {
-            lua_pushnumber(L, playerView.magnification) ;
-        } else {
-            lua_pushboolean(L, false) ;
-        }
+        lua_pushnumber(L, playerView.magnification) ;
     } else {
         [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TNUMBER, LS_TTABLE | LS_TOPTIONAL, LS_TBREAK] ;
-        if (@available(macOS 13, *)) {
-            CGFloat magnification = lua_tonumber(L, 2) ;
-            if (lua_gettop(L) == 2) {
-                playerView.magnification = magnification ;
-            } else {
-                NSPoint centerOn = [skin tableToPointAtIndex:3] ;
-                [playerView setMagnification:magnification centeredAtPoint:centerOn] ;
-            }
+        CGFloat magnification = lua_tonumber(L, 2) ;
+        if (lua_gettop(L) == 2) {
+            playerView.magnification = magnification ;
         } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:magnification - only supported in macOS 13 and newer", USERDATA_TAG]] ;
+            NSPoint centerOn = [skin tableToPointAtIndex:3] ;
+            [playerView setMagnification:magnification centeredAtPoint:centerOn] ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -667,7 +636,7 @@ static int avplayerview_videoFrameAnalysisTypes(lua_State *L) {
             NSString *key = [skin toNSObjectAtIndex:2] ;
             NSNumber *number = ANALYSIS_TYPES[key] ;
             if (number) {
-                playerView.videoFrameAnalysisTypes = [number unsignedIntegerValue] ;
+                playerView.videoFrameAnalysisTypes = (AVVideoFrameAnalysisType)number.unsignedIntegerValue ;
                 lua_pushvalue(L, 1) ;
             } else {
                 return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [ANALYSIS_TYPES.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -1060,27 +1029,19 @@ static int avplayer_trackPlayback(lua_State *L) {
     AVPlayer              *player     = playerView.player ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 12, *)) {
-            lua_pushboolean(L, playerView.trackPlayback) ;
-        } else {
-            lua_pushnil(L) ;
-        }
+        lua_pushboolean(L, playerView.trackPlayback) ;
     } else {
-        if (@available(macOS 12, *)) {
-            if (playerView.trackPlayback) {
-                [player removeObserver:playerView forKeyPath:@"timeControlStatus" context:myKVOContext] ;
-            }
+        if (playerView.trackPlayback) {
+            [player removeObserver:playerView forKeyPath:@"timeControlStatus" context:myKVOContext] ;
+        }
 
-            playerView.trackPlayback = (BOOL)(lua_toboolean(L, 2)) ;
+        playerView.trackPlayback = (BOOL)(lua_toboolean(L, 2)) ;
 
-            if (playerView.trackPlayback) {
-                [player addObserver:playerView
-                         forKeyPath:@"timeControlStatus"
-                            options:NSKeyValueObservingOptionNew
-                            context:myKVOContext] ;
-            }
-        } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:trackPlayback - only supported in macOS 12 and newer", USERDATA_TAG]] ;
+        if (playerView.trackPlayback) {
+            [player addObserver:playerView
+                     forKeyPath:@"timeControlStatus"
+                        options:NSKeyValueObservingOptionNew
+                        context:myKVOContext] ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -1155,17 +1116,9 @@ static int avplayer_defaultRate(lua_State *L) {
     AVPlayer              *player     = playerView.player ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 13, *)) {
-            lua_pushnumber(L, (lua_Number)player.defaultRate) ;
-        } else {
-            lua_pushnil(L) ;
-        }
+        lua_pushnumber(L, (lua_Number)player.defaultRate) ;
     } else {
-        if (@available(macOS 13, *)) {
-            player.defaultRate = (float)lua_tonumber(L, 2) ;
-        } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:defaultRate - only supported in macOS 13 and newer", USERDATA_TAG]] ;
-        }
+        player.defaultRate = (float)lua_tonumber(L, 2) ;
         lua_pushvalue(L, 1) ;
     }
     return 1 ;
@@ -1178,30 +1131,22 @@ static int avplayer_audiovisualBackgroundPlaybackPolicy(lua_State *L) {
     AVPlayer              *player     = playerView.player ;
 
     if (lua_gettop(L) == 1) {
-        if (@available(macOS 12, *)) {
-            NSNumber *value = @(player.audiovisualBackgroundPlaybackPolicy) ;
-            NSArray *temp = [BACKGROUND_POLICY allKeysForObject:value];
-            NSString *answer = [temp firstObject] ;
-            if (answer) {
-                [skin pushNSObject:answer] ;
-            } else {
-                [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized background policy %@ -- notify developers", USERDATA_TAG, value]] ;
-                lua_pushnil(L) ;
-            }
+        NSNumber *value = @(player.audiovisualBackgroundPlaybackPolicy) ;
+        NSArray *temp = [BACKGROUND_POLICY allKeysForObject:value];
+        NSString *answer = [temp firstObject] ;
+        if (answer) {
+            [skin pushNSObject:answer] ;
         } else {
+            [skin logWarn:[NSString stringWithFormat:@"%s:unrecognized background policy %@ -- notify developers", USERDATA_TAG, value]] ;
             lua_pushnil(L) ;
         }
     } else {
-        if (@available(macOS 12, *)) {
-            NSString *key = [skin toNSObjectAtIndex:2] ;
-            NSNumber *value = BACKGROUND_POLICY[key] ;
-            if (value) {
-                player.audiovisualBackgroundPlaybackPolicy = [value integerValue] ;
-            } else {
-                return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [BACKGROUND_POLICY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
-            }
+        NSString *key = [skin toNSObjectAtIndex:2] ;
+        NSNumber *value = BACKGROUND_POLICY[key] ;
+        if (value) {
+            player.audiovisualBackgroundPlaybackPolicy = (AVPlayerAudiovisualBackgroundPlaybackPolicy)value.integerValue ;
         } else {
-            [skin logInfo:[NSString stringWithFormat:@"%s:backgroundPolicy - only supported in macOS 12 and newer", USERDATA_TAG]] ;
+            return luaL_argerror(L, 2, [[NSString stringWithFormat:@"must be one of %@", [BACKGROUND_POLICY.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
         lua_pushvalue(L, 1) ;
     }
@@ -1560,7 +1505,7 @@ static int avplayeritem_seekToTime(lua_State *L) {
 static int pushHSUITKElementAVPlayer(lua_State *L, id obj) {
     HSUITKElementAVPlayer *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementAVPlayer *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementAVPlayer *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

@@ -155,7 +155,7 @@ static int sphere_geodesic(lua_State *L) {
 static int pushSCNSphere(lua_State *L, id obj) {
     SCNSphere *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNSphere *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNSphere *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

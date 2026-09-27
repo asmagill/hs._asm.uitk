@@ -184,7 +184,7 @@ static int constraint_gimbalLockEnabled(lua_State *L) {
 static int pushSCNLookAtConstraint(lua_State *L, id obj) {
     SCNLookAtConstraint *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(SCNLookAtConstraint *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(SCNLookAtConstraint *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

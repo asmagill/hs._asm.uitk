@@ -72,7 +72,7 @@ moduleMT.__newindex = function(self, key, value)
     local idx = (math.type(key) == "integer") and key or nil
 
     if idx then
-       if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
+        if idx < 1 or idx > #self + 1 then error("index out of bounds", 3) end
 
         if getmetatable(value) == itemMT then value = { _self = value } end
 

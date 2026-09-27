@@ -12,20 +12,12 @@ static NSDictionary *PROGRESS_SIZE ;
 #pragma mark - Support Functions and Classes -
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 11, *)) {
-        PROGRESS_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-            @"large"   : @(NSControlSizeLarge),
-        } ;
-    } else {
-        PROGRESS_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-        } ;
-    }
+    PROGRESS_SIZE = @{
+        @"regular" : @(NSControlSizeRegular),
+        @"small"   : @(NSControlSizeSmall),
+        @"mini"    : @(NSControlSizeMini),
+        @"large"   : @(NSControlSizeLarge),
+    } ;
 }
 
 @interface HSUITKElementProgress : NSProgressIndicator
@@ -428,7 +420,7 @@ static int progress_controlSize(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *controlSize = PROGRESS_SIZE[key] ;
         if (controlSize) {
-            progress.controlSize = [controlSize unsignedIntegerValue] ;
+            progress.controlSize = controlSize.unsignedIntegerValue ;
             [progress sizeToFit] ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [PROGRESS_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
@@ -494,7 +486,7 @@ static int progress_customColor(lua_State *L) {
 static int pushHSUITKElementProgress(lua_State *L, id obj) {
     HSUITKElementProgress *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementProgress *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementProgress *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

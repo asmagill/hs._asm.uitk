@@ -43,6 +43,7 @@ local subModules = {
     table    = true,
     tabs     = true,
     split    = true,
+    stack    = true,
 }
 
 -- set up preload for elements so that when they are loaded, the methods from _control and/or
@@ -133,6 +134,8 @@ moduleMT.__newindex = function(self, key, value)
                 if self:element(idx + 1) then self:remove(idx + 1) end
                 element._properties = value
                 return
+            else
+                error("value does not specify an element", 3)
             end
         -- remove element
         elseif type(value) == "nil" then
@@ -194,7 +197,7 @@ end
 ---  * the container object
 ---
 --- Notes:
----  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:removeFromGroup()`
+---  * This method is wrapped so that elements which are assigned to a container can access this method as `hs._asm.uitk.element:removeFromParent()`
 local originalRemove = moduleMT.remove
 moduleMT.remove = function(self, ...)
     local args = { ... }
@@ -235,30 +238,29 @@ moduleMT.elementID = function(self, element, ...)
 end
 
 
-module.suppressZeroSizeWarnings = function(...)
-    local args = table.pack(...)
-
-    if args.n == 1 then
-        if type(args[1]) == "boolean" or type(args[1]) == "nil" then
-            settings.set("uitk_containerSuppressZeroWarnings", args[1])
-        else
-            error(string.format("incorrect type '%s' for argument 1 (expected boolean or nil)", type(args[1])), 3)
-        end
-    elseif args.n > 1 then
-        error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
-    end
-
-    return settings.get("uitk_containerSuppressZeroWarnings")
-end
+-- module.suppressZeroSizeWarnings = function(...)
+--     local args = table.pack(...)
+--
+--     if args.n == 1 then
+--         if type(args[1]) == "boolean" or type(args[1]) == "nil" then
+--             settings.set("uitk_containerSuppressZeroWarnings", args[1])
+--         else
+--             error(string.format("incorrect type '%s' for argument 1 (expected boolean or nil)", type(args[1])), 3)
+--         end
+--     elseif args.n > 1 then
+--         error(string.format("incorrect number of arguments. Expected 1, got %d", args.n), 3)
+--     end
+--
+--     return settings.get("uitk_containerSuppressZeroWarnings")
+-- end
 
 -- Return Module Object --------------------------------------------------
 
 -- since we can be a nextResponder, we can provide additional methods to our children
 moduleMT._inheritableMethods = {
-    containerFrame  = moduleMT.elementFrame,
-    position        = moduleMT.positionElement,
-    id              = moduleMT.elementID,
-    removeFromGroup = moduleMT.remove,
+    containerFrame   = moduleMT.elementFrame,
+    id               = moduleMT.elementID,
+    removeFromParent = moduleMT.remove,
 }
 
 moduleMT._inheritableProperties = { "containerFrame", "id" }

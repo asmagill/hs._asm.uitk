@@ -44,16 +44,16 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 
 --- hs._asm.uitk.element.button.radioButtonSet(...) -> containerObject
 --- Constructor
---- Creates an `hs._asm.uitk.element.container` object which can be used as an element containing a set of radio buttons with labels defined by the specified title strings.
+--- Creates an `hs._asm.uitk.element.container.stack` object which can be used as an element containing a set of radio buttons with labels defined by the specified title strings.
 ---
 --- Parameters:
 ---  `...` - a single table of strings, or list of strings separated by commas, specifying the labels to assign to the radion buttons in the set.
 ---
 --- Returns:
----  * a new containerObject which can be used as an element to another `hs._asm.uitk.element.container` or assigned to an `hs._asm.uitk.window` directly.
+---  * a new vertical stackObject which can be used as an element to another `hs._asm.uitk.element.container` or assigned to an `hs._asm.uitk.window` directly.
 ---
 --- Notes:
----  * Radio buttons in the same view (container) are treated as related and only one can be selected at a time. By grouping radio button sets in separate containers, these independant containers can be assigned to a parent container and each set will be seen as independent -- each set can have a selected item independent of the other radio sets which may also be displayed in the parent.
+---  * Radio buttons in the same container element (members of the stack in this case) are treated as related and only one can be selected at a time. By grouping radio button sets in separate containers, each set can be assigned to the same parent container and will be seen as independent -- each set can have a selected item independent of the other radio sets which may also be displayed in the parent.
 ---
 ---  * For example:
 --- ~~~ lua
@@ -62,10 +62,12 @@ local module       = require(table.concat({ USERDATA_TAG:match("^([%w%._]+%.)[%w
 ---     m = w:container()
 ---     m[1] = uitk.element.button.radioButtonSet(1, 2, 3, 4)
 ---     m[2] = uitk.element.button.radioButtonSet{"abc", "d", "efghijklmn"}
----     m(2):position("after", m(1), 10, "center")
+---     m[2]:position("after", m[1], 10, "center")
 --- ~~~
 ---
---- See [hs._asm.uitk.element.button.radioButton](#radioButton) for more details.
+---   See [hs._asm.uitk.element.button.radioButton](#radioButton) for more details.
+---
+--- * See `hs._asm.uitk.element.container.stack` for details on how to adjust the spacing and other properties of the returned stack.
 module.radioButtonSet = function(...)
     local args = table.pack(...)
     if args.n == 1 and type(args[1]) == "table" then
@@ -74,12 +76,13 @@ module.radioButtonSet = function(...)
     end
 
     if args.n > 0 then
-        local container = require(USERDATA_TAG:gsub("%.button", ".container"))
-        local result    = container.new()
+        local stack  = require(USERDATA_TAG:gsub("%.button", ".container.stack"))
+        local result = stack.new():orientation("vertical")
+                                  :alignment("leading")
         for i,v in ipairs(args) do
             result[i] = module.radioButton(tostring(v))
         end
-        result:sizeToFit()
+--         result:sizeToFit()
         return result
     else
         error("expected a table of strings")

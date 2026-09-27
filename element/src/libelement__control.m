@@ -45,20 +45,12 @@ BOOL oneOfOurControlObjects(NSControl *obj) {
 }
 
 static void defineInternalDictionaries(void) {
-    if (@available(macOS 11, *)) {
-        CONTROL_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-            @"large"   : @(NSControlSizeLarge),
-        } ;
-    } else {
-        CONTROL_SIZE = @{
-            @"regular" : @(NSControlSizeRegular),
-            @"small"   : @(NSControlSizeSmall),
-            @"mini"    : @(NSControlSizeMini),
-        } ;
-    }
+    CONTROL_SIZE = @{
+        @"regular" : @(NSControlSizeRegular),
+        @"small"   : @(NSControlSizeSmall),
+        @"mini"    : @(NSControlSizeMini),
+        @"large"   : @(NSControlSizeLarge),
+    } ;
 
     TEXT_ALIGNMENT = @{
         @"left"      : @(NSTextAlignmentLeft),
@@ -106,7 +98,7 @@ static int control_textAlignment(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *alignment = TEXT_ALIGNMENT[key] ;
         if (alignment) {
-            control.alignment = (NSTextAlignment)[alignment unsignedIntegerValue] ;
+            control.alignment = (NSTextAlignment)alignment.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TEXT_ALIGNMENT.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
@@ -153,7 +145,7 @@ static int control_controlSize(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *controlSize = CONTROL_SIZE[key] ;
         if (controlSize) {
-            control.controlSize = [controlSize unsignedIntegerValue] ;
+            control.controlSize = (NSControlSize)controlSize.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [CONTROL_SIZE.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }
@@ -312,7 +304,7 @@ static int control_lineBreakMode(lua_State *L) {
         NSString *key = [skin toNSObjectAtIndex:2] ;
         NSNumber *lineBreakMode = TEXT_LINEBREAK[key] ;
         if (lineBreakMode) {
-            control.lineBreakMode = [lineBreakMode unsignedIntegerValue] ;
+            control.lineBreakMode = (NSLineBreakMode)lineBreakMode.unsignedIntegerValue ;
         } else {
             return luaL_argerror(L, 1, [[NSString stringWithFormat:@"must be one of %@", [TEXT_LINEBREAK.allKeys componentsJoinedByString:@", "]] UTF8String]) ;
         }

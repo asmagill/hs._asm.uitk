@@ -321,11 +321,7 @@ static int searchField_cancelButtonBounds(lua_State *L) {
     LuaSkin *skin = [LuaSkin sharedWithState:L] ;
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSearchField *field = [skin toNSObjectAtIndex:1] ;
-    if (@available(macOS 11, *)) {
-        [skin pushNSRect:[field convertRect:field.cancelButtonBounds toView:field.superview]] ;
-    } else {
-        lua_pushnil(L) ;
-    }
+    [skin pushNSRect:[field convertRect:field.cancelButtonBounds toView:field.superview]] ;
     return 1 ;
 }
 
@@ -334,11 +330,7 @@ static int searchField_searchButtonBounds(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSearchField *field = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 11, *)) {
-        [skin pushNSRect:[field convertRect:field.searchButtonBounds toView:field.superview]] ;
-    } else {
-        lua_pushnil(L) ;
-    }
+    [skin pushNSRect:[field convertRect:field.searchButtonBounds toView:field.superview]] ;
     return 1 ;
 }
 
@@ -347,11 +339,7 @@ static int searchField_searchTextBounds(lua_State *L) {
     [skin checkArgs:LS_TUSERDATA, USERDATA_TAG, LS_TBREAK] ;
     HSUITKElementSearchField *field = [skin toNSObjectAtIndex:1] ;
 
-    if (@available(macOS 11, *)) {
-        [skin pushNSRect:[field convertRect:field.searchTextBounds toView:field.superview]] ;
-    } else {
-        lua_pushnil(L) ;
-    }
+    [skin pushNSRect:[field convertRect:field.searchTextBounds toView:field.superview]] ;
     return 1 ;
 }
 
@@ -375,7 +363,7 @@ static int searchField_menuConstants(lua_State *L) {
 static int pushHSUITKElementSearchField(lua_State *L, id obj) {
     HSUITKElementSearchField *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementSearchField *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementSearchField *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);

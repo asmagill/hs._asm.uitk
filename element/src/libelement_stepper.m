@@ -194,7 +194,7 @@ static int stepper_valueWraps(lua_State *L) {
 static int pushHSUITKElementStepper(lua_State *L, id obj) {
     HSUITKElementStepper *value = obj;
     value.selfRefCount++ ;
-    void** valuePtr = lua_newuserdata(L, sizeof(HSUITKElementStepper *));
+    void** valuePtr = (void **)(lua_newuserdata(L, sizeof(HSUITKElementStepper *)));
     *valuePtr = (__bridge_retained void *)value;
     luaL_getmetatable(L, USERDATA_TAG);
     lua_setmetatable(L, -2);
