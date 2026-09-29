@@ -260,6 +260,7 @@ end
 moduleMT._inheritableMethods = {
     containerFrame   = moduleMT.elementFrame,
     id               = moduleMT.elementID,
+    position         = moduleMT.positionElement,
     removeFromParent = moduleMT.remove,
 }
 
