@@ -12,6 +12,9 @@ static LSRefTable         refTable     = LUA_NOREF ;
 
 #pragma mark - Support Functions and Classes -
 
+// static void defineInternalDictionaries(void) {
+// }
+
 @interface HSUITKElementContainerView : NSView <NSDraggingDestination>
 @property            int        selfRefCount ;
 @property (readonly) LSRefTable refTable ;
@@ -1138,6 +1141,130 @@ static int container_elementFrame(lua_State *L) {
     return 1 ;
 }
 
+/// hs._asm.uitk.element.container:positionElement(element1, where, element2, [offset], [align]) -> containerObject
+/// Method
+/// Moves element1 above element2 in the container.
+///
+/// Parameters:
+///  * `element1` - the element userdata to adjust the `x` and `y` coordinates of
+///  * `where`    - a string specifying where the element1 is to be moved to in relation to element2. The string must be one of the following:
+///    * "above"  - element1 should be moved above element2
+///    * "below"  - element1 should be moved below element2
+///    * "before" - element1 should be moved to the left of element2
+///    * "after"  - element1 should be moved to the right of element2
+///  * `element2` - the element userdata to anchor element1 to
+///  * `offset`   - a number, default 0.0, specifying the space between element1 and element2 in their new relationship
+///  * `align`    - a string, default "center", specifying how element1 should be aligned along the shared edge with element2. The string must be one of the following:
+///    * "start"  - element1 will be aligned at the beginning of the shared edge.
+///    * "center" - element1 will be centered along the shared edge.
+///    * "end"    - element1 will be aligned at the end of the shared edge.
+///
+/// Returns:
+///  * the container object
+///
+/// Notes:
+///  * This method will set the `x` and `y` fields of `frameDetails` for the element.  See [hs._asm.uitk.element.container:elementFrame](#elementFrame) for the effect of this on other frame details.
+///
+///  * this method moves element1 in relation to element2's current position -- moving element2 at a later point will not cause element1 to follow
+///  * this method will not adjust the postion of any other element which may already be at the new position for element1
+static int container_moveElement(lua_State *L) {
+    LuaSkin *skin = [LuaSkin sharedWithState:L] ;
+    [skin checkArgs:LS_TUSERDATA, USERDATA_TAG,
+                    LS_TANY,
+                    LS_TSTRING,
+                    LS_TANY,
+                    LS_TNUMBER | LS_TSTRING | LS_TOPTIONAL,
+                    LS_TSTRING | LS_TOPTIONAL,
+                    LS_TBREAK] ;
+    HSUITKElementContainerView *container = [skin toNSObjectAtIndex:1] ;
+    NSView             *element1 = (lua_type(L, 2) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:2] : nil ;
+    NSView             *element2 = (lua_type(L, 4) == LUA_TUSERDATA) ? [skin toNSObjectAtIndex:4] : nil ;
+    NSString           *where    = [skin toNSObjectAtIndex:3] ;
+    CGFloat            padding   = ((lua_gettop(L) > 4) && (lua_type(L, 5) == LUA_TNUMBER)) ? lua_tonumber(L, 5) : 0.0 ;
+    NSString           *align    = (lua_type(L, -1) == LUA_TSTRING) ? [skin toNSObjectAtIndex:-1] : @"center" ;
+
+    if (!element1 || !oneOfOurElementObjects(element1)) {
+        return luaL_argerror(L, 2, "expected userdata representing a uitk element") ;
+    }
+    if (![container.subviews containsObject:element1]) {
+        return luaL_argerror(L, 2, "element not managed by this container element") ;
+    }
+
+    if (!element2 || !oneOfOurElementObjects(element2)) {
+        return luaL_argerror(L, 4, "expected userdata representing a uitk element") ;
+    }
+    if (![container.subviews containsObject:element2]) {
+        return luaL_argerror(L, 4, "element not managed by this container element") ;
+    }
+
+    NSRect elementFrame = element1.frame ;
+    NSRect anchorFrame  = element2.frame ;
+
+    int alignment = 0 ;
+    if ([align isEqualToString:@"start"]) {
+        alignment = -1 ;
+    } else if ([align isEqualToString:@"center"]) {
+        alignment = 0 ;
+    } else if ([align isEqualToString:@"end"]) {
+        alignment = 1 ;
+    } else {
+        return luaL_argerror(L, lua_gettop(L), "expected start, center, or end") ;
+    }
+
+    if ([where isEqualToString:@"above"] || [where isEqualToString:@"below"]) {
+        if ([where isEqualToString:@"above"]) {
+            elementFrame.origin.y = anchorFrame.origin.y - (elementFrame.size.height + padding) ;
+        } else {
+            elementFrame.origin.y = anchorFrame.origin.y + (anchorFrame.size.height + padding) ;
+        }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch-default"
+        switch(alignment) {
+            case -1:
+                elementFrame.origin.x = anchorFrame.origin.x ;
+                break ;
+            case  0:
+                elementFrame.origin.x = anchorFrame.origin.x + (anchorFrame.size.width - elementFrame.size.width) / 2 ;
+                break ;
+            case  1:
+                elementFrame.origin.x = anchorFrame.origin.x + anchorFrame.size.width - elementFrame.size.width ;
+                break ;
+        }
+#pragma clang diagnostic pop
+    } else if ([where isEqualToString:@"before"] || [where isEqualToString:@"after"]) {
+        if ([where isEqualToString:@"before"]) {
+            elementFrame.origin.x = anchorFrame.origin.x - (elementFrame.size.width + padding) ;
+        } else {
+            elementFrame.origin.x = anchorFrame.origin.x + (anchorFrame.size.width + padding) ;
+        }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch-default"
+        switch(alignment) {
+            case -1:
+                elementFrame.origin.y = anchorFrame.origin.y ;
+                break ;
+            case  0:
+                elementFrame.origin.y = anchorFrame.origin.y + (anchorFrame.size.height - elementFrame.size.height) / 2 ;
+                break ;
+            case  1:
+                elementFrame.origin.y = anchorFrame.origin.y + anchorFrame.size.height - elementFrame.size.height ;
+                break ;
+        }
+#pragma clang diagnostic pop
+    } else {
+        return luaL_argerror(L, 3, "expected above, below, before, or after") ;
+    }
+
+    adjustElementDetailsTable(L, container, element1, @{
+        @"x" : @(elementFrame.origin.x),
+        @"y" : @(elementFrame.origin.y)
+    }) ;
+
+    container.needsDisplay = YES ;
+    lua_pushvalue(L, 1) ;
+    return 1 ;
+}
+
 #pragma mark - Module Constants -
 
 #pragma mark - Lua<->NSObject Conversion Functions -
@@ -1227,6 +1354,7 @@ static const luaL_Reg userdata_metaLib[] = {
     {"elementFittingSize",  container_elementFittingSize},
 
     {"elementFrame",        container_elementFrame},
+    {"positionElement",     container_moveElement},
 
     {"_debugFrames",        container__debugFrames},
 
@@ -1249,6 +1377,8 @@ int luaopen_hs__asm_uitk_element_libcontainer(lua_State* L) {
                                      functions:moduleLib
                                  metaFunctions:nil
                                objectFunctions:userdata_metaLib];
+
+//     defineInternalDictionaries() ;
 
     [skin registerPushNSHelper:pushHSUITKElementContainerView  forClass:"HSUITKElementContainerView"];
     [skin registerLuaObjectHelper:toHSUITKElementContainerView forClass:"HSUITKElementContainerView"
